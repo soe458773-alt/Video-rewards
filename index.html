@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Search & Reward App</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary-pink: #ff69b4;
+            --hover-pink: #ff85c0;
+            --text-main: #ffffff;
+            --text-secondary: #b0b0b0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
+            border: 1px solid rgba(255, 105, 180, 0.2);
+        }
+
+        /* Header & Coin Balance */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-pink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .coin-badge {
+            background: rgba(255, 105, 180, 0.1);
+            border: 1px solid var(--primary-pink);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: bold;
+            color: var(--primary-pink);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        /* Search Box */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            padding: 12px 15px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
+        }
+
+        .search-box button {
+            background: var(--primary-pink);
+            color: #121212;
+            border: none;
+            padding: 0 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .search-box button:hover {
+            background: var(--hover-pink);
+        }
+
+        /* Video Player Section */
+        .player-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
+
+        .player-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Reward Status Card */
+        .reward-card {
+            background: rgba(255, 105, 180, 0.05);
+            border: 1px dashed var(--primary-pink);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .reward-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--primary-pink);
+            transition: width 1s linear;
+        }
+
+        .claim-btn {
+            background: var(--primary-pink);
+            color: #121212;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            margin: 0 auto;
+            transition: 0.3s;
+        }
+
+        .claim-btn:hover {
+            background: var(--hover-pink);
+        }
+
+        /* Video Search Results List */
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .video-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #252525;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .video-item:hover {
+            border-color: var(--primary-pink);
+            background: #2a2a2a;
+        }
+
+        .video-item img {
+            width: 80px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .video-info h4 {
+            font-size: 13px;
+            color: #fff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Ad Overlay Modal (20s Ad with Link) */
+        #adModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .ad-content {
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+            border: 2px solid var(--primary-pink);
+        }
+
+        .ad-content h3 {
+            color: var(--primary-pink);
+            margin-bottom: 10px;
+        }
+
+        .ad-content p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .ad-link-btn {
+            display: inline-block;
+            background: var(--primary-pink);
+            color: #121212;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        .ad-link-btn:hover {
+            background: var(--hover-pink);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="app-title">
+                <i class="fa-brands fa-youtube" style="color: #ff0000; font-size: 22px;"></i> Watch & Earn
+            </div>
+            <div class="coin-badge">
+                <i class="fa-solid fa-coins"></i> <span id="coinBalance">120</span> Coins
+            </div>
+        </div>
+
+        <!-- Search Input -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို ရှာရန်..." onkeypress="handleSearchKey(event)">
+            <button onclick="searchYouTubeVideos()"><i class="fa-solid fa-search"></i></button>
+        </div>
+
+        <!-- Video Player -->
+        <div class="player-wrapper">
+            <iframe id="ytPlayer" src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
+        </div>
+
+        <!-- Reward Progress (100 Seconds) -->
+        <div class="reward-card">
+            <p id="rewardStatus">ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button class="claim-btn" id="claimBtn" onclick="startAdAndClaim()">🎁 Coin ရယူရန် (Ads ကြည့်မည်)</button>
+        </div>
+
+        <!-- Video List Results -->
+        <div class="section-label">ရှာဖွေတွေ့ရှိသော ဗီဒီယိုများ</div>
+        <div class="video-list" id="videoList">
+            <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
+                <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
+                <div class="video-info">
+                    <h4>Sample Video - Start watching to earn coins!</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ad Overlay Modal -->
+    <div id="adModal">
+        <div class="ad-content">
+            <h3>📢 ကြော်ငြာကြည့်ရှုရန်</h3>
+            <p>ကျေးဇူးပြု၍ အောက်ပါ ကြော်ငြာလင့်ခ်ကို နှိပ်ပြီး ဝင်ရောက်ကြည့်ရှုပါ</p>
+            <!-- Adsterra Direct Link -->
+            <a href="https://idealistic-revenue.com/2SodzC" target="_blank" class="ad-link-btn" onclick="openAdLink()">🔗 ကြော်ငြာလင့်ခ်သို့ သွားရန်</a>
+            <p>Coin ရရန် ကျန်ရှိသောအချိန်: <span id="adTimer" style="color: var(--primary-pink); font-weight: bold; font-size: 18px;">20</span> စက္ကန့်</p>
+            <div style="font-size: 12px; color: #777;">(အချိန်ပြည့်ပါက Coin အလိုအလျောက် ဝင်ပါမည်)</div>
+        </div>
+    </div>
+
+    <script>
+        let currentCoins = 120;
+        let secondsPassed = 0;
+        let timerInterval = null;
+        let currentVideoId = 'tXkh5pvP-zo';
+
+        // Enter ခလုတ်နှိပ်ရင် ရှာလို့ရအောင်
+        function handleSearchKey(event) {
+            if (event.key === 'Enter') {
+                searchYouTubeVideos();
+            }
+        }
+
+        // YouTube Search (API Key ထည့်သုံးရန် သို့မဟုတ် Demo Results ပြရန်)
+        async function searchYouTubeVideos() {
+            const query = document.getElementById('searchInput').value.trim();
+            if(!query) return;
+
+            const apiKey = 'YOUR_YOUTUBE_API_KEY'; // ကိုယ့်ရဲ့ API Key ထည့်ရန် (မရှိရင်အောက်က Demo ပြမယ်)
+
+            if(apiKey === 'YOUR_YOUTUBE_API_KEY') {
+                displayMockResults(query);
+                return;
+            }
+
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${apiKey}&type=video&maxResults=10`;
+
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                let listContainer = document.getElementById('videoList');
+                listContainer.innerHTML = '';
+
+                if(data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        let videoId = item.id.videoId;
+                        let title = item.snippet.title;
+                        let thumb = item.snippet.thumbnails.medium.url;
+
+                        listContainer.innerHTML += `
+                            <div class="video-item" onclick="playVideo('${videoId}')">
+                                <img src="${thumb}" alt="Thumb">
+                                <div class="video-info">
+                                    <h4>${title}</h4>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    listContainer.innerHTML = `<div style="padding: 10px; text-align: center; color: #b0b0b0; font-size: 13px;">ဗီဒီယို မတွေ့ပါ။</div>`;
+                }
+            } catch (err) {
+                console.error(err);
+                displayMockResults(query);
+            }
+        }
+
+        // Demo Results (API Key မရှိသေးချိန် ရှာရတာလွယ်အောင်)
+        function displayMockResults(query) {
+            let listContainer = document.getElementById('videoList');
+            listContainer.innerHTML = `
+                <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
+                    <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
+                    <div class="video-info">
+                        <h4>${query} - Result 1 (Click to Play)</h4>
+                    </div>
+                </div>
+                <div class="video-item" onclick="playVideo('4kULdbyVPLk')">
+                    <img src="https://img.youtube.com/vi/4kULdbyVPLk/hqdefault.jpg" alt="Thumb">
+                    <div class="video-info">
+                        <h4>${query} - Result 2 (Click to Play)</h4>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ဗီဒီယိုပြောင်းဖွင့်ရန်
+        function playVideo(videoId) {
+            currentVideoId = videoId;
+            const iframe = document.getElementById('ytPlayer');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            resetRewardTimer();
+        }
+
+        // ၁၀၀ စက္ကန့် Timer စနစ်
+        function startRewardTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsPassed++;
+                let percent = (secondsPassed / 100) * 100;
+                if(percent > 100) percent = 100;
+
+                let timerCountEl = document.getElementById('timerCount');
+                let progressFillEl = document.getElementById('progressFill');
+                
+                if(timerCountEl) timerCountEl.innerText = secondsPassed;
+                if(progressFillEl) progressFillEl.style.width = percent + '%';
+
+                if (secondsPassed >= 100) {
+                    clearInterval(timerInterval);
+                    let rewardStatusEl = document.getElementById('rewardStatus');
+                    let claimBtnEl = document.getElementById('claimBtn');
+                    
+                    if(rewardStatusEl) {
+                        rewardStatusEl.innerHTML = `<span style="color: var(--primary-pink); font-weight: bold;">🎉 ၁၀၀ စက္ကန့် ပြည့်ပါပြီ! Coin ရယူရန် နှိပ်ပါ။</span>`;
+                    }
+                    if(claimBtnEl) {
+                        claimBtnEl.style.display = 'block';
+                    }
+                }
+            }, 1000);
+        }
+
+        function resetRewardTimer() {
+            secondsPassed = 0;
+            let claimBtnEl = document.getElementById('claimBtn');
+            let rewardStatusEl = document.getElementById('rewardStatus');
+            let progressFillEl = document.getElementById('progressFill');
+
+            if(claimBtnEl) claimBtnEl.style.display = 'none';
+            if(rewardStatusEl) {
+                rewardStatusEl.innerHTML = `ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )`;
+            }
+            if(progressFillEl) progressFillEl.style.width = '0%';
+            startRewardTimer();
+        }
+
+        // Adsterra Link ဖြင့် ၂၀ စက္ကန့် ကြော်ငြာကြည့်မည့်စနစ်
+        function startAdAndClaim() {
+            const adModal = document.getElementById('adModal');
+            adModal.style.display = 'flex';
+            let adSeconds = 20;
+            document.getElementById('adTimer').innerText = adSeconds;
+
+            let adInterval = setInterval(() => {
+                adSeconds--;
+                document.getElementById('adTimer').innerText = adSeconds;
+
+                if (adSeconds <= 0) {
+                    clearInterval(adInterval);
+                    adModal.style.display = 'none';
+
+                    // Coin ပေါင်းထည့်မည်
+                    currentCoins += 10;
+                    document.getElementById('coinBalance').innerText = currentCoins;
+                    alert('🎉 ဂုဏ်ယူပါတယ်! Coin 10 အောင်မြင်စွာ ရရှိသွားပါပြီ။');
+
+                    // Timer ကို အစကနေ ပြန်စမည်
+                    resetRewardTimer();
+                }
+            }, 1000);
+        }
+
+        function openAdLink() {
+            // လင့်ခ်နှိပ်ချိန် လိုအပ်သော လုပ်ဆောင်ချက်များ
+        }
+
+        window.onload = function() {
+            startRewardTimer();
+        };
+    </script>
+</body>
+</html>
