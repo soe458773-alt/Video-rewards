@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mnd-ver" content="lke1ierh8ag2yhv3o9veq" />
-    <title>Watch, Earn & Market App</title>
+    <title>Watch, Earn & Market App Pro</title>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -67,7 +67,7 @@
             color: var(--text-secondary);
             background: none;
             border: none;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -77,7 +77,7 @@
         }
 
         .nav-tab i {
-            font-size: 18px;
+            font-size: 17px;
         }
 
         .nav-tab.active, .nav-tab:hover {
@@ -101,7 +101,7 @@
         }
 
         .app-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
             color: var(--primary-pink);
             display: flex;
@@ -188,23 +188,7 @@
         .reward-card p {
             font-size: 13px;
             color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #2a2a2a;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: var(--primary-pink);
-            transition: width 1s linear;
+            margin-bottom: 10px;
         }
 
         .claim-btn {
@@ -474,6 +458,32 @@
             margin-bottom: 10px;
         }
 
+        .admin-tabs-header {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            background: #141414;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .admin-sub-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .admin-sub-tab.active {
+            background: var(--primary-pink);
+            color: #121212;
+        }
+
         .user-mgmt-item {
             display: flex;
             justify-content: space-between;
@@ -561,9 +571,6 @@
 
             <div class="reward-card">
                 <p id="rewardStatus">ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )</p>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
                 <button class="claim-btn" id="claimBtn" onclick="triggerAdForReward('video')">🎁 Coin ရယူရန် (Ads ကြည့်မည်)</button>
             </div>
 
@@ -572,7 +579,7 @@
                 <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
                     <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
                     <div class="video-info">
-                        <h4>Sample Video - Start watching to earn coins!</h4>
+                        <h4>Sample Video - Watch 100s to earn coins!</h4>
                     </div>
                 </div>
                 <div class="video-item" onclick="playVideo('4kULdbyVPLk')">
@@ -589,7 +596,7 @@
             <div class="card-3d">
                 <h3><i class="fa-solid fa-gamepad"></i> ကျားကွက်ထိုး ဂိမ်းတာဝန်</h3>
                 <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-                    တစ်ရက်လျှင် ပွဲ ၂၀ ဆော့ခွင့်ရှိသည်။ (ကစားရန် Ad ၁၅ စက္ကန့် ကြည့်ရမည်။ နိုင်လျှင် Coin 30 ရမည်။)
+                    တစ်ရက်လျှင် ပွဲ ၂၀ ဆော့ခွင့်ရှိသည်။ (ပွဲတိုင်းအတွက် Ad ၁၅ စက္ကန့် ကြည့်ရမည်။ နိုင်လျှင် Coin 30 ရမည်။)
                 </p>
                 <div style="font-size: 13px; font-weight: bold; margin-bottom: 10px; color: var(--primary-pink);">
                     ကျန်ရှိသောပွဲ: <span id="taskCountLeft">20</span> / 20 ပွဲ
@@ -655,7 +662,7 @@
                 </div>
 
                 <div class="input-group">
-                    <label>လက်ခံမည့် ဖုန်းနံပတ်</label>
+                    <label>KBZPay / WavePay ဖုန်းနံပတ်</label>
                     <input type="text" id="withdrawPhone" class="custom-input" placeholder="09xxxxxxxxx">
                 </div>
                 <div class="input-group">
@@ -677,7 +684,7 @@
                 </div>
                 <div class="profile-info">
                     <p>အမည် (Name): <span id="profileName">ကိုကို</span></p>
-                    <p>Telegram ID: <span id="profileTgId">@koko_user</span></p>
+                    <p>User ID: <span id="profileTgId">TG001</span></p>
                     <p>စုစုပေါင်း Coin: <span id="profileCoins">120</span> Coins</p>
                 </div>
             </div>
@@ -691,8 +698,8 @@
             <div class="admin-card">
                 <h3>စျေးကွက် (Market) ထိန်းချုပ်ရန်</h3>
                 <div class="input-group">
-                    <label>Coin မှ MMK လဲလှယ်နှုန်း (ဥပမာ: 10 Coin = 100 MMK)</label>
-                    <input type="text" id="adminMarketRateInput" class="custom-input" placeholder="10 Coin = 100 MMK" value="10 Coin = 100 MMK">
+                    <label>Coin မှ MMK လဲလှယ်နှုန်း</label>
+                    <input type="text" id="adminMarketRateInput" class="custom-input" value="10 Coin = 100 MMK">
                 </div>
                 <button class="action-btn" onclick="saveMarketRate()" style="margin-bottom: 8px;">နှုန်းထား သိမ်းမည်</button>
                 <button class="action-btn" id="marketToggleBtn" onclick="toggleMarketStatus()" style="background: #ff4757; color:#fff;">စျေးကွက် ပိတ်မည်</button>
@@ -718,10 +725,22 @@
                 <button class="action-btn" id="adminWithdrawToggleBtn" onclick="toggleAdminWithdraw()" style="background: #ff4757; color:#fff;">ငွေထုတ်စနစ် ပိတ်မည်</button>
             </div>
 
-            <!-- 4. User Ban/Unban & Active Mgmt -->
+            <!-- 4. User Active/Inactive, Ban/Unban & Coin Adjust Admin -->
             <div class="admin-card">
-                <h3>User များ စီမံရန် (Ban / Unban)</h3>
-                <div style="max-height: 150px; overflow-y: auto;" id="adminUserMgmtList">
+                <h3>User များ စီမံရန် (Ban / Coin တိုးလျှော့)</h3>
+                <div class="input-group">
+                    <label>User ID ဖြင့် ရှာရန်</label>
+                    <input type="text" id="adminSearchUserTgId" class="custom-input" placeholder="ဥပမာ - TG001" oninput="filterAdminUsers()">
+                </div>
+
+                <!-- Sub Tabs for Active / Inactive / All -->
+                <div class="admin-tabs-header">
+                    <button class="admin-sub-tab active" onclick="switchAdminUserTab('all', this)">အားလုံး</button>
+                    <button class="admin-sub-tab" onclick="switchAdminUserTab('active', this)">Active</button>
+                    <button class="admin-sub-tab" onclick="switchAdminUserTab('inactive', this)">Inactive</button>
+                </div>
+
+                <div style="max-height: 220px; overflow-y: auto;" id="adminUserMgmtList">
                     <!-- Dynamic Users List -->
                 </div>
             </div>
@@ -777,6 +796,7 @@
 
     <script>
         // Data Store States
+        let currentUserId = "TG001";
         let currentCoins = 120;
         let videoRewardCoin = 10;
         let secondsPassed = 0;
@@ -803,15 +823,16 @@
         // Task / Game States (Tic-Tac-Toe)
         let tasksLeft = 20;
         let board = ['', '', '', '', '', '', '', '', ''];
-        let isGameActive = false;
         let pendingTaskMoveIndex = null;
 
         // Users Data Store
         let usersData = [
             { id: "TG001", name: "ကိုကို", active: true, banned: false, coins: 120 },
             { id: "TG002", name: "မေမေ", active: true, banned: false, coins: 450 },
-            { id: "TG003", name: "အောင်အောင်", active: false, banned: true, coins: 10 }
+            { id: "TG003", name: "အောင်အောင်", active: false, banned: true, coins: 10 },
+            { id: "TG004", name: "ဇော်ဇော်", active: false, banned: false, coins: 85 }
         ];
+        let currentAdminUserFilterTab = 'all';
 
         // Tab Navigation
         function switchTab(sectionId, btnElement) {
@@ -874,19 +895,13 @@
             resetRewardTimer();
         }
 
-        // 100 Seconds Reward Timer
+        // 100 Seconds Reward Timer (No progress bar shown, only 100s count)
         function startRewardTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 secondsPassed++;
-                let percent = (secondsPassed / 100) * 100;
-                if(percent > 100) percent = 100;
-
                 let timerCountEl = document.getElementById('timerCount');
-                let progressFillEl = document.getElementById('progressFill');
-                
                 if(timerCountEl) timerCountEl.innerText = secondsPassed;
-                if(progressFillEl) progressFillEl.style.width = percent + '%';
 
                 if (secondsPassed >= 100) {
                     clearInterval(timerInterval);
@@ -907,13 +922,11 @@
             secondsPassed = 0;
             let claimBtnEl = document.getElementById('claimBtn');
             let rewardStatusEl = document.getElementById('rewardStatus');
-            let progressFillEl = document.getElementById('progressFill');
 
             if(claimBtnEl) claimBtnEl.style.display = 'none';
             if(rewardStatusEl) {
                 rewardStatusEl.innerHTML = `ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )`;
             }
-            if(progressFillEl) progressFillEl.style.width = '0%';
             startRewardTimer();
         }
 
@@ -929,7 +942,7 @@
             document.getElementById('currentAdAnchor').innerText = `🔗 Ad Link (${currentAdIndex + 1}/${adsLinks.length}) သို့ သွားရန်`;
             currentAdIndex = (currentAdIndex + 1) % adsLinks.length;
 
-            requiredAdSeconds = (type === 'task') ? 15 : 20;
+            requiredAdSeconds = 15; // 15s for ads
             document.getElementById('adTimer').innerText = requiredAdSeconds;
 
             const adModal = document.getElementById('adModal');
@@ -946,8 +959,8 @@
                     if(type === 'video') {
                         currentCoins += videoRewardCoin;
                         updateCoinsUI();
-                        alert(`🎉 ဂုဏ်ယူပါတယ်! Coin ${videoRewardCoin} အောင်မြင်စွာ ရရှိသွားပါပြီ။`);
-                        resetRewardTimer();
+                        alert(`🎉 ဂုဏ်ယူပါတယ်! Coin ${videoRewardCoin} အောင်မြင်စွာ ရရှိသွားပါပြီ။ ဗီဒီယိုကို ဆက်လက်ကြည့်ရှုနိုင်ပါပြီ။`);
+                        resetRewardTimer(); // Resume watching from current place
                     } else if(type === 'task' && callback) {
                         callback();
                     }
@@ -958,6 +971,9 @@
         function updateCoinsUI() {
             document.getElementById('coinBalance').innerText = currentCoins;
             document.getElementById('profileCoins').innerText = currentCoins;
+            // Sync with user database state
+            let me = usersData.find(u => u.id === currentUserId);
+            if(me) me.coins = currentCoins;
         }
 
         // --- TASK / GAME LOGIC ---
@@ -969,13 +985,12 @@
             if(board[index] !== '') return;
 
             pendingTaskMoveIndex = index;
-            // Require 15s Ad before playing task
             triggerAdForReward('task', () => {
                 board[pendingTaskMoveIndex] = 'X';
                 document.getElementById('ticTacToeBoard').children[pendingTaskMoveIndex].innerText = 'X';
                 
                 tasksLeft--;
-                document.getElementById('taskCountLeft.value' in document ? '' : 'taskCountLeft').innerText = tasksLeft;
+                document.getElementById('taskCountLeft').innerText = tasksLeft;
                 
                 currentCoins += 30;
                 updateCoinsUI();
@@ -999,8 +1014,7 @@
                 document.getElementById('exchangeMMKOutput').value = "0 MMK";
                 return;
             }
-            // Parse rate format like "10 Coin = 100 MMK"
-            let mmk = coins * 10; // default 1:10 ratio based on string
+            let mmk = coins * 10;
             document.getElementById('exchangeMMKOutput').value = mmk + " MMK";
         }
 
@@ -1016,7 +1030,7 @@
             }
             currentCoins -= coins;
             updateCoinsUI();
-            alert(' coin များကို ကျပ်ငွေသို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ။');
+            alert('Coin များကို ကျပ်ငွေသို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ။');
             document.getElementById('exchangeCoinInput').value = '';
             document.getElementById('exchangeMMKOutput').value = '0 MMK';
         }
@@ -1064,21 +1078,7 @@
                 document.getElementById('marketClosedMsg').style.display = 'block';
             }
 
-            // Render Users Management List (Ban / Unban)
-            let userListHtml = '';
-            usersData.forEach((u, idx) => {
-                let statusBadge = u.banned ? '<span class="badge-inactive">Banned</span>' : (u.active ? '<span class="badge-active">Active</span>' : '<span class="badge-inactive">Inactive</span>');
-                let banBtnText = u.banned ? 'Unban' : 'Ban';
-                let banBtnColor = u.banned ? '#2ed573' : '#ff4757';
-
-                userListHtml += `
-                    <div class="user-mgmt-item">
-                        <span><b>${u.name}</b> (${u.id})<br>${statusBadge}</span>
-                        <button onclick="toggleUserBan(${idx})" style="background: ${banBtnColor}; color: #fff; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px;">${banBtnText}</button>
-                    </div>
-                `;
-            });
-            document.getElementById('adminUserMgmtList').innerHTML = userListHtml;
+            filterAdminUsers();
 
             // Render Ads Links List
             let adsListHtml = '';
@@ -1091,6 +1091,82 @@
                 `;
             });
             document.getElementById('adminAdLinksList').innerHTML = adsListHtml;
+        }
+
+        function switchAdminUserTab(tabName, btnEl) {
+            currentAdminUserFilterTab = tabName;
+            document.querySelectorAll('.admin-sub-tab').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            filterAdminUsers();
+        }
+
+        function filterAdminUsers() {
+            let searchTgId = document.getElementById('adminSearchUserTgId').value.trim().toLowerCase();
+            let userListHtml = '';
+
+            let filtered = usersData.filter(u => {
+                let matchesSearch = u.id.toLowerCase().includes(searchTgId) || u.name.toLowerCase().includes(searchTgId);
+                if (!matchesSearch) return false;
+
+                if (currentAdminUserFilterTab === 'active') return u.active && !u.banned;
+                if (currentAdminUserFilterTab === 'inactive') return !u.active || u.banned;
+                return true; // 'all'
+            });
+
+            if(filtered.length === 0) {
+                userListHtml = `<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">User မရှိပါ။</div>`;
+            } else {
+                filtered.forEach((u) => {
+                    let realIdx = usersData.findIndex(item => item.id === u.id);
+                    let statusBadge = u.banned ? '<span class="badge-inactive">Banned</span>' : (u.active ? '<span class="badge-active">Active</span>' : '<span class="badge-inactive">Inactive</span>');
+                    let banBtnText = u.banned ? 'Unban' : 'Ban';
+                    let banBtnColor = u.banned ? '#2ed573' : '#ff4757';
+
+                    userListHtml += `
+                        <div class="user-mgmt-item">
+                            <div>
+                                <b>${u.name}</b> (${u.id})<br>
+                                Coin: <span style="color: var(--primary-pink);">${u.coins}</span> | ${statusBadge}
+                            </div>
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <button onclick="adjustUserCoinPrompt(${realIdx})" style="background: #333; color: #fff; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-coins"></i> တိုး/လျော့</button>
+                                <button onclick="toggleUserBan(${realIdx})" style="background: ${banBtnColor}; color: #fff; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">${banBtnText}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('adminUserMgmtList').innerHTML = userListHtml;
+        }
+
+        function toggleUserBan(index) {
+            usersData[index].banned = !usersData[index].banned;
+            renderAdminData();
+            alert('User အခြေအနေ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
+        }
+
+        function adjustUserCoinPrompt(index) {
+            let u = usersData[index];
+            let inputVal = prompt(`(${u.name} - ${u.id}) ၏ လက်ရှိ Coin (${u.coins})\nတိုးလိုပါက (+10) သို့မဟုတ် လျှော့လိုပါက (-10) ပုံစံဖြင့် ထည့်ပါ:`, "10");
+            if(!inputVal) return;
+            
+            let val = parseInt(inputVal);
+            if(isNaN(val)) {
+                alert('ပမာဏ မှားယွင်းနေပါသည်။');
+                return;
+            }
+
+            u.coins += val;
+            if(u.coins < 0) u.coins = 0;
+
+            // If it's current user, sync UI
+            if(u.id === currentUserId) {
+                currentCoins = u.coins;
+                updateCoinsUI();
+            }
+
+            renderAdminData();
+            alert(`User (${u.name}) ၏ Coin အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။ လက်ရှိ Coin: ${u.coins}`);
         }
 
         function saveMarketRate() {
@@ -1134,12 +1210,6 @@
                 btn.style.background = "#2ed573";
                 info.innerText = "လက်ရှိအခြေအနေ: ပိတ်ထားသည် (သတ်မှတ်ရက်စောင့်ဆိုင်းဆဲ)";
             }
-        }
-
-        function toggleUserBan(index) {
-            usersData[index].banned = !usersData[index].banned;
-            renderAdminData();
-            alert('User အခြေအနေ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
         }
 
         function addNewAdLink() {
