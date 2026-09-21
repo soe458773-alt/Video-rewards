@@ -1,8 +1,10 @@
-<!DOCTYPE html>
+        <!DOCTYPE html>
 <html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Ad Verification Meta Tag ထည့်သွင်းပြီးပါပြီ -->
+    <meta name="mnd-ver" content="lke1ierh8ag2yhv3o9veq" />
     <title>YouTube Search & Reward App</title>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -347,19 +349,17 @@
         let timerInterval = null;
         let currentVideoId = 'tXkh5pvP-zo';
 
-        // Enter ခလုတ်နှိပ်ရင် ရှာလို့ရအောင်
         function handleSearchKey(event) {
             if (event.key === 'Enter') {
                 searchYouTubeVideos();
             }
         }
 
-        // YouTube Search (API Key ထည့်သုံးရန် သို့မဟုတ် Demo Results ပြရန်)
         async function searchYouTubeVideos() {
             const query = document.getElementById('searchInput').value.trim();
             if(!query) return;
 
-            const apiKey = 'YOUR_YOUTUBE_API_KEY'; // ကိုယ့်ရဲ့ API Key ထည့်ရန် (မရှိရင်အောက်က Demo ပြမယ်)
+            const apiKey = 'YOUR_YOUTUBE_API_KEY';
 
             if(apiKey === 'YOUR_YOUTUBE_API_KEY') {
                 displayMockResults(query);
@@ -398,7 +398,6 @@
             }
         }
 
-        // Demo Results (API Key မရှိသေးချိန် ရှာရတာလွယ်အောင်)
         function displayMockResults(query) {
             let listContainer = document.getElementById('videoList');
             listContainer.innerHTML = `
@@ -417,7 +416,6 @@
             `;
         }
 
-        // ဗီဒီယိုပြောင်းဖွင့်ရန်
         function playVideo(videoId) {
             currentVideoId = videoId;
             const iframe = document.getElementById('ytPlayer');
@@ -425,7 +423,6 @@
             resetRewardTimer();
         }
 
-        // ၁၀၀ စက္ကန့် Timer စနစ်
         function startRewardTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -468,7 +465,6 @@
             startRewardTimer();
         }
 
-        // Adsterra Link ဖြင့် ၂၀ စက္ကန့် ကြော်ငြာကြည့်မည့်စနစ်
         function startAdAndClaim() {
             const adModal = document.getElementById('adModal');
             adModal.style.display = 'flex';
@@ -483,20 +479,16 @@
                     clearInterval(adInterval);
                     adModal.style.display = 'none';
 
-                    // Coin ပေါင်းထည့်မည်
                     currentCoins += 10;
                     document.getElementById('coinBalance').innerText = currentCoins;
                     alert('🎉 ဂုဏ်ယူပါတယ်! Coin 10 အောင်မြင်စွာ ရရှိသွားပါပြီ။');
 
-                    // Timer ကို အစကနေ ပြန်စမည်
                     resetRewardTimer();
                 }
             }, 1000);
         }
 
-        function openAdLink() {
-            // လင့်ခ်နှိပ်ချိန် လိုအပ်သော လုပ်ဆောင်ချက်များ
-        }
+        function openAdLink() {}
 
         window.onload = function() {
             startRewardTimer();
@@ -504,3 +496,4 @@
     </script>
 </body>
 </html>
+      
