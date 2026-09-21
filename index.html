@@ -561,7 +561,7 @@
         <!-- 1. HOME / WATCH SECTION -->
         <div id="homeSection" class="page-section active">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို အလွယ်တကူ ရှာရန်..." onkeypress="handleSearchKey(event)">
+                <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို ရှာရန်..." onkeypress="handleSearchKey(event)">
                 <button onclick="searchYouTubeVideos()"><i class="fa-solid fa-search"></i></button>
             </div>
 
@@ -580,12 +580,6 @@
                     <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
                     <div class="video-info">
                         <h4>Sample Video - Watch 100s to earn coins!</h4>
-                    </div>
-                </div>
-                <div class="video-item" onclick="playVideo('4kULdbyVPLk')">
-                    <img src="https://img.youtube.com/vi/4kULdbyVPLk/hqdefault.jpg" alt="Thumb">
-                    <div class="video-info">
-                        <h4>Sample Video 2 - Unlimited watch available!</h4>
                     </div>
                 </div>
             </div>
@@ -795,6 +789,9 @@
     </div>
 
     <script>
+        // --- YOUTUBE API KEY ည့်သွင်းပြီးပါပြီ ---
+        const YOUTUBE_API_KEY = 'AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c';
+
         // Data Store States
         let currentUserId = "TG001";
         let currentCoins = 120;
@@ -808,7 +805,6 @@
             "https://idealistic-revenue.com/2SodzC"
         ];
         let currentAdIndex = 0;
-        let activeCallback = null;
         let requiredAdSeconds = 15;
 
         // Market States
@@ -859,33 +855,63 @@
             }
         }
 
-        // Search & Video Play
+        // Search & YouTube API Integration with Caching
         function handleSearchKey(event) {
             if (event.key === 'Enter') searchYouTubeVideos();
         }
 
-        function searchYouTubeVideos() {
+        async function searchYouTubeVideos() {
             const query = document.getElementById('searchInput').value.trim();
+            const listContainer = document.getElementById('videoList');
+            
             if(!query) return;
-            displayMockResults(query);
+
+            const cacheKey = `yt_search_${query}`;
+            const cachedData = localStorage.getItem(cacheKey);
+
+            if (cachedData) {
+                displayApiResults(JSON.parse(cachedData));
+                return;
+            }
+
+            listContainer.innerHTML = '<div style="text-align:center; color: var(--text-secondary); padding: 10px; font-size:13px;">ရှာဖွေနေပါသည်...</div>';
+
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    localStorage.setItem(cacheKey, JSON.stringify(data.items));
+                    displayApiResults(data.items);
+                } else {
+                    listContainer.innerHTML = '<div style="text-align:center; color: var(--accent-red); padding: 10px; font-size:13px;">ဘာဗီဒီယိုမှ မတွေ့ပါ။ API Key သို့မဟုတ် Quota စစ်ဆေးပါ။</div>';
+                }
+            } catch (error) {
+                console.error('YouTube API Error:', error);
+                listContainer.innerHTML = '<div style="text-align:center; color: var(--accent-red); padding: 10px; font-size:13px;">ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။</div>';
+            }
         }
 
-        function displayMockResults(query) {
+        function displayApiResults(items) {
             let listContainer = document.getElementById('videoList');
-            listContainer.innerHTML = `
-                <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
-                    <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
-                    <div class="video-info">
-                        <h4>${query} - Result 1 (Watch to Earn)</h4>
+            let html = '';
+            items.forEach(item => {
+                const videoId = item.id.videoId;
+                const title = item.snippet.title;
+                const thumbnail = item.snippet.thumbnails.medium.url;
+                
+                html += `
+                    <div class="video-item" onclick="playVideo('${videoId}')">
+                        <img src="${thumbnail}" alt="Thumb">
+                        <div class="video-info">
+                            <h4>${title}</h4>
+                        </div>
                     </div>
-                </div>
-                <div class="video-item" onclick="playVideo('4kULdbyVPLk')">
-                    <img src="https://img.youtube.com/vi/4kULdbyVPLk/hqdefault.jpg" alt="Thumb">
-                    <div class="video-info">
-                        <h4>${query} - Result 2 (Unlimited Watch)</h4>
-                    </div>
-                </div>
-            `;
+                `;
+            });
+            listContainer.innerHTML = html;
         }
 
         function playVideo(videoId) {
@@ -895,12 +921,11 @@
             resetRewardTimer();
         }
 
-        // 100 Seconds Reward Timer System (Fixed & Working)
+        // 100 Seconds Reward Timer System
         function startRewardTimer() {
             if (timerInterval) clearInterval(timerInterval);
             
             timerInterval = setInterval(() => {
-                // Check if home section is active before counting
                 if (!document.getElementById('homeSection').classList.contains('active')) {
                     return;
                 }
@@ -950,7 +975,7 @@
             document.getElementById('currentAdAnchor').innerText = `🔗 Ad Link (${currentAdIndex + 1}/${adsLinks.length}) သို့ သွားရန်`;
             currentAdIndex = (currentAdIndex + 1) % adsLinks.length;
 
-            requiredAdSeconds = 15; // 15s for ads
+            requiredAdSeconds = 15;
             document.getElementById('adTimer').innerText = requiredAdSeconds;
 
             const adModal = document.getElementById('adModal');
@@ -968,7 +993,7 @@
                         currentCoins += videoRewardCoin;
                         updateCoinsUI();
                         alert(`🎉 ဂုဏ်ယူပါတယ်! Coin ${videoRewardCoin} အောင်မြင်စွာ ရရှိသွားပါပြီ။ ဗီဒီယိုကို ဆက်လက်ကြည့်ရှုနိုင်ပါပြီ။`);
-                        resetRewardTimer(); // Resume watching from current place
+                        resetRewardTimer();
                     } else if (type === 'task' && callback) {
                         callback();
                     }
