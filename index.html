@@ -1,11 +1,10 @@
-        <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Ad Verification Meta Tag ထည့်သွင်းပြီးပါပြီ -->
     <meta name="mnd-ver" content="lke1ierh8ag2yhv3o9veq" />
-    <title>YouTube Search & Reward App</title>
+    <title>YouTube Search, Reward & Admin App</title>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -43,6 +42,48 @@
             padding: 20px;
             box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
             border: 1px solid rgba(255, 105, 180, 0.2);
+            margin-bottom: 60px;
+        }
+
+        /* Navigation Tab Bar */
+        .nav-tabs {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #333;
+            z-index: 1000;
+        }
+
+        .nav-tab {
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: 0.3s;
+        }
+
+        .nav-tab.active, .nav-tab:hover {
+            color: var(--primary-pink);
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
         }
 
         /* Header & Coin Balance */
@@ -91,12 +132,10 @@
             color: #fff;
             font-size: 14px;
             outline: none;
-            transition: 0.3s;
         }
 
         .search-box input:focus {
             border-color: var(--primary-pink);
-            box-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
         }
 
         .search-box button {
@@ -107,18 +146,13 @@
             border-radius: 12px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
         }
 
-        .search-box button:hover {
-            background: var(--hover-pink);
-        }
-
-        /* Video Player Section */
+        /* Video Player */
         .player-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
@@ -135,7 +169,7 @@
             border: none;
         }
 
-        /* Reward Status Card */
+        /* Reward Card */
         .reward-card {
             background: rgba(255, 105, 180, 0.05);
             border: 1px dashed var(--primary-pink);
@@ -177,14 +211,9 @@
             cursor: pointer;
             display: none;
             margin: 0 auto;
-            transition: 0.3s;
         }
 
-        .claim-btn:hover {
-            background: var(--hover-pink);
-        }
-
-        /* Video Search Results List */
+        /* Video List */
         .section-label {
             font-size: 14px;
             font-weight: 600;
@@ -198,7 +227,6 @@
             gap: 10px;
             max-height: 220px;
             overflow-y: auto;
-            padding-right: 4px;
         }
 
         .video-item {
@@ -209,13 +237,11 @@
             padding: 8px;
             border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
             border: 1px solid transparent;
         }
 
         .video-item:hover {
             border-color: var(--primary-pink);
-            background: #2a2a2a;
         }
 
         .video-item img {
@@ -234,7 +260,126 @@
             overflow: hidden;
         }
 
-        /* Ad Overlay Modal (20s Ad with Link) */
+        /* Profile Styles */
+        .profile-box {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary-pink);
+            background: #2a2a2a;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 10px;
+            padding: 4px;
+            cursor: pointer;
+        }
+
+        .profile-info {
+            background: #252525;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: left;
+            border: 1px solid #333;
+        }
+
+        .profile-info p {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .profile-info span {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Admin Styles */
+        .admin-card {
+            background: #252525;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
+
+        .admin-card h3 {
+            font-size: 15px;
+            color: var(--primary-pink);
+            margin-bottom: 10px;
+        }
+
+        .admin-input {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .admin-btn {
+            background: var(--primary-pink);
+            color: #121212;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .user-mgmt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .badge-active {
+            color: #4cd137;
+            font-size: 11px;
+            background: rgba(76, 209, 55, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-inactive {
+            color: #e84118;
+            font-size: 11px;
+            background: rgba(232, 65, 24, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Ad Modal */
         #adModal {
             position: fixed;
             top: 0;
@@ -245,7 +390,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 999;
+            z-index: 2000;
         }
 
         .ad-content {
@@ -258,17 +403,6 @@
             border: 2px solid var(--primary-pink);
         }
 
-        .ad-content h3 {
-            color: var(--primary-pink);
-            margin-bottom: 10px;
-        }
-
-        .ad-content p {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 15px;
-        }
-
         .ad-link-btn {
             display: inline-block;
             background: var(--primary-pink);
@@ -278,18 +412,13 @@
             text-decoration: none;
             font-weight: bold;
             margin-bottom: 15px;
-            transition: 0.3s;
-        }
-
-        .ad-link-btn:hover {
-            background: var(--hover-pink);
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Header -->
+        <!-- HEADER -->
         <div class="header">
             <div class="app-title">
                 <i class="fa-brands fa-youtube" style="color: #ff0000; font-size: 22px;"></i> Watch & Earn
@@ -299,103 +428,174 @@
             </div>
         </div>
 
-        <!-- Search Input -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို ရှာရန်..." onkeypress="handleSearchKey(event)">
-            <button onclick="searchYouTubeVideos()"><i class="fa-solid fa-search"></i></button>
-        </div>
-
-        <!-- Video Player -->
-        <div class="player-wrapper">
-            <iframe id="ytPlayer" src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
-        </div>
-
-        <!-- Reward Progress (100 Seconds) -->
-        <div class="reward-card">
-            <p id="rewardStatus">ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )</p>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+        <!-- 1. HOME / WATCH SECTION -->
+        <div id="homeSection" class="page-section active">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို ရှာရန်..." onkeypress="handleSearchKey(event)">
+                <button onclick="searchYouTubeVideos()"><i class="fa-solid fa-search"></i></button>
             </div>
-            <button class="claim-btn" id="claimBtn" onclick="startAdAndClaim()">🎁 Coin ရယူရန် (Ads ကြည့်မည်)</button>
+
+            <div class="player-wrapper">
+                <iframe id="ytPlayer" src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
+            </div>
+
+            <div class="reward-card">
+                <p id="rewardStatus">ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <button class="claim-btn" id="claimBtn" onclick="startAdAndClaim()">🎁 Coin ရယူရန် (Ads ကြည့်မည်)</button>
+            </div>
+
+            <div class="section-label">ရှာဖွေတွေ့ရှိသော ဗီဒီယိုများ</div>
+            <div class="video-list" id="videoList">
+                <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
+                    <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
+                    <div class="video-info">
+                        <h4>Sample Video - Start watching to earn coins!</h4>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Video List Results -->
-        <div class="section-label">ရှာဖွေတွေ့ရှိသော ဗီဒီယိုများ</div>
-        <div class="video-list" id="videoList">
-            <div class="video-item" onclick="playVideo('tXkh5pvP-zo')">
-                <img src="https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" alt="Thumb">
-                <div class="video-info">
-                    <h4>Sample Video - Start watching to earn coins!</h4>
+        <!-- 2. PROFILE SECTION -->
+        <div id="profileSection" class="page-section">
+            <div class="profile-box">
+                <div class="avatar-container">
+                    <img id="userAvatar" src="https://via.placeholder.com/100" alt="Profile Avatar">
+                    <label class="avatar-upload-btn">
+                        ပြောင်းရန် <input type="file" accept="image/*" style="display: none;" onchange="updateAvatar(event)">
+                    </label>
+                </div>
+                <div class="profile-info">
+                    <p>အမည် (Name): <span id="profileName">ကိုကို</span></p>
+                    <p>Telegram ID: <span id="profileTgId">@koko_user</span></p>
+                    <p>စုစုပေါင်း Coin: <span id="profileCoins">120</span> Coins</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ADMIN PANEL SECTION -->
+        <div id="adminSection" class="page-section">
+            <div class="section-label" style="margin-bottom: 15px; color: var(--primary-pink);">👑 အက်တမင် ထိန်းချုပ်ခန်း</div>
+            
+            <!-- 1. Withdrawal Control -->
+            <div class="admin-card">
+                <h3>ငွေထုတ်ရန် (Withdrawal) ထိန်းချုပ်ရန်</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">လက်ရှိအခြေအနေ: <span id="withdrawStatusText" style="color: #4cd137; font-weight: bold;">ဖွင့်ထားသည်</span></p>
+                <button class="admin-btn" id="withdrawToggleBtn" onclick="toggleWithdrawal()" style="background: #e84118; color: #fff;">ငွေထုတ်ရန် ပိတ်မည်</button>
+            </div>
+
+            <!-- 2. User Coin Management -->
+            <div class="admin-card">
+                <h3>User Coin တိုး/လျော့ ပြုလုပ်ရန်</h3>
+                <input type="text" id="adminSearchInput" class="admin-input" placeholder="User ID သို့ နာမည်ဖြင့် ရှာရန်...">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="number" id="adminCoinInput" class="admin-input" placeholder="Coin ပမာဏ (+/-)" style="margin-bottom: 0;">
+                    <button class="admin-btn" onclick="modifyUserCoins()" style="width: 120px;">ပြောင်းမည်</button>
+                </div>
+                <div style="max-height: 120px; overflow-y: auto;" id="adminUserList">
+                    <!-- Dynamic Users List -->
+                </div>
+            </div>
+
+            <!-- 3. Dynamic Ads Link Management -->
+            <div class="admin-card">
+                <h3>Ads Links စီမံရန် (အလှည့်ကျစနစ်)</h3>
+                <input type="text" id="newAdLinkInput" class="admin-input" placeholder="https://example.com/new-ad-link">
+                <button class="admin-btn" onclick="addNewAdLink()" style="margin-bottom: 12px;">လင့်ခ်အသစ် ထည့်မည်</button>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">ထည့်ပြီးသား လင့်ခ်များ:</div>
+                <div style="max-height: 120px; overflow-y: auto;" id="adminAdLinksList">
+                    <!-- Dynamic Links -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Ad Overlay Modal -->
+    <!-- NAVIGATION TAB BAR -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('homeSection', this)">
+            <i class="fa-solid fa-house"></i>
+            <span>ဗီဒီယို</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('profileSection', this)">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('adminSection', this)">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Admin</span>
+        </button>
+    </div>
+
+    <!-- Ad Modal -->
     <div id="adModal">
         <div class="ad-content">
             <h3>📢 ကြော်ငြာကြည့်ရှုရန်</h3>
             <p>ကျေးဇူးပြု၍ အောက်ပါ ကြော်ငြာလင့်ခ်ကို နှိပ်ပြီး ဝင်ရောက်ကြည့်ရှုပါ</p>
-            <!-- Adsterra Direct Link -->
-            <a href="https://idealistic-revenue.com/2SodzC" target="_blank" class="ad-link-btn" onclick="openAdLink()">🔗 ကြော်ငြာလင့်ခ်သို့ သွားရန်</a>
+            <a href="#" id="currentAdAnchor" target="_blank" class="ad-link-btn" onclick="openAdLink()">🔗 ကြော်ငြာလင့်ခ်သို့ သွားရန်</a>
             <p>Coin ရရန် ကျန်ရှိသောအချိန်: <span id="adTimer" style="color: var(--primary-pink); font-weight: bold; font-size: 18px;">20</span> စက္ကန့်</p>
             <div style="font-size: 12px; color: #777;">(အချိန်ပြည့်ပါက Coin အလိုအလျောက် ဝင်ပါမည်)</div>
         </div>
     </div>
 
     <script>
+        // Data Store States
         let currentCoins = 120;
         let secondsPassed = 0;
         let timerInterval = null;
         let currentVideoId = 'tXkh5pvP-zo';
 
-        function handleSearchKey(event) {
-            if (event.key === 'Enter') {
-                searchYouTubeVideos();
+        // Ads Rotation Links Array (Admin can add/remove)
+        let adsLinks = [
+            "https://idealistic-revenue.com/2SodzC"
+        ];
+        let currentAdIndex = 0;
+
+        // Withdrawal Control State
+        let isWithdrawOpen = true;
+
+        // Mock Users Data for Admin Panel
+        let usersData = [
+            { id: "TG001", name: "ကိုကို", active: true, coins: 120 },
+            { id: "TG002", name: "မေမေ", active: true, coins: 450 },
+            { id: "TG003", name: "အောင်အောင်", active: false, coins: 10 }
+        ];
+
+        // Tab Navigation
+        function switchTab(sectionId, btnElement) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            btnElement.classList.add('active');
+
+            if(sectionId === 'adminSection') {
+                renderAdminData();
             }
+        }
+
+        // Profile Avatar Upload
+        function updateAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('userAvatar').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Search & Video Play
+        function handleSearchKey(event) {
+            if (event.key === 'Enter') searchYouTubeVideos();
         }
 
         async function searchYouTubeVideos() {
             const query = document.getElementById('searchInput').value.trim();
             if(!query) return;
-
-            const apiKey = 'YOUR_YOUTUBE_API_KEY';
-
-            if(apiKey === 'YOUR_YOUTUBE_API_KEY') {
-                displayMockResults(query);
-                return;
-            }
-
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&key=${apiKey}&type=video&maxResults=10`;
-
-            try {
-                let response = await fetch(url);
-                let data = await response.json();
-                let listContainer = document.getElementById('videoList');
-                listContainer.innerHTML = '';
-
-                if(data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        let videoId = item.id.videoId;
-                        let title = item.snippet.title;
-                        let thumb = item.snippet.thumbnails.medium.url;
-
-                        listContainer.innerHTML += `
-                            <div class="video-item" onclick="playVideo('${videoId}')">
-                                <img src="${thumb}" alt="Thumb">
-                                <div class="video-info">
-                                    <h4>${title}</h4>
-                                </div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    listContainer.innerHTML = `<div style="padding: 10px; text-align: center; color: #b0b0b0; font-size: 13px;">ဗီဒီယို မတွေ့ပါ။</div>`;
-                }
-            } catch (err) {
-                console.error(err);
-                displayMockResults(query);
-            }
+            displayMockResults(query);
         }
 
         function displayMockResults(query) {
@@ -423,6 +623,7 @@
             resetRewardTimer();
         }
 
+        // 100 Seconds Reward Timer
         function startRewardTimer() {
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -465,7 +666,21 @@
             startRewardTimer();
         }
 
+        // Ads Rotation Logic & Claim Reward
         function startAdAndClaim() {
+            if(adsLinks.length === 0) {
+                alert('ကြော်ငြာလင့်ခ်များ မရှိသေးပါ။ Admin ထံ ဆက်သွယ်ပါ။');
+                return;
+            }
+
+            // Rotate to next ad link
+            let activeAdUrl = adsLinks[currentAdIndex];
+            document.getElementById('currentAdAnchor.href' in document.getElementById('currentAdAnchor') ? 'href' : 'href').setAttribute('href', activeAdUrl);
+            document.getElementById('currentAdAnchor').innerText = `🔗 Ad Link (${currentAdIndex + 1}/${adsLinks.length}) သੋ သွားရန်`;
+
+            // Move index for next time (Rotation)
+            currentAdIndex = (currentAdIndex + 1) % adsLinks.length;
+
             const adModal = document.getElementById('adModal');
             adModal.style.display = 'flex';
             let adSeconds = 20;
@@ -480,7 +695,7 @@
                     adModal.style.display = 'none';
 
                     currentCoins += 10;
-                    document.getElementById('coinBalance').innerText = currentCoins;
+                    updateCoinsUI();
                     alert('🎉 ဂုဏ်ယူပါတယ်! Coin 10 အောင်မြင်စွာ ရရှိသွားပါပြီ။');
 
                     resetRewardTimer();
@@ -490,10 +705,116 @@
 
         function openAdLink() {}
 
+        function updateCoinsUI() {
+            document.getElementById('coinBalance').innerText = currentCoins;
+            document.getElementById('profileCoins').innerText = currentCoins;
+        }
+
+        // --- ADMIN PANEL FUNCTIONS ---
+        function renderAdminData() {
+            // Render Users
+            let userListHtml = '';
+            let searchKey = document.getElementById('adminSearchInput').value.toLowerCase();
+
+            usersData.forEach(u => {
+                if(!searchKey || u.name.toLowerCase().includes(searchKey) || u.id.toLowerCase().includes(searchKey)) {
+                    let badge = u.active ? '<span class="badge-active">Active</span>' : '<span class="badge-inactive">Inactive</span>';
+                    userListHtml += `
+                        <div class="user-mgmt-item">
+                            <span><b>${u.name}</b> (${u.id}) - ${u.coins} Coins</span>
+                            ${badge}
+                        </div>
+                    `;
+                }
+            });
+            document.getElementById('adminUserList').innerHTML = userListHtml;
+
+            // Render Ads Links
+            let adsListHtml = '';
+            adsLinks.forEach((link, idx) => {
+                adsListHtml += `
+                    <div class="user-mgmt-item" style="word-break: break-all;">
+                        <span style="font-size: 11px; max-width: 250px; overflow: hidden; text-overflow: ellipsis;">${idx + 1}. ${link}</span>
+                        <button onclick="removeAdLink(${idx})" style="background: #e84118; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">ဖျက်ရန်</button>
+                    </div>
+                `;
+            });
+            document.getElementById('adminAdLinksList').innerHTML = adsListHtml;
+        }
+
+        // Toggle Withdrawal Open/Close
+        function toggleWithdrawal() {
+            isWithdrawOpen = !isWithdrawOpen;
+            let statusText = document.getElementById('withdrawStatusText');
+            let toggleBtn = document.getElementById('withdrawToggleBtn');
+
+            if(isWithdrawOpen) {
+                statusText.innerText = "ဖွင့်ထားသည်";
+                statusText.style.color = "#4cd137";
+                toggleBtn.innerText = "ငွေထုတ်ရန် ပိတ်မည်";
+                toggleBtn.style.background = "#e84118";
+            } else {
+                statusText.innerText = "ပိတ်ထားသည် (သတ်မှတ်ရက်စောင့်ဆိုင်းဆဲ)";
+                statusText.style.color = "#e84118";
+                toggleBtn.innerText = "ငွေထုတ်ရန် ဖွင့်မည်";
+                toggleBtn.style.background = "#4cd137";
+            }
+        }
+
+        // Modify User Coins by ID or Name
+        function modifyUserCoins() {
+            let query = document.getElementById('adminSearchInput').value.trim().toLowerCase();
+            let amount = parseInt(document.getElementById('adminCoinInput').value);
+
+            if(!query || isNaN(amount)) {
+                alert('ကျေးဇူးပြု၍ User အမည်/ID နှင့် ပြောင်းလဲမည့် Coin ပမာဏကို ထည့်ပါ။');
+                return;
+            }
+
+            let found = false;
+            usersData.forEach(u => {
+                if(u.name.toLowerCase() === query || u.id.toLowerCase() === query) {
+                    u.coins += amount;
+                    found = true;
+                }
+            });
+
+            if(found) {
+                alert('Coin အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
+                document.getElementById('adminCoinInput.value' in document.getElementById('adminCoinInput') ? 'value' : 'value').value = '';
+                renderAdminData();
+            } else {
+                alert('ထို User ကို ရှမတွေ့ပါ။');
+            }
+        }
+
+        // Add New Ad Link
+        function addNewAdLink() {
+            let newLink = document.getElementById('newAdLinkInput').value.trim();
+            if(!newLink) {
+                alert('ကျေးဇူးပြု၍ လင့်ခ်အမှန် ထည့်ပါ။');
+                return;
+            }
+            adsLinks.push(newLink);
+            document.getElementById('newAdLinkInput').value = '';
+            renderAdminData();
+            alert('ကြော်ငြာလင့်ခ် အသစ် ထည့်သွင်းပြီးပါပြီ။');
+        }
+
+        // Remove Ad Link
+        function removeAdLink(index) {
+            adsLinks.splice(index, 1);
+            renderAdminData();
+            alert('လင့်ခ် ဖျက်ပြီးပါပြီ။');
+        }
+
+        // Listen to search input typing for admin filter
+        document.getElementById('adminSearchInput').addEventListener('input', renderAdminData);
+
         window.onload = function() {
             startRewardTimer();
+            updateCoinsUI();
         };
     </script>
 </body>
 </html>
-      
