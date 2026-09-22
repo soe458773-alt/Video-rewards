@@ -83,6 +83,24 @@
         .tab-btn.active { color: var(--accent-color); }
         .section { display: none; }
         .section.active { display: block; }
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
     </style>
 </head>
 <body>
@@ -110,22 +128,31 @@
         </div>
     </div>
 
-    <!-- TASKS SECTION (3 Ad Watch Buttons) -->
+    <!-- TASKS SECTION (3 Ad Watch Buttons + YouTube Video Task) -->
     <div id="tasks" class="section">
         <div class="card">
-            <h3>🎯 Daily Ad Tasks</h3>
-            <div style="margin-bottom: 12px;">
+            <h3>🎯 Daily Ad & Video Tasks</h3>
+            <div style="margin-bottom: 15px;">
                 <span>Watch Ad 1 (+50 Coins)</span>
                 <button class="btn" onclick="watchAd(50)">Watch Now</button>
             </div>
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 15px;">
                 <span>Watch Ad 2 (+50 Coins)</span>
                 <button class="btn" onclick="watchAd(50)">Watch Now</button>
             </div>
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 15px;">
                 <span>Watch Ad 3 (+50 Coins)</span>
                 <button class="btn" onclick="watchAd(50)">Watch Now</button>
             </div>
+
+            <hr style="border-color: #475569; margin: 15px 0;">
+
+            <h3>🎬 YouTube Video Task</h3>
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
+            </div>
+            <span>ဗီဒီယိုကြည့်ပြီး ဆုလာဘ်ရယူရန် (+100 Coins)</span>
+            <button class="btn" onclick="watchVideoTask(100)">ဗီဒီယိုကြည့်ပြီး Coin ရယူမည်</button>
         </div>
     </div>
 
@@ -267,6 +294,12 @@
         userData.coins += reward;
         saveData();
         alert("ကြော်ငြာကြည့်ရှုပြီးပါပြီ။ Coin +" + reward + " ရရှိပါပြီ!");
+    }
+
+    function watchVideoTask(reward) {
+        userData.coins += reward;
+        saveData();
+        alert("ဗီဒီယိုကြည့်ရှုမှု အောင်မြင်ပါသည်။ Coin +" + reward + " ရရှိပါပြီ!");
     }
 
     function requestWithdraw() {
