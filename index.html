@@ -4,44 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REAL CAUSH</title>
-    <!-- Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Firebase CDNs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
-            --bg-color: #0b1311;
-            --card-bg: rgba(19, 33, 29, 0.75);
-            --text-color: #e2f1ed;
+            --bg-color: #121814;
+            --card-bg: #1a241f;
+            --text-color: #ffffff;
             --accent-green: #2ecc71;
             --accent-light: #a3e4d7;
             --border-color: rgba(46, 204, 113, 0.3);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0b1311 0%, #11221c 100%);
+            background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 15px;
             min-height: 100vh;
+            padding-bottom: 70px;
         }
-        .container { max-width: 480px; margin: 0 auto; padding-bottom: 70px; }
+        .container { max-width: 480px; margin: 0 auto; }
         .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 18px;
             margin-bottom: 15px;
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         h2, h3 { margin-top: 0; color: var(--accent-light); text-align: center; }
         .btn {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: #0b1311;
+            background-color: var(--accent-green);
+            color: #121814;
             border: none;
             padding: 12px 20px;
             border-radius: 10px;
@@ -49,168 +45,115 @@
             font-weight: bold;
             width: 100%;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-            transition: 0.3s;
+            transition: 0.2s;
         }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn:hover { opacity: 0.9; }
         .btn-secondary {
-            background: rgba(163, 228, 215, 0.15);
+            background-color: rgba(163, 228, 215, 0.15);
             color: var(--accent-light);
             border: 1px solid var(--accent-light);
         }
         .digital-num {
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
-            color: #2ecc71;
-            background: rgba(0,0,0,0.4);
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(46, 204, 113, 0.2);
+            color: var(--accent-green);
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         input, select {
             width: 100%;
             padding: 12px;
             margin-top: 8px;
             margin-bottom: 12px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
-            background: rgba(11, 19, 17, 0.8);
-            color: var(--text-color);
+            background: #0e1411;
+            color: #fff;
             box-sizing: border-box;
         }
-        /* Bottom Navigation Menu */
         .nav-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(11, 19, 17, 0.95);
-            backdrop-filter: blur(10px);
+            bottom: 0; left: 0; right: 0;
+            background: #0e1411;
             display: flex;
             justify-content: space-around;
-            padding: 12px 5px;
+            padding: 10px 5px;
             border-top: 1px solid var(--border-color);
             z-index: 1000;
         }
         .nav-btn {
             background: none;
             border: none;
-            color: #7f8c8d;
+            color: #8fa398;
             cursor: pointer;
             font-size: 11px;
             font-weight: 600;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         .nav-btn.active { color: var(--accent-green); }
         .section { display: none; }
         .section.active { display: block; }
         
-        /* Video Player Styles */
         .video-container {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 12px;
+            position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 10px;
         }
-        .video-container iframe {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%; border: 0;
-        }
-        /* Progress Bar */
-        .progress-bar-bg {
-            width: 100%;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            height: 14px;
-            overflow: hidden;
-            margin: 15px 0;
-            border: 1px solid var(--border-color);
-        }
-        .progress-bar-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #2ecc71, #a3e4d7);
-            transition: width 0.1s linear;
-        }
-        /* Modal Overlay for Ads */
+        .video-container iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:0; }
+        
+        .progress-bar-bg { width: 100%; background: rgba(255,255,255,0.1); border-radius: 8px; height: 12px; overflow: hidden; margin: 12px 0; border: 1px solid var(--border-color); }
+        .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #2ecc71, #a3e4d7); transition: width 0.2s linear; }
+
         #adModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px;
         }
-        .ad-box {
-            background: #13211d;
-            border: 2px solid var(--accent-green);
-            padding: 25px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 350px;
-            width: 100%;
+        .ad-box { background: #1a241f; border: 2px solid var(--accent-green); padding: 25px; border-radius: 14px; text-align: center; max-width: 340px; width: 100%; }
+        
+        .vid-list-item {
+            display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid transparent;
         }
-        .payment-logo {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-right: 5px;
-            font-size: 12px;
-        }
-        .kbz { background: #004D40; color: #00E676; border: 1px solid #00E676; }
-        .wave { background: #01579B; color: #40C4FF; border: 1px solid #40C4FF; }
+        .vid-list-item:hover { border-color: var(--accent-green); }
+        .vid-list-item img { width: 60px; height: 40px; object-fit: cover; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="letter-spacing: 2px; text-shadow: 0 0 10px rgba(46,204,113,0.5);">💎 REAL CAUSH 💎</h2>
+    <h2 style="letter-spacing: 1px;">💎 REAL CAUSH 💎</h2>
+    
+    <!-- Top Coin Display Bar -->
+    <div class="card" style="padding: 10px; text-align: center; margin-bottom: 10px; background: #0e1411;">
+        <span>လက်ကျန် Coins: <span id="topCoinsDisplay" class="digital-num">0</span> | MMK: <span id="topMmkDisplay" class="digital-num">0</span></span>
+    </div>
 
-    <!-- 1. VIDEO SCREEN SECTION -->
+    <!-- 1. VIDEO SECTION -->
     <div id="videoSection" class="section active">
         <div class="card">
-            <h3>🎬 YouTube ဗီဒီယိုကြည့်ရန်</h3>
+            <h3>🎬 YouTube ဗီဒီယိုကြည့်ရှုရန်</h3>
+            
+            <!-- Search Bar -->
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="ytSearchQuery" placeholder="ဗီဒီယိုရှာရန် (Search)..." style="margin-bottom:8px;">
+                <button class="btn" style="width: 90px; margin-top:0;" onclick="searchYouTubeVideos()">ရှာမည်</button>
+            </div>
+
             <div class="video-container">
                 <iframe id="ytPlayer" src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
             </div>
+
+            <div class="progress-bar-bg">
+                <div id="videoProgressFill" class="progress-bar-fill"></div>
+            </div>
             
-            <!-- YouTube Search Input with API Key -->
-            <input type="text" id="ytSearchQuery" placeholder="ဗီဒီယိုခေါင်းစဉ်ဖြင့် ရှာရန်...">
-            <button class="btn btn-secondary" onclick="searchYouTubeVideos()">ဗီဒီယိုရှာမည် (API)</button>
+            <button id="startVideoBtn" class="btn" onclick="startVideoProgress()">ဗီဒီယိုစတင်ကြည့်မည်</button>
+            <button id="claimVideoBtn" class="btn" style="display:none; background: #f39c12; color:#fff;" onclick="openAdForVideo('video')">Ads ကြည့်ပြီး Coin ယူမည်</button>
+            <button id="closeVideoBtn" class="btn btn-secondary" style="display:none;" onclick="closeAndResetVideo()">Close / ဆက်ကြည့်မည်</button>
 
-            <!-- Predefined 10 Videos Selector -->
-            <label style="font-size: 13px; margin-top: 10px; display: block;">အသင့်ပါဝင်သော ဗီဒီယို ၁၀ ပုဒ်ရွေးရန်:</label>
-            <select id="presetVideoSelect" onchange="loadPresetVideo(this.value)">
-                <option value="tXkh5pvP-zo">ဗီဒီယို (၁) - Trending Music Mix</option>
-                <option value="4kULdbyVPLk">ဗီဒီယို (၂) - Lofi Chill Beats</option>
-                <option value="dQw4w9WgXcQ">ဗီဒီယို (၃) - Classic Pop Hit</option>
-                <option value="L_LUpnjgPso">ဗီဒီယို (၄) - Nature Relaxing Sounds</option>
-                <option value="kJQP7kiw5Fk">ဗီဒီယို (၅) - Spanish Dance Remix</option>
-                <option value="9bZkp7q19f0">ဗီဒီယို (၆) - Gangnam Style Hit</option>
-                <option value="JGwWNGJdvx8">ဗီဒီယို (၇) - Shape of You</option>
-                <option value="RgKAFK5djSk">ဗီဒီယို (၈) - See You Again</option>
-                <option value="OPf0YbXqDm0">ဗီဒီယို (၉) - Uptown Funk</option>
-                <option value="2Vv-BfVoq4g">ဗီဒီယို (၁၀) - Perfect Ed Sheeran</option>
-            </select>
-
-            <div style="margin-top: 15px;">
-                <span style="font-size: 13px;">ဗီဒီယိုကြည့်ရှုမှု တိုးတက်မှု (Progress):</span>
-                <div class="progress-bar-bg">
-                    <div id="videoProgressFill" class="progress-bar-fill"></div>
-                </div>
-                <button id="startVideoBtn" class="btn" onclick="startVideoProgress()">စတင်ကြည့်မည် (Progress ဖွင့်ရန်)</button>
-                <button id="claimVideoBtn" class="btn" style="display:none; background: #f39c12; color: #000;" onclick="openAdForVideo()">Ads ကြည့်ပြီး Coin ယူမည် (+<span id="adminVideoRewardLbl">50</span>)</button>
-                <button id="resumeVideoBtn" class="btn btn-secondary" style="display:none;" onclick="resumeVideoPlay()">Close / ဆက်ကြည့်မည်</button>
+            <h4 style="margin: 15px 0 8px 0; color: var(--accent-light);">အသင့်ပါဝင်သော ဗီဒီယို ၁၀ ပုဒ်</h4>
+            <div id="presetVideosList" style="max-height: 200px; overflow-y: auto;">
+                <!-- Populated via JS -->
             </div>
         </div>
     </div>
@@ -218,11 +161,9 @@
     <!-- 2. TASKS SECTION -->
     <div id="tasksSection" class="section">
         <div class="card">
-            <h3>🎯 တာဝန်များ (Daily Tasks)</h3>
-            <p style="font-size: 13px; text-align: center; color: var(--accent-light);">ခလုတ်တစ်ခုလျှင် ၁၀ ကြိမ်နှုန်းဖြင့် ၂၄ နာရီအတွင်း ကြည့်ရှုနိုင်ပါသည်။</p>
-            <div id="taskButtonsContainer">
-                <!-- Dynamically generated 7 task buttons -->
-            </div>
+            <h3>🎯 တာဝန်များ (Tasks)</h3>
+            <p style="font-size: 12px; color: var(--accent-light); text-align: center;">ခလုတ်တစ်ခုလျှင် ၁၀ ကြိမ်နှုန်းဖြင့် ၂၄ နာရီအတွင်း ကြည့်ရှုနိုင်ပါသည်။</p>
+            <div id="taskButtonsContainer"></div>
         </div>
     </div>
 
@@ -230,15 +171,17 @@
     <div id="marketSection" class="section">
         <div class="card">
             <h3>📈 စျေးကွက် (Market & Conversion)</h3>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <span style="font-size: 14px;">BTC/USDT Live Ticker:</span><br>
-                <span id="btcLivePrice" class="digital-num" style="font-size: 18px;">--</span>
+            <div style="text-align: center; margin-bottom: 12px;">
+                <span style="font-size: 13px;">BTC/USDT Live Ticker:</span><br>
+                <span id="btcLivePrice" class="digital-num" style="font-size: 16px;">--</span>
             </div>
-            <hr style="border-color: var(--border-color);">
             <p>လက်ကျန် Coin: <span id="marketCoins" class="digital-num">0</span></p>
-            <p>လဲလှယ်မည့် MMK: <span id="marketMMK" class="digital-num">0 MMK</span></p>
-            <p id="conversionStatusMsg" style="font-size: 13px; color: #e74c3c;"></p>
-            <button id="convertBtn" class="btn" onclick="convertCoinToMMK()">Coin ကို MMK သို့ ပြောင်းမည်</button>
+            
+            <label>လဲလှယ်လိုသည့် Coin ပမာဏထည့်ရန်:</label>
+            <input type="number" id="customCoinInput" placeholder="ဥပမာ - 100">
+            <p>ရရှိမည့် MMK: <span id="calculatedMMK" class="digital-num">0 MMK</span></p>
+            <p id="marketStatusMsg" style="font-size: 12px; color: #e74c3c;"></p>
+            <button id="convertBtn" class="btn" onclick="executeCoinConversion()">Coin ကို MMK သို့ ပြောင်းမည်</button>
         </div>
     </div>
 
@@ -247,12 +190,12 @@
         <div class="card">
             <h3>💰 ငွေထုတ်ယူရန် (Withdraw)</h3>
             <p>ထုတ်ယူနိုင်သော MMK: <span id="withdrawMMK" class="digital-num">0 MMK</span></p>
-            <p id="withdrawNotice" style="font-size: 13px; color: var(--accent-light);"></p>
+            <p id="withdrawNotice" style="font-size: 12px; color: var(--accent-light);"></p>
             
-            <label>ငွေထုတ်မည့် ငွေပေးချေမှုစနစ်:</label>
+            <label>ငွေပေးချေမှုစနစ် ရွေးချယ်ရန်:</label>
             <select id="paymentMethod">
-                <option value="KBZPay">KBZPay</option>
-                <option value="WavePay">WavePay</option>
+                <option value="KBZPay">🟩 KBZPay</option>
+                <option value="WavePay">🟦 WavePay</option>
             </select>
 
             <label>ဖုန်းနံပါတ်ထည့်ရန်:</label>
@@ -264,18 +207,18 @@
     <!-- 5. PROFILE SECTION -->
     <div id="profileSection" class="section">
         <div class="card" style="text-align: center;">
-            <h3>👤 အသုံးပြုသူ ပရိုဖိုင်</h3>
-            <img id="userAvatar" src="https://via.placeholder.com/80" alt="Avatar" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--accent-green); margin-bottom: 10px;">
+            <h3>👤 ပရိုဖိုင်</h3>
+            <img id="userAvatar" src="https://via.placeholder.com/80" alt="Avatar" style="width: 75px; height: 75px; border-radius: 50%; border: 2px solid var(--accent-green); margin-bottom: 8px;">
             <p><strong>နာမည်:</strong> <span id="profileName">Loading...</span></p>
             <p><strong>Telegram ID:</strong> <span id="profileId">Loading...</span></p>
-            <div style="display: flex; justify-content: space-around; margin: 15px 0;">
+            <div style="display: flex; justify-content: space-around; margin: 12px 0;">
                 <div>Coins: <br><span id="profileCoins" class="digital-num">0</span></div>
                 <div>MMK: <br><span id="profileMMK" class="digital-num">0 MMK</span></div>
             </div>
         </div>
         <div class="card">
-            <h3>📜 ငွေထုတ်ယူမှု မှတ်တမ်း (History)</h3>
-            <div id="withdrawHistoryList" style="font-size: 13px; max-height: 150px; overflow-y: auto;">
+            <h3>📜 ငွေထုတ်ယူမှု မှတ်တမ်း</h3>
+            <div id="withdrawHistoryList" style="font-size: 12px; max-height: 140px; overflow-y: auto;">
                 <p style="color: #7f8c8d; text-align: center;">မှတ်တမ်း မရှိသေးပါ။</p>
             </div>
         </div>
@@ -283,27 +226,36 @@
 
     <!-- 6. ADMIN CONTROL PANEL -->
     <div id="adminSection" class="section">
-        <div class="card" style="border-color: #e74c3c;">
-            <h3 style="color: #e74c3c;">🛠️ အက်ဒမန် ထိန်းချုပ်ခန်း (Admin Panel)</h3>
+        <div id="adminLoginBox" class="card">
+            <h3>🔐 Admin Login</h3>
+            <input type="password" id="adminPassInput" placeholder="Password ထည့်ပါ (24680)">
+            <button class="btn" onclick="checkAdminPassword()">ဝင်မည်</button>
+        </div>
+
+        <div id="adminDashboard" class="card" style="display:none; border-color: #e74c3c;">
+            <h3 style="color: #e74c3c;">🛠️ အက်ဒမန် ထိန်းချုပ်ခန်း</h3>
             
             <label>1. ဗီဒီယိုကြည့်လျှင် ရမည့် Coin:</label>
-            <input type="number" id="adminVideoReward" value="50" onchange="saveAdminSettings()">
+            <input type="number" id="adminVideoReward" value="50">
+            <button class="btn btn-secondary" onclick="saveAdminSettingField('videoReward', 'ဗီဒီယို Coin သတ်မှတ်ပြီးပါပြီ')">ဗီဒီယို Coin သတ်မှတ်မည်</button>
 
-            <label>2. တာဝန် (Tasks) ကြည့်လျှင် ရမည့် Coin:</label>
-            <input type="number" id="adminTaskReward" value="20" onchange="saveAdminSettings()">
+            <label style="margin-top:12px;">2. တာဝန် Ads ကြည့်လျှင် ရမည့် Coin:</label>
+            <input type="number" id="adminTaskReward" value="20">
+            <button class="btn btn-secondary" onclick="saveAdminSettingField('taskReward', 'တာဝန် Coin သတ်မှတ်ပြီးပါပြီ')">တာဝန် Coin သတ်မှတ်မည်</button>
 
-            <label>3. စျေးကွက် Coin မှ MMK တန်ဖိုး (ဥပမာ - 10 Coins = 1 MMK):</label>
-            <input type="number" id="adminConversionRate" value="10" onchange="saveAdminSettings()">
-            
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
-                <input type="checkbox" id="adminConversionToggle" checked onchange="saveAdminSettings()" style="width: auto; margin:0;"> Coin မှ MMK ပြောင်းခြင်း ပိတ်/ဖွင့်
+            <label style="margin-top:12px;">3. စျေးကွက် Coin မှ MMK တန်ဖိုး (ဥပမာ - Coin 1000 = MMK 100):</label>
+            <input type="text" id="adminConversionRule" value="1000=100">
+            <button class="btn btn-secondary" onclick="saveAdminSettingField('conversionRule', 'စျေးကွက်လဲလှယ်နှုန်း သတ်မှတ်ပြီးပါပြီ')">လဲလှယ်နှုန်း သတ်မှတ်မည်</button>
+
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 10px;">
+                <input type="checkbox" id="adminConversionToggle" checked onchange="saveAdminSettingField('conversionOpen', 'ပြောင်းလဲခြင်း အပိတ်/အဖွင့် ပြင်ဆင်ပြီးပါပြီ')" style="width: auto; margin:0;"> Coin မှ MMK ပြောင်းခြင်း ပိတ်/ဖွင့်
             </label>
 
-            <label style="margin-top: 15px; display: block;">4. ငွေထုတ်ရက် သတ်မှတ်ရန်:</label>
-            <input type="date" id="adminWithdrawDate" onchange="saveAdminSettings()">
+            <label style="margin-top: 12px; display: block;">4. ငွေထုတ်ရက် သတ်မှတ်ရန်:</label>
+            <input type="date" id="adminWithdrawDate" onchange="saveAdminSettingField('withdrawDate', 'ငွေထုတ်ရက် သတ်မှတ်ပြီးပါပြီ')">
             
-            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
-                <input type="checkbox" id="adminWithdrawToggle" checked onchange="saveAdminSettings()" style="width: auto; margin:0;"> ငွေထုတ်ယူမှု အပိတ်/အဖွင့်
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 10px;">
+                <input type="checkbox" id="adminWithdrawToggle" checked onchange="saveAdminSettingField('withdrawOpen', 'ငွေထုတ် အပိတ်/အဖွင့် ပြင်ဆင်ပြီးပါပြီ')" style="width: auto; margin:0;"> ငွေထုတ်ယူမှု အပိတ်/အဖွင့်
             </label>
 
             <hr style="border-color: var(--border-color); margin: 15px 0;">
@@ -311,26 +263,31 @@
             <label>5. User ရှာရန် (Telegram ID ဖြင့်):</label>
             <input type="text" id="adminSearchId" placeholder="Telegram ID ထည့်ပါ...">
             <button class="btn btn-secondary" onclick="adminSearchUser()">User ရှာမည်</button>
-            <div id="adminSearchResult" style="margin-top: 10px; font-size: 13px;"></div>
-            <p style="font-size: 13px; margin-top: 5px;">စုစုပေါင်း Active Users အရေအတွက်: <span id="totalActiveUsers" class="digital-num">1</span></p>
+            <div id="adminSearchResult" style="margin-top: 8px; font-size: 12px;"></div>
+            
+            <p style="font-size: 12px; margin-top: 8px;">
+                👥 Active Users: <span id="countActive" class="digital-num">0</span> | 
+                💤 မသုံးသေးသူများ: <span id="countInactive" class="digital-num">0</span> | 
+                စုစုပေါင်း: <span id="countTotal" class="digital-num">0</span>
+            </p>
 
-            <label style="margin-top: 15px; display: block;">6. User Coin အတိုး/အလျော့ လုပ်ရန်:</label>
+            <label style="margin-top: 12px; display: block;">6. User Coin / MMK အတိုး/အလျော့ လုပ်ရန်:</label>
             <input type="text" id="adminTargetId" placeholder="Target Telegram ID">
-            <input type="number" id="adminCoinAmount" placeholder="တိုး/လျော့မည့် Coin ပမာဏ (+ သို့မဟုတ် -)">
-            <button class="btn" style="background: #e74c3c; color: #fff;" onclick="adminModifyCoins()">Coin ပြင်ဆင်မည်</button>
+            <input type="number" id="adminCoinAmt" placeholder="တိုး/လျော့မည့် Coin (+ သို့မဟုတ် -)">
+            <button class="btn" style="background: #e74c3c; color: #fff;" onclick="adminModifyCoins()">Coin အတိုး/အလျော့ အတည်ပြုမည်</button>
 
             <hr style="border-color: var(--border-color); margin: 15px 0;">
 
-            <label>7. ကြော်ငြာလင့်ခ်များ (Ads Links) ထည့်ရန်:</label>
-            <input type="text" id="newAdLinkInput" placeholder="https://example.com/ad-link">
-            <button class="btn btn-secondary" onclick="addAdLink()">ကြော်ငြာလင့်ခ် ထည့်မည်</button>
-            <p style="font-size: 13px; margin-top: 5px;">ထည့်ထားပြီးသော ကြော်ငြာလင့်ခ် အရေအတွက်: <span id="adLinksCount" class="digital-num">0</span></p>
-            <div id="adLinksList" style="font-size: 12px; max-height: 100px; overflow-y: auto;"></div>
+            <label>7. Ads လင့်ခ်များ ထည့်ရန်:</label>
+            <input type="text" id="newAdLinkInput" placeholder="https://example.com/ad">
+            <button class="btn btn-secondary" onclick="addAdLink()">Ads လင့်ခ် ထည့်မည်</button>
+            <p style="font-size: 12px; margin-top: 5px;">ထည့်ထားပြီးသော Ads လင့်ခ် အရေအတွက်: <span id="adLinksCount" class="digital-num">0</span></p>
+            <div id="adLinksList" style="font-size: 11px; max-height: 90px; overflow-y: auto;"></div>
         </div>
     </div>
 </div>
 
-<!-- BOTTOM NAVIGATION BAR -->
+<!-- BOTTOM NAV BAR -->
 <div class="nav-bar">
     <button class="nav-btn active" onclick="switchSection('videoSection', this)">🎬 ဗီဒီယို</button>
     <button class="nav-btn" onclick="switchSection('tasksSection', this)">🎯 တာဝန်</button>
@@ -340,28 +297,37 @@
     <button class="nav-btn" onclick="switchSection('adminSection', this)">🛠️ အက်ဒမန်</button>
 </div>
 
-<!-- AD MODAL (15s Ad Timer) -->
+<!-- 15S AD MODAL -->
 <div id="adModal">
     <div class="ad-box">
         <h3>📺 ကြော်ငြာ ကြည့်ရှုနေပါသည်</h3>
-        <p id="adTimerText" style="font-size: 24px; font-weight: bold; color: var(--accent-green); margin: 15px 0;">15s</p>
-        <p style="font-size: 12px; color: var(--accent-light);">ကျေးဇူးပြု၍ ၁၅ စက္ကန့်ပြည့်သည်အထိ စောင့်ဆိုင်းပါ။</p>
+        <p id="adTimerText" style="font-size: 26px; font-weight: bold; color: var(--accent-green); margin: 12px 0;">15s</p>
+        <p style="font-size: 11px; color: var(--accent-light);">၁၅ စက္ကန့်ပြည့်ပါက Close ခလုတ်ပေါ်လာပါမည်။</p>
+        <button id="modalCloseBtn" class="btn" style="display:none; background:#f39c12; color:#fff;" onclick="finishAdTask()">Close (Coin ရယူမည်)</button>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE & APP CONFIG ---
-    const firebaseConfig = {
-        databaseURL: "https://real-caush-default-rtdb.firebaseio.com/"
-    };
+    const firebaseConfig = { databaseURL: "https://real-caush-default-rtdb.firebaseio.com/" };
     const YOUTUBE_API_KEY = "AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c";
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // --- USER STATE ---
+    // Predefined 10 YouTube Videos with Thumbnails & Titles
+    const presetVideos = [
+        { id: "tXkh5pvP-zo", title: "Trending Music Mix 2026", thumb: "https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" },
+        { id: "4kULdbyVPLk", title: "Lofi Chill Beats to Study", thumb: "https://img.youtube.com/vi/4kULdbyVPLk/hqdefault.jpg" },
+        { id: "dQw4w9WgXcQ", title: "Classic Pop Hit Song", thumb: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
+        { id: "L_LUpnjgPso", title: "Nature Relaxing Sounds", thumb: "https://img.youtube.com/vi/L_LUpnjgPso/hqdefault.jpg" },
+        { id: "kJQP7kiw5Fk", title: "Spanish Dance Remix", thumb: "https://img.youtube.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
+        { id: "9bZkp7q19f0", title: "Gangnam Style Official", thumb: "https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg" },
+        { id: "JGwWNGJdvx8", title: "Shape of You - Ed Sheeran", thumb: "https://img.youtube.com/vi/JGwWNGJdvx8/hqdefault.jpg" },
+        { id: "RgKAFK5djSk", title: "See You Again ft. Charlie Puth", thumb: "https://img.youtube.com/vi/RgKAFK5djSk/hqdefault.jpg" },
+        { id: "OPf0YbXqDm0", title: "Uptown Funk - Bruno Mars", thumb: "https://img.youtube.com/vi/OPf0YbXqDm0/hqdefault.jpg" },
+        { id: "2Vv-BfVoq4g", title: "Perfect - Ed Sheeran", thumb: "https://img.youtube.com/vi/2Vv-BfVoq4g/hqdefault.jpg" }
+    ];
+
     let userData = {
         tgId: "99999999",
         tgName: "Telegram User",
@@ -369,15 +335,15 @@
         coins: 0,
         mmkBalance: 0,
         history: [],
-        taskProgress: {}, // stores counts & timestamps for 7 tasks
-        banned: false
+        taskProgress: {},
+        banned: false,
+        lastActive: Date.now()
     };
 
-    // Admin Settings State
     let adminSettings = {
         videoReward: 50,
         taskReward: 20,
-        conversionRate: 10,
+        conversionRule: "1000=100", // 1000 Coins = 100 MMK
         conversionOpen: true,
         withdrawDate: "",
         withdrawOpen: true,
@@ -386,17 +352,16 @@
 
     let videoInterval = null;
     let videoProgress = 0;
-    let currentTaskIndexToRun = null;
-    let pendingRewardType = ''; // 'video' or 'task'
-    let pendingTaskBtnId = null;
+    let isVideoPlaying = false;
+    let activeTaskIndex = null;
+    let adCountdownInterval = null;
 
-    // --- INITIALIZATION ---
     function initApp() {
         let saved = localStorage.getItem('real_caush_user_data');
         if (saved) userData = JSON.parse(saved);
 
         if (window.Telegram && window.Telegram.WebApp) {
-            const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+            let tgUser = window.Telegram.WebApp.initDataUnsafe.user;
             if (tgUser) {
                 userData.tgId = String(tgUser.id);
                 userData.tgName = tgUser.first_name || tgUser.username || "User";
@@ -404,7 +369,9 @@
                 loadFromFirebase(userData.tgId);
             }
         }
+        userData.lastActive = Date.now();
         loadAdminSettings();
+        renderPresetVideosList();
         renderTaskButtons();
         updateUI();
     }
@@ -420,28 +387,28 @@
                 history: userData.history,
                 taskProgress: userData.taskProgress,
                 banned: userData.banned,
-                lastUpdated: new Date().toISOString()
+                lastActive: userData.lastActive
             });
         }
         updateUI();
     }
 
     function loadFromFirebase(tgId) {
-        db.ref('users/' + tgId).once('value').then((snapshot) => {
+        db.ref('users/' + tgId).once('value').then(snapshot => {
             if (snapshot.exists()) {
-                let data = snapshot.val();
-                if (data.coins !== undefined) userData.coins = data.coins;
-                if (data.mmkBalance !== undefined) userData.mmkBalance = data.mmkBalance;
-                if (data.history) userData.history = data.history;
-                if (data.taskProgress) userData.taskProgress = data.taskProgress;
-                if (data.banned) userData.banned = data.banned;
+                let d = snapshot.val();
+                if (d.coins !== undefined) userData.coins = d.coins;
+                if (d.mmkBalance !== undefined) userData.mmkBalance = d.mmkBalance;
+                if (d.history) userData.history = d.history;
+                if (d.taskProgress) userData.taskProgress = d.taskProgress;
+                if (d.banned) userData.banned = d.banned;
                 updateUI();
             }
         });
     }
 
     function loadAdminSettings() {
-        db.ref('adminSettings').once('value').then((snapshot) => {
+        db.ref('adminSettings').once('value').then(snapshot => {
             if (snapshot.exists()) {
                 adminSettings = snapshot.val();
                 if (!adminSettings.adLinks) adminSettings.adLinks = [];
@@ -450,84 +417,94 @@
         });
     }
 
-    function saveAdminSettings() {
-        adminSettings.videoReward = parseInt(document.getElementById('adminVideoReward').value) || 50;
-        adminSettings.taskReward = parseInt(document.getElementById('adminTaskReward').value) || 20;
-        adminSettings.conversionRate = parseInt(document.getElementById('adminConversionRate').value) || 10;
-        adminSettings.conversionOpen = document.getElementById('adminConversionToggle').checked;
-        adminSettings.withdrawDate = document.getElementById('adminWithdrawDate').value;
-        adminSettings.withdrawOpen = document.getElementById('adminWithdrawToggle').checked;
-
-        db.ref('adminSettings').set(adminSettings);
-        updateUI();
-    }
-
     function applyAdminSettingsToUI() {
         document.getElementById('adminVideoReward').value = adminSettings.videoReward;
         document.getElementById('adminTaskReward').value = adminSettings.taskReward;
-        document.getElementById('adminConversionRate').value = adminSettings.conversionRate;
+        document.getElementById('adminConversionRule').value = adminSettings.conversionRule || "1000=100";
         document.getElementById('adminConversionToggle').checked = adminSettings.conversionOpen;
-        document.getElementById('adminWithdrawDate').value = adminSettings.withdrawDate;
+        document.getElementById('adminWithdrawDate').value = adminSettings.withdrawDate || "";
         document.getElementById('adminWithdrawToggle').checked = adminSettings.withdrawOpen;
-        document.getElementById('adminVideoRewardLbl').innerText = adminSettings.videoReward;
         renderAdLinksList();
         updateUI();
     }
 
+    function saveAdminSettingField(field, msg) {
+        if (field === 'videoReward') adminSettings.videoReward = parseInt(document.getElementById('adminVideoReward').value) || 50;
+        if (field === 'taskReward') adminSettings.taskReward = parseInt(document.getElementById('adminTaskReward').value) || 20;
+        if (field === 'conversionRule') adminSettings.conversionRule = document.getElementById('adminConversionRule').value.trim();
+        if (field === 'conversionOpen') adminSettings.conversionOpen = document.getElementById('adminConversionToggle').checked;
+        if (field === 'withdrawDate') adminSettings.withdrawDate = document.getElementById('adminWithdrawDate').value;
+        if (field === 'withdrawOpen') adminSettings.withdrawOpen = document.getElementById('adminWithdrawToggle').checked;
+
+        db.ref('adminSettings').set(adminSettings);
+        alert(msg);
+        updateUI();
+    }
+
     function updateUI() {
-        let calculatedMMK = Math.floor(userData.coins / adminSettings.conversionRate);
-        
+        document.getElementById('topCoinsDisplay').innerText = userData.coins;
+        let rule = adminSettings.conversionRule || "1000=100";
+        let parts = rule.split('=');
+        let cBase = parseFloat(parts[0]) || 1000;
+        let mBase = parseFloat(parts[1]) || 100;
+        let mmkCalc = Math.floor((userData.coins / cBase) * mBase);
+        document.getElementById('topMmkDisplay').innerText = mmkCalc + " MMK";
+
         document.getElementById('marketCoins').innerText = userData.coins;
-        document.getElementById('marketMMK').innerText = calculatedMMK + " MMK";
-        document.getElementById('withdrawMMK').innerText = userData.mmkBalance + " MMK";
-        
         document.getElementById('profileCoins').innerText = userData.coins;
-        document.getElementById('profileMMK').innerText = (userData.mmkBalance + calculatedMMK) + " MMK";
+        document.getElementById('profileMMK').innerText = (userData.mmkBalance + mmkCalc) + " MMK";
+        document.getElementById('withdrawMMK').innerText = userData.mmkBalance + " MMK";
         document.getElementById('profileName').innerText = userData.tgName;
         document.getElementById('profileId').innerText = userData.tgId;
         document.getElementById('userAvatar').src = userData.avatar;
 
-        // Withdraw notice
+        let customInputCoins = parseInt(document.getElementById('customCoinInput').value) || 0;
+        let customMMK = Math.floor((customInputCoins / cBase) * mBase);
+        document.getElementById('calculatedMMK').innerText = customMMK + " MMK";
+
         let notice = document.getElementById('withdrawNotice');
         if (!adminSettings.withdrawOpen) {
             notice.innerText = "⚠️ ငွေထုတ်ယူမှုကို Admin မှ ပိတ်ထားပါသည်။";
         } else if (adminSettings.withdrawDate) {
-            notice.innerText = "သတ်မှတ်ထားသော ငွေထုတ်ရက်: " + adminSettings.withdrawDate;
+            notice.innerText = "ငွေထုတ်ရက်: " + adminSettings.withdrawDate;
         } else {
             notice.innerText = "ငွေထုတ်ယူရန် အဆင်သင့်ဖြစ်ပါပြီ။";
-        }
-
-        // Conversion status
-        let convMsg = document.getElementById('conversionStatusMsg');
-        if (!adminSettings.conversionOpen) {
-            convMsg.innerText = "⚠️ Coin မှ MMK သို့ ပြောင်းလဲခြင်းကို Admin မှ ပိတ်ထားပါသည်။";
-            document.getElementById('convertBtn').disabled = true;
-        } else {
-            convMsg.innerText = "";
-            document.getElementById('convertBtn').disabled = false;
         }
 
         renderHistoryList();
     }
 
-    function switchSection(sectionId, btnElement) {
+    document.getElementById('customCoinInput').addEventListener('input', updateUI);
+
+    function switchSection(sectionId, btnElem) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        
         document.getElementById(sectionId).classList.add('active');
-        btnElement.classList.add('active');
+        btnElem.classList.add('active');
     }
 
-    // --- 1 & 4. VIDEO & PROGRESS SYSTEM ---
-    function loadPresetVideo(videoId) {
-        document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${videoId}`;
-        resetVideoProgressState();
+    // --- VIDEO & PROGRESS LOGIC ---
+    function renderPresetVideosList() {
+        let listContainer = document.getElementById('presetVideosList');
+        let html = '';
+        presetVideos.forEach(v => {
+            html += `<div class="vid-list-item" onclick="loadPresetVideo('${v.id}')">
+                <img src="${v.thumb}" alt="thumb">
+                <div style="font-size: 12px; font-weight:500;">${v.title}</div>
+            </div>`;
+        });
+        listContainer.innerHTML = html;
+    }
+
+    function loadPresetVideo(vId) {
+        document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${vId}`;
+        resetVideoProgress();
     }
 
     function searchYouTubeVideos() {
         let q = document.getElementById('ytSearchQuery').value.trim();
         if (!q) {
-            alert("ကျေးဇူးပြု၍ ရှာလိုသည့် ခေါင်းစဉ်ထည့်ပါ။");
+            alert("ရှာလိုသည့် ခေါင်းစဉ်ထည့်ပါ။");
             return;
         }
         let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&key=${YOUTUBE_API_KEY}&type=video&maxResults=1`;
@@ -537,180 +514,197 @@
                 if (data.items && data.items.length > 0) {
                     let vId = data.items[0].id.videoId;
                     document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${vId}`;
-                    resetVideoProgressState();
-                    alert("ဗီဒီယို အောင်မြင်စွာ တွေ့ရှိပြီး တင်ဆက်လိုက်ပါပြီ!");
+                    resetVideoProgress();
+                    alert("ဗီဒီယို တွေ့ရှိပါပြီ!");
                 } else {
-                    alert("ဗီဒီယို ရှာမတွေ့ပါ။ API Key သို့မဟုတ် စကားလုံးစစ်ဆေးပါ။");
+                    alert("ဗီဒီယို ရှာမတွေ့ပါ။");
                 }
             })
-            .catch(err => alert("ချိတ်ဆက်မှု အမှားအယွင်းရှိပါသည်။"));
+            .catch(() => alert("ချိတ်ဆက်မှု အမှားအယွင်းရှိပါသည်။"));
     }
 
-    function resetVideoProgressState() {
+    function resetVideoProgress() {
         if (videoInterval) clearInterval(videoInterval);
         videoProgress = 0;
+        isVideoPlaying = false;
         document.getElementById('videoProgressFill').style.width = '0%';
         document.getElementById('startVideoBtn').style.display = 'block';
         document.getElementById('claimVideoBtn').style.display = 'none';
-        document.getElementById('resumeVideoBtn').style.display = 'none';
+        document.getElementById('closeVideoBtn').style.display = 'none';
     }
 
     function startVideoProgress() {
         document.getElementById('startVideoBtn').style.display = 'none';
+        isVideoPlaying = true;
         videoProgress = 0;
-        
-        // Slow progress bar fill over ~15 seconds to simulate viewing
+
+        if (videoInterval) clearInterval(videoInterval);
         videoInterval = setInterval(() => {
+            if (!isVideoPlaying) return; // Stop if not playing
             videoProgress += 1;
             if (videoProgress > 100) videoProgress = 100;
             document.getElementById('videoProgressFill').style.width = videoProgress + '%';
 
             if (videoProgress >= 100) {
                 clearInterval(videoInterval);
+                isVideoPlaying = false;
                 document.getElementById('claimVideoBtn').style.display = 'block';
             }
-        }, 150); // 150ms * 100 = 15 seconds approx
+        }, 150); // ~15 seconds to fill 100%
     }
 
-    function openAdForVideo() {
-        pendingRewardType = 'video';
-        triggerAdModal();
+    function closeAndResetVideo() {
+        resetVideoProgress();
+        alert("ဗီဒီယိုကို ဆက်ကြည့်နိုင်ပါပြီ (Progress အစမှ ပြန်စပါမည်)။");
     }
 
-    function resumeVideoPlay() {
-        // Reset progress bar back to 0 to restart viewing from current position
-        videoProgress = 0;
-        document.getElementById('videoProgressFill').style.width = '0%';
-        document.getElementById('claimVideoBtn').style.display = 'none';
-        document.getElementById('resumeVideoBtn').style.display = 'none';
-        document.getElementById('startVideoBtn').style.display = 'block';
-        alert("ဗီဒီယိုကို ဆက်လက်ကြည့်ရှုနိုင်ပါပြီ။ တန်းတန်းအစမှ ပြန်စမည်။");
-    }
-
-    // --- 6. TASKS SECTION (7 Buttons, 10 times limit, 24h cooldown) ---
+    // --- TASKS LOGIC (7 Buttons, 10 times max, 24h cooldown) ---
     function renderTaskButtons() {
         let container = document.getElementById('taskButtonsContainer');
         container.innerHTML = '';
-        
+        let now = Date.now();
+        let twentyFourHours = 24 * 60 * 60 * 1000;
+
         for (let i = 1; i <= 7; i++) {
-            let taskKey = 'task_' + i;
-            let tData = userData.taskProgress[taskKey] || { count: 0, lastTime: 0 };
-            let now = Date.now();
-            let twentyFourHours = 24 * 60 * 60 * 1000;
-            
-            let isDisabled = false;
-            let btnText = `Ads ကြည့်ရန် ခလုတ် (${i}) [${tData.count}/10]`;
+            let tKey = 'task_' + i;
+            let tData = userData.taskProgress[tKey] || { count: 0, lastTime: 0 };
             
             if (tData.count >= 10) {
-                if (now - tData.lastTime < twentyFourHours) {
-                    isDisabled = true;
-                    btnText = `ခလုတ် (${i}) - ၂၄ နာရီ စောင့်ဆိုင်းနေသည်`;
-                } else {
-                    // Reset after 24 hours
+                if (now - tData.lastTime >= twentyFourHours) {
                     tData.count = 0;
-                    userData.taskProgress[taskKey] = tData;
+                    userData.taskProgress[tKey] = tData;
                     saveData();
                 }
             }
 
+            let isFinished = tData.count >= 10;
+            let btnText = `Ads ကြည့်ရန် ခလုတ် (${i}) [${tData.count}/10]`;
+            if (isFinished) btnText = `ခလုတ် (${i}) - ၂၄ နာရီ စောင့်ဆိုင်းပါ`;
+
             let div = document.createElement('div');
-            div.style.marginBottom = '12px';
-            div.innerHTML = `
-                <button class="btn ${isDisabled ? 'btn-secondary' : ''}" id="taskBtn_${i}" ${isDisabled ? 'disabled' : ''} onclick="startTaskAd(${i})">
-                    ${btnText}
-                </button>
-            `;
+            div.style.marginBottom = '10px';
+            div.innerHTML = `<button class="btn ${isFinished ? 'btn-secondary' : ''}" ${isFinished ? 'disabled' : ''} onclick="startTaskAd(${i})">${btnText}</button>`;
             container.appendChild(div);
         }
     }
 
-    function startTaskAd(taskIndex) {
-        currentTaskIndexToRun = taskIndex;
-        pendingRewardType = 'task';
-        triggerAdModal();
+    function startTaskAd(idx) {
+        activeTaskIndex = idx;
+        triggerAdModal('task');
     }
 
-    // --- 15s AD MODAL SYSTEM ---
-    function triggerAdModal() {
+    function openAdForVideo(type) {
+        triggerAdModal(type);
+    }
+
+    // --- 15S AD MODAL SYSTEM ---
+    function triggerAdModal(type) {
         let modal = document.getElementById('adModal');
         let timerText = document.getElementById('adTimerText');
+        let closeBtn = document.getElementById('modalCloseBtn');
         modal.style.display = 'flex';
+        closeBtn.style.display = 'none';
+        
+        // Randomly pick an ad link if admin added some
+        if (adminSettings.adLinks && adminSettings.adLinks.length > 0) {
+            let randLink = adminSettings.adLinks[Math.floor(Math.random() * adminSettings.adLinks.length)];
+            window.open(randLink, '_blank'); // Rotation / open ad link
+        }
+
         let timeLeft = 15;
         timerText.innerText = timeLeft + "s";
 
-        let adCountdown = setInterval(() => {
+        if (adCountdownInterval) clearInterval(adCountdownInterval);
+        adCountdownInterval = setInterval(() => {
             timeLeft -= 1;
             timerText.innerText = timeLeft + "s";
             if (timeLeft <= 0) {
-                clearInterval(adCountdown);
-                modal.style.display = 'none';
-                grantPendingReward();
+                clearInterval(adCountdownInterval);
+                timerText.innerText = "ပြီးပါပြီ!";
+                closeBtn.style.display = 'block';
             }
         }, 1000);
+
+        modal.dataset.rewardType = type;
     }
 
-    function grantPendingReward() {
-        if (pendingRewardType === 'video') {
+    function finishAdTask() {
+        let modal = document.getElementById('adModal');
+        let type = modal.dataset.rewardType;
+        modal.style.display = 'none';
+
+        if (type === 'video') {
             let reward = adminSettings.videoReward;
             userData.coins += reward;
             saveData();
-            alert(`အောင်မြင်ပါသည်! ဗီဒီယိုကြည့်ရှု၍ Coin +${reward} ရရှိပါပြီ။`);
+            alert(`adminမှသတ်မှတ်သော coin ${reward} ရရှိပါသည်!`);
             document.getElementById('claimVideoBtn').style.display = 'none';
-            document.getElementById('resumeVideoBtn').style.display = 'block';
-        } else if (pendingRewardType === 'task' && currentTaskIndexToRun !== null) {
+            document.getElementById('closeVideoBtn').style.display = 'block';
+        } else if (type === 'task' && activeTaskIndex !== null) {
             let reward = adminSettings.taskReward;
             userData.coins += reward;
             
-            let taskKey = 'task_' + currentTaskIndexToRun;
-            if (!userData.taskProgress[taskKey]) {
-                userData.taskProgress[taskKey] = { count: 0, lastTime: Date.now() };
-            }
-            userData.taskProgress[taskKey].count += 1;
-            userData.taskProgress[taskKey].lastTime = Date.now();
-            
+            let tKey = 'task_' + activeTaskIndex;
+            if (!userData.taskProgress[tKey]) userData.taskProgress[tKey] = { count: 0, lastTime: Date.now() };
+            userData.taskProgress[tKey].count += 1;
+            userData.taskProgress[tKey].lastTime = Date.now();
+
             saveData();
             renderTaskButtons();
-            alert(`တာဝန် အောင်မြင်ပါသည်! Coin +${reward} ရရှိပါပြီ။`);
-            currentTaskIndexToRun = null;
+            alert(`adminမှသတ်မှတ်သော coin ${reward} ရရှိပါသည်!`);
+            activeTaskIndex = null;
         }
     }
 
-    // --- 7. MARKET & DIGITAL TICKER ---
-    function convertCoinToMMK() {
+    // --- MARKET & CONVERSION ---
+    function executeCoinConversion() {
         if (!adminSettings.conversionOpen) {
-            alert("အက်ဒမန်မှ ငွေလဲလှယ်မှုကို ပိတ်ထားပါသည်။");
+            alert("Admin မှ Coin မှ MMK ပြောင်းလဲခြင်းကို ပိတ်ထားပါသည်။");
             return;
         }
-        let rate = adminSettings.conversionRate;
-        let convertibleMMK = Math.floor(userData.coins / rate);
-        if (convertibleMMK <= 0) {
+        let inputCoins = parseInt(document.getElementById('customCoinInput').value) || 0;
+        if (inputCoins <= 0 || inputCoins > userData.coins) {
+            alert("ထည့်သွင်းထားသော Coin ပမာဏ မမှန်ကန်ပါ သို့မဟုတ် မလုံလောက်ပါ။");
+            return;
+        }
+
+        let rule = adminSettings.conversionRule || "1000=100";
+        let parts = rule.split('=');
+        let cBase = parseFloat(parts[0]) || 1000;
+        let mBase = parseFloat(parts[1]) || 100;
+
+        let convertedMMK = Math.floor((inputCoins / cBase) * mBase);
+        if (convertedMMK <= 0) {
             alert("လဲလှယ်ရန် Coin မလုံလောက်ပါ။");
             return;
         }
-        userData.coins = userData.coins % rate;
-        userData.mmkBalance += convertibleMMK;
+
+        userData.coins -= inputCoins;
+        userData.mmkBalance += convertedMMK;
         saveData();
-        alert(`အောင်မြင်ပါသည်! Coin များ ကို ${convertibleMMK} MMK သို့ ပြောင်းလဲပြီးပါပြီ။`);
+        document.getElementById('customCoinInput').value = '';
+        alert(`အောင်မြင်ပါသည်! Coin ${inputCoins} ကို MMK ${convertedMMK} သို့ ပြောင်းလဲပြီးပါပြီ။`);
     }
 
+    // Live Ticker simulation
     function updateMarketPrices() {
-        let btc = (64000 + (Math.random() * 300 - 150)).toFixed(2);
+        let btc = (64250 + (Math.random() * 200 - 100)).toFixed(2);
         document.getElementById('btcLivePrice').innerText = "$" + btc;
     }
     setInterval(updateMarketPrices, 3000);
 
-    // --- 8 & 9. WITHDRAW & HISTORY ---
+    // --- WITHDRAWAL & HISTORY ---
     function requestWithdrawal() {
         if (!adminSettings.withdrawOpen) {
-            alert("လက်တလော ငွေထုတ်ယူမှုကို အက်ဒမန်မှ ပိတ်ထားပါသည်။");
+            alert("ငွေထုတ်ယူမှုကို Admin မှ ပိတ်ထားပါသည်။");
             return;
         }
         let method = document.getElementById('paymentMethod').value;
         let phone = document.getElementById('phoneNumber').value.trim();
         let amount = userData.mmkBalance;
 
-        if (!phone || phone.length < 9) {
-            alert("ကျေးဇူးပြု၍ မှန်ကန်သော ဖုန်းနံပါတ်ထည့်ပါ။");
+        if (!phone || phone.length < 8) {
+            alert("မှန်ကန်သော ဖုန်းနံပါတ်ထည့်ပါ။");
             return;
         }
         if (amount <= 0) {
@@ -741,16 +735,52 @@
         }
         let html = '';
         userData.history.forEach(h => {
-            html += `<div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid var(--accent-green);">
-                <b>${h.amount} MMK</b> (${h.method})<br>
-                ဖုန်း: ${h.phone}<br>
-                ရက်စွဲ: ${h.date} [<b>${h.status}</b>]
+            html += `<div style="background: rgba(0,0,0,0.3); padding: 6px; border-radius: 6px; margin-bottom: 5px; border-left: 3px solid var(--accent-green);">
+                <b>${h.amount} MMK</b> (${h.method}) - ${h.phone}<br>
+                <span style="font-size: 10px; color: #8fa398;">${h.date} [<b>${h.status}</b>]</span>
             </div>`;
         });
         listDiv.innerHTML = html;
     }
 
-    // --- 10. ADMIN CONTROL PANEL FUNCTIONS ---
+    // --- ADMIN LOGIN & CONTROLS ---
+    function checkAdminPassword() {
+        let pass = document.getElementById('adminPassInput').value.trim();
+        if (pass === "24680") {
+            document.getElementById('adminLoginBox').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadAdminDashboardData();
+        } else {
+            alert("Password မှားယွင်းနေပါသည်။");
+        }
+    }
+
+    function loadAdminDashboardData() {
+        db.ref('users').once('value').then(snapshot => {
+            let total = 0;
+            let active = 0;
+            let inactive = 0;
+            let now = Date.now();
+            let dayMs = 24 * 60 * 60 * 1000;
+
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    total++;
+                    let u = child.val();
+                    // Active if active within last 3 days or has coins/history
+                    if ((now - (u.lastActive || 0)) < (3 * dayMs) || (u.coins > 0) || (u.history && u.history.length > 0)) {
+                        active++;
+                    } else {
+                        inactive++;
+                    }
+                });
+            }
+            document.getElementById('countTotal').innerText = total;
+            document.getElementById('countActive').innerText = active;
+            document.getElementById('countInactive').innerText = inactive;
+        });
+    }
+
     function adminSearchUser() {
         let sId = document.getElementById('adminSearchId').value.trim();
         let resDiv = document.getElementById('adminSearchResult');
@@ -761,16 +791,25 @@
         db.ref('users/' + sId).once('value').then(snapshot => {
             if (snapshot.exists()) {
                 let u = snapshot.val();
-                resDiv.innerHTML = `တွေ့ရှိသည် ✅<br>နာမည်: ${u.tgName}<br>Coins: ${u.coins} | MMK: ${u.mmkBalance}<br>Status: ${u.banned ? 'Banned ❌' : 'Active ✅'}`;
+                let isBanned = u.banned ? true : false;
+                resDiv.innerHTML = `တွေ့ရှိသည် ✅<br>နာမည်: ${u.tgName}<br>Coins: ${u.coins} | MMK: ${u.mmkBalance}<br>Status: ${isBanned ? 'Banned ❌' : 'Active ✅'}<br>
+                <button class="btn" style="padding:6px; margin-top:5px; background:${isBanned?'#2ecc71':'#e74c3c'}; color:#fff;" onclick="toggleBanUser('${sId}', ${!isBanned})">${isBanned ? 'Unban လုပ်မည်' : 'Ban လုပ်မည်'}</button>`;
             } else {
                 resDiv.innerHTML = "ရှာမတွေ့ပါ။";
             }
         });
     }
 
+    function toggleBanUser(targetId, banStatus) {
+        db.ref('users/' + targetId).update({ banned: banStatus }).then(() => {
+            alert(banStatus ? "User ကို Ban လိုက်ပါပြီ။" : "User ကို Unban လိုက်ပါပြီ။");
+            adminSearchUser();
+        });
+    }
+
     function adminModifyCoins() {
         let tId = document.getElementById('adminTargetId').value.trim();
-        let amt = parseInt(document.getElementById('adminCoinAmount').value);
+        let amt = parseInt(document.getElementById('adminCoinAmt').value);
         if (!tId || isNaN(amt)) {
             alert("Telegram ID နှင့် Coin ပမာဏ မှန်ကန်စွာ ထည့်ပါ။");
             return;
@@ -779,8 +818,10 @@
             if (snapshot.exists()) {
                 let u = snapshot.val();
                 u.coins = (u.coins || 0) + amt;
-                db.ref('users/' + tId).update({ coins: u.coins });
-                alert(`အောင်မြင်ပါသည်! User (${tId}) ၏ Coin ကို ${amt > 0 ? '+' + amt : amt} ပြောင်းလဲလိုက်ပါပြီ။`);
+                db.ref('users/' + tId).update({ coins: u.coins }).then(() => {
+                    alert(`အတည်ပြုပြီးပါပြီ! User (${tId}) ၏ Coin ကို ${amt > 0 ? '+' + amt : amt} ပြောင်းလဲလိုက်ပါပြီ။`);
+                    adminSearchUser();
+                });
             } else {
                 alert("ဤ Telegram ID ဖြင့် User ရှာမတွေ့ပါ။");
             }
@@ -790,7 +831,7 @@
     function addAdLink() {
         let link = document.getElementById('newAdLinkInput').value.trim();
         if (!link) {
-            alert("ကြော်ငြာလင့်ခ် ထည့်ပါ။");
+            alert("Ads လင့်ခ် ထည့်ပါ။");
             return;
         }
         if (!adminSettings.adLinks) adminSettings.adLinks = [];
@@ -798,7 +839,7 @@
         db.ref('adminSettings').set(adminSettings);
         document.getElementById('newAdLinkInput').value = '';
         renderAdLinksList();
-        alert("ကြော်ငြာလင့်ခ် အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။");
+        alert("Ads လင့်ခ် အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။");
     }
 
     function renderAdLinksList() {
@@ -810,17 +851,17 @@
             return;
         }
         let html = '';
-        adminSettings.adLinks.forEach((l, index) => {
-            html += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; margin-bottom: 4px;">
-                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px;">${l}</span>
-                <button onclick="removeAdLink(${index})" style="background: #e74c3c; color: #fff; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer;">ဖျက်မည်</button>
+        adminSettings.adLinks.forEach((l, idx) => {
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 4px 6px; border-radius: 4px; margin-bottom: 3px;">
+                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">${l}</span>
+                <button onclick="removeAdLink(${idx})" style="background:#e74c3c; color:#fff; border:none; border-radius:3px; padding:2px 5px; cursor:pointer;">ဖျက်မည်</button>
             </div>`;
         });
         listDiv.innerHTML = html;
     }
 
-    function removeAdLink(index) {
-        adminSettings.adLinks.splice(index, 1);
+    function removeAdLink(idx) {
+        adminSettings.adLinks.splice(idx, 1);
         db.ref('adminSettings').set(adminSettings);
         renderAdLinksList();
     }
