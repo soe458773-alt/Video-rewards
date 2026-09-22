@@ -793,12 +793,11 @@
             </div>
         </div>
 
-        <!-- 3. MARKET / EXCHANGE SECTION (Updated with Digital Live Ticker & Wave fluctuation) -->
+        <!-- 3. MARKET / EXCHANGE SECTION -->
         <div id="marketSection" class="page-section">
             <div class="card-3d">
                 <h3><i class="fa-solid fa-chart-line"></i> စျေးကွက်နှင့် တိုက်ရိုက်နှုန်းထား (Live Ticker)</h3>
                 
-                <!-- Digital Market Live Wave Ticker Grid -->
                 <div class="crypto-ticker-grid">
                     <div class="crypto-card">
                         <div class="crypto-header">
@@ -818,7 +817,6 @@
                     </div>
                 </div>
 
-                <!-- Simulated Wave Line Chart UI -->
                 <div class="wave-chart-box">
                     <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
                         <span>📈 စျေးကွက်လှိုင်းနှုန်း (Market Wave Trend)</span>
@@ -860,12 +858,10 @@
                 </p>
 
                 <div class="payment-methods">
-                    <!-- KBZPay Logo from Provided Source -->
                     <div class="pay-option selected" id="kpayOpt" onclick="selectPayment('kpay')">
                         <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100" alt="KBZPay" onerror="this.src='https://via.placeholder.com/35'">
                         <span>KBZPay</span>
                     </div>
-                    <!-- WavePay Logo from Provided Source -->
                     <div class="pay-option" id="wavepayOpt" onclick="selectPayment('wavepay')">
                         <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100" alt="WavePay" onerror="this.src='https://via.placeholder.com/35'">
                         <span>WavePay</span>
@@ -887,7 +883,6 @@
                 <button class="action-btn" onclick="requestWithdrawal()">ငွေထုတ်ရန် တောင်းဆိုမည်</button>
             </div>
 
-            <!-- Withdraw History -->
             <div class="card-3d">
                 <h3><i class="fa-solid fa-clock-rotate-left"></i> ငွေထုတ်မှတ်တမ်း (History)</h3>
                 <div style="max-height: 150px; overflow-y: auto;" id="withdrawHistoryList">
@@ -1033,7 +1028,6 @@
     <script>
         const YOUTUBE_API_KEY = 'AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c';
 
-        // Initial 10 YouTube Videos List
         const initialVideos = [
             { id: 'tXkh5pvP-zo', title: 'Top 10 Popular Songs 2026' },
             { id: '4kULdbyVPLk', title: 'Relaxing Lofi Hip Hop Beats' },
@@ -1084,10 +1078,9 @@
             renderInitialVideos();
             startRewardTimer();
             updateCoinsUI();
-            startLiveMarketTicker(); // Start digital live wave price fluctuating simulator
+            startLiveMarketTicker();
         };
 
-        // Digital Live Crypto/Coin Ticker & Wave Simulator
         function startLiveMarketTicker() {
             setInterval(() => {
                 let coinRateEl = document.getElementById('tickerCoinRate');
@@ -1098,7 +1091,6 @@
 
                 if(!coinRateEl) return;
 
-                // Random small fluctuation
                 let randomVal = (Math.random() * 0.4 - 0.19);
                 let currentCoinVal = 10.0 + randomVal;
                 let pct = (randomVal >= 0 ? "+" : "") + (randomVal * 10).toFixed(1) + "%";
@@ -1110,7 +1102,6 @@
                 let usdtVal = 4520 + Math.floor(Math.random() * 20 - 10);
                 usdtRateEl.innerText = usdtVal.toLocaleString() + " MMK";
 
-                // Animate Wave SVG line slightly
                 if(wavePathEl) {
                     let r1 = Math.floor(Math.random() * 20 + 10);
                     let r2 = Math.floor(Math.random() * 35 + 5);
@@ -1721,8 +1712,6 @@
             videoRewardCoin = val;
             alert('ဗီဒီယိုကြည့် Coin ဆုလာဘ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
         }
-
-        function saveTaskAdRate() {}
 
         function saveTaskAdReward() {
             let rewardInput = document.getElementById('adminTaskAdRewardInput');
