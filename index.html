@@ -3,1744 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mnd-ver" content="lke1ierh8ag2yhv3o9veq" />
-    <title>Real caush</title>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Telegram Mini App - Reward & Crypto</title>
+    <!-- Telegram WebApp Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
-            --primary-blue: #0066ff;
-            --hover-blue: #0052cc;
-            --accent-blue-light: #e6f0ff;
-            --text-main: #1e293b;
-            --text-secondary: #64748b;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --border-color: #cbd5e1;
-        }
-
-        [data-theme="dark"] {
             --bg-color: #0f172a;
             --card-bg: #1e293b;
-            --primary-blue: #3b82f6;
-            --hover-blue: #2563eb;
-            --accent-blue-light: rgba(59, 130, 246, 0.15);
-            --text-main: #f8fafc;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
+            --text-color: #f8fafc;
+            --accent-color: #38bdf8;
+            --btn-bg: #2563eb;
+            --btn-hover: #1d4ed8;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-        }
-
         body {
-            background: var(--bg-color);
-            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
             padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
         }
-
         .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border-color);
-            margin-bottom: 75px;
+            max-width: 500px;
+            margin: 0 auto;
         }
-
-        /* Top Bar & Dark Mode Switch */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
             margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-
-        .theme-toggle-btn {
-            background: var(--accent-blue-light);
-            border: 1px solid var(--primary-blue);
-            color: var(--primary-blue);
-            padding: 6px 12px;
-            border-radius: 20px;
+        h2, h3 { margin-top: 0; color: var(--accent-color); }
+        .btn {
+            background-color: var(--btn-bg);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Navigation Tab Bar */
-        .nav-tabs {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
+            font-weight: bold;
             width: 100%;
-            max-width: 480px;
-            background: var(--card-bg);
+            margin-top: 5px;
+        }
+        .btn:hover { background-color: var(--btn-hover); }
+        .digital-num {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: #00ffcc;
+            background: #111;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        .tab-menu {
             display: flex;
             justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid var(--border-color);
-            z-index: 1000;
+            margin-bottom: 15px;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 10px;
         }
-
-        .nav-tab {
-            color: var(--text-secondary);
+        .tab-btn {
             background: none;
             border: none;
-            font-size: 11px;
+            color: #94a3b8;
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .nav-tab i {
-            font-size: 17px;
-        }
-
-        .nav-tab.active, .nav-tab:hover {
-            color: var(--primary-blue);
-        }
-
-        .page-section {
-            display: none;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        /* Header & Coin Balance */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .app-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .coin-badge {
-            background: var(--accent-blue-light);
-            border: 1px solid var(--primary-blue);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: bold;
-            color: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        /* Search Box */
-        .search-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-box input {
-            flex: 1;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            padding: 12px 15px;
-            border-radius: 14px;
-            color: var(--text-main);
-            font-size: 14px;
-            outline: none;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-blue);
-        }
-
-        .search-box button {
-            background: var(--primary-blue);
-            color: #fff;
-            border: none;
-            padding: 0 18px;
-            border-radius: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* Video Player */
-        .player-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            background: #000;
-            border-radius: 14px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-        }
-
-        .player-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Reward Card */
-        .reward-card {
-            background: var(--accent-blue-light);
-            border: 1px dashed var(--primary-blue);
-            padding: 15px;
-            border-radius: 14px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .reward-card p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-        }
-
-        .claim-btn {
-            background: var(--primary-blue);
-            color: #fff;
-            border: none;
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            display: none;
-            margin: 0 auto;
-        }
-
-        /* Video List */
-        .section-label {
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text-secondary);
-        }
-
-        .video-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 240px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .video-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--bg-color);
-            padding: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            transition: 0.2s;
-        }
-
-        .video-item:hover {
-            border-color: var(--primary-blue);
-        }
-
-        .video-item img {
-            width: 90px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .video-info h4 {
-            font-size: 13px;
-            color: var(--text-main);
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* Profile Styles */
-        .profile-box {
-            text-align: center;
-            padding: 5px;
-        }
-
-        .avatar-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 15px auto;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--primary-blue);
-            background: var(--bg-color);
-        }
-
-        .avatar-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-upload-btn {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            font-size: 10px;
-            padding: 5px;
-            cursor: pointer;
-        }
-
-        .profile-info {
-            background: var(--bg-color);
-            padding: 15px;
-            border-radius: 14px;
-            margin-bottom: 15px;
-            text-align: left;
-            border: 1px solid var(--border-color);
-        }
-
-        .profile-info p {
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .profile-info span {
-            color: var(--text-main);
             font-weight: bold;
         }
-
-        /* Cards & UI Elements */
-        .card-3d {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
-
-        .card-3d h3 {
-            font-size: 15px;
-            color: var(--primary-blue);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Task Ad Buttons Grid */
-        .task-ad-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 15px;
-        }
-
-        .task-ad-btn-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            padding: 12px 15px;
-            border-radius: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .task-ad-btn-card:hover {
-            border-color: var(--primary-blue);
-        }
-
-        .task-info h4 {
-            font-size: 14px;
-            color: var(--text-main);
-            margin-bottom: 4px;
-        }
-
-        .task-info p {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .task-action-btn {
-            background: var(--primary-blue);
-            color: #fff;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* Withdraw Form */
-        .payment-methods {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .pay-option {
-            flex: 1;
-            background: var(--bg-color);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .pay-option.selected {
-            border-color: var(--primary-blue);
-            background: var(--accent-blue-light);
-        }
-
-        .pay-option img {
-            width: 35px;
-            height: 35px;
-            object-fit: contain;
-            margin-bottom: 6px;
-            border-radius: 6px;
-        }
-
-        .pay-option span {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
-        }
-
-        .custom-input {
-            width: 100%;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            padding: 11px 14px;
-            border-radius: 10px;
-            color: var(--text-main);
-            font-size: 14px;
-            outline: none;
-        }
-
-        .custom-input:focus {
-            border-color: var(--primary-blue);
-        }
-
-        .action-btn {
-            background: var(--primary-blue);
-            color: #fff;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            transition: 0.3s;
-        }
-
-        .action-btn:hover {
-            background: var(--hover-blue);
-        }
-
-        /* Tic-Tac-Toe */
-        .tic-tac-toe {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            max-width: 200px;
-            margin: 10px auto;
-        }
-
-        .cell {
-            width: 60px;
-            height: 60px;
-            background: var(--bg-color);
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 22px;
-            font-weight: bold;
-            color: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        /* History Items */
-        .history-item {
-            background: var(--bg-color);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Admin Styles */
-        .admin-card {
-            background: var(--bg-color);
-            padding: 15px;
-            border-radius: 14px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-        }
-
-        .admin-card h3 {
-            font-size: 14px;
-            color: var(--primary-blue);
-            margin-bottom: 10px;
-        }
-
-        .admin-tabs-header {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
-            background: var(--border-color);
-            padding: 4px;
-            border-radius: 8px;
-        }
-
-        .admin-sub-tab {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 11px;
-            padding: 6px;
-            cursor: pointer;
-            border-radius: 6px;
-            font-weight: bold;
-        }
-
-        .admin-sub-tab.active {
-            background: var(--primary-blue);
-            color: #fff;
-        }
-
-        .user-mgmt-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .badge-active {
-            color: var(--accent-green);
-            background: rgba(16, 185, 129, 0.1);
-            padding: 3px 6px;
-            border-radius: 4px;
-        }
-
-        .badge-inactive {
-            color: var(--accent-red);
-            background: rgba(239, 68, 68, 0.1);
-            padding: 3px 6px;
-            border-radius: 4px;
-        }
-
-        /* Modals */
-        #adminAuthModal, #adModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-        }
-
-        .auth-box, .ad-content {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 18px;
-            text-align: center;
-            width: 90%;
-            max-width: 330px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            border: 1px solid var(--border-color);
-        }
-
-        .ad-link-btn {
-            display: inline-block;
-            background: var(--primary-blue);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-
-        .close-ad-btn {
-            background: var(--accent-green);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            display: none;
-            margin: 0 auto;
-        }
-
-        /* Digital Live Ticker / Crypto Wave Styles */
-        .crypto-ticker-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .crypto-card {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .crypto-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-main);
-        }
-
-        .crypto-price {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .crypto-change {
-            font-size: 11px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .price-up {
-            color: var(--accent-green);
-        }
-
-        .price-down {
-            color: var(--accent-red);
-        }
-
-        /* Wave Chart Canvas simulation */
-        .wave-chart-box {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .wave-svg {
-            width: 100%;
-            height: 50px;
-        }
+        .tab-btn.active { color: var(--accent-color); }
+        .section { display: none; }
+        .section.active { display: block; }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
-    <div class="container">
-        <!-- TOP BAR (Dark Mode Switch) -->
-        <div class="top-bar">
-            <button class="theme-toggle-btn" onclick="toggleDarkMode()">
-                <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Dark Mode</span>
-            </button>
-            <div style="font-size: 12px; color: var(--text-secondary);">Real caush v2.1</div>
-        </div>
+<div class="container">
+    <!-- Navigation Tabs -->
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="switchTab('home')">Home</button>
+        <button class="tab-btn" onclick="switchTab('tasks')">Tasks</button>
+        <button class="tab-btn" onclick="switchTab('withdraw')">Withdraw</button>
+        <button class="tab-btn" onclick="switchTab('profile')">Profile</button>
+        <button class="tab-btn" onclick="switchTab('admin')">Admin</button>
+    </div>
 
-        <!-- HEADER -->
-        <div class="header">
-            <div class="app-title">
-                <i class="fa-solid fa-circle-play" style="color: var(--primary-blue); font-size: 20px;"></i> Real caush
+    <!-- HOME SECTION (Crypto Market Ticker) -->
+    <div id="home" class="section active">
+        <div class="card">
+            <h3>📈 Live Market Prices</h3>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>BTC/USDT:</span> <span id="btcPrice" class="digital-num">--</span>
             </div>
-            <div class="coin-badge">
-                <i class="fa-solid fa-coins"></i> <span id="coinBalance">120</span>
-            </div>
-        </div>
-
-        <!-- 1. HOME / WATCH SECTION -->
-        <div id="homeSection" class="page-section active">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="YouTube ဗီဒီယို ရှာရန်..." onkeypress="handleSearchKey(event)">
-                <button onclick="searchYouTubeVideos()"><i class="fa-solid fa-search"></i></button>
-            </div>
-
-            <div class="player-wrapper">
-                <iframe id="ytPlayer" src="https://www.youtube.com/embed/tXkh5pvP-zo" allowfullscreen></iframe>
-            </div>
-
-            <div class="reward-card">
-                <p id="rewardStatus">ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )</p>
-                <button class="claim-btn" id="claimBtn" onclick="triggerAdForReward('video', null, videoRewardCoin)">🎁 Coin ရယူရန် (Ads ကြည့်မည်)</button>
-            </div>
-
-            <div class="section-label">ကြည့်ရှုရန် YouTube ဗီဒီယို ၁၀ ပုဒ်စာရင်း</div>
-            <div class="video-list" id="videoList"></div>
-        </div>
-
-        <!-- 2. TASK / GAME SECTION -->
-        <div id="taskSection" class="page-section">
-            <div class="card-3d">
-                <h3><i class="fa-solid fa-rectangle-ad"></i> ကြော်ငြာကြည့်၍ Coin ရှာရန်</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
-                    ခလုတ်တစ်ခုချင်းစီကို တစ်ရက်လျှင် ၁၀ ကြိမ် ကြည့်ရှုနိုင်ပါသည်။
-                </p>
-                <div class="task-ad-grid">
-                    <div class="task-ad-btn-card">
-                        <div class="task-info">
-                            <h4>Ad ဇုန် (၁) - ပရိုမိုးရှင်း</h4>
-                            <p>ကျန်ရှိ: <span id="adTask1Count">10</span> / 10 ကြိမ်</p>
-                        </div>
-                        <button class="task-action-btn" onclick="startTaskAd(1)">ကြည့်မည်</button>
-                    </div>
-                    <div class="task-ad-btn-card">
-                        <div class="task-info">
-                            <h4>Ad ဇုန် (၂) - ဆုလာဘ်</h4>
-                            <p>ကျန်ရှိ: <span id="adTask2Count">10</span> / 10 ကြိမ်</p>
-                        </div>
-                        <button class="task-action-btn" onclick="startTaskAd(2)">ကြည့်မည်</button>
-                    </div>
-                    <div class="task-ad-btn-card">
-                        <div class="task-info">
-                            <h4>Ad ဇုန် (၃) - အထူးဘောနပ်စ်</h4>
-                            <p>ကျန်ရှိ: <span id="adTask3Count">10</span> / 10 ကြိမ်</p>
-                        </div>
-                        <button class="task-action-btn" onclick="startTaskAd(3)">ကြည့်မည်</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-3d">
-                <h3><i class="fa-solid fa-gamepad"></i> ကျားကွက်ထိုး ဂိမ်းတာဝန်</h3>
-                <div style="font-size: 12px; color: var(--primary-blue); font-weight: bold; margin-bottom: 8px;">
-                    ကျန်ရှိသောပွဲ: <span id="taskCountLeft">20</span> / 20 ပွဲ (နိုင်လျှင် Coin 30)
-                </div>
-                <div class="tic-tac-toe" id="ticTacToeBoard">
-                    <div class="cell" onclick="makeMove(0)"></div>
-                    <div class="cell" onclick="makeMove(1)"></div>
-                    <div class="cell" onclick="makeMove(2)"></div>
-                    <div class="cell" onclick="makeMove(3)"></div>
-                    <div class="cell" onclick="makeMove(4)"></div>
-                    <div class="cell" onclick="makeMove(5)"></div>
-                    <div class="cell" onclick="makeMove(6)"></div>
-                    <div class="cell" onclick="makeMove(7)"></div>
-                    <div class="cell" onclick="makeMove(8)"></div>
-                </div>
-                <div id="gameStatusText" style="text-align: center; font-size: 12px; color: var(--accent-green); margin-top: 8px;">ဂိမ်းစတင်ရန် ကွက်လပ်နှိပ်ပါ</div>
-            </div>
-        </div>
-
-        <!-- 3. MARKET / EXCHANGE SECTION -->
-        <div id="marketSection" class="page-section">
-            <div class="card-3d">
-                <h3><i class="fa-solid fa-chart-line"></i> စျေးကွက်နှင့် တိုက်ရိုက်နှုန်းထား (Live Ticker)</h3>
-                
-                <div class="crypto-ticker-grid">
-                    <div class="crypto-card">
-                        <div class="crypto-header">
-                            <span>COIN/MMK</span>
-                            <i class="fa-solid fa-coins" style="color: var(--primary-blue);"></i>
-                        </div>
-                        <div class="crypto-price" id="tickerCoinRate">10.00 MMK</div>
-                        <div class="crypto-change price-up" id="tickerCoinChange"><i class="fa-solid fa-arrow-trend-up"></i> +2.4%</div>
-                    </div>
-                    <div class="crypto-card">
-                        <div class="crypto-header">
-                            <span>USDT Index</span>
-                            <i class="fa-solid fa-dollar-sign" style="color: var(--accent-green);"></i>
-                        </div>
-                        <div class="crypto-price" id="tickerUsdtRate">4,520 MMK</div>
-                        <div class="crypto-change price-up" id="tickerUsdtChange"><i class="fa-solid fa-arrow-trend-up"></i> +0.8%</div>
-                    </div>
-                </div>
-
-                <div class="wave-chart-box">
-                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>📈 စျေးကွက်လှိုင်းနှုန်း (Market Wave Trend)</span>
-                        <span id="waveLiveStatus" style="color: var(--accent-green); font-weight: bold;"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> Live Active</span>
-                    </div>
-                    <svg class="wave-svg" viewBox="0 0 300 50" preserveAspectRatio="none">
-                        <path id="marketWavePath" d="M0,25 Q50,5 100,30 T200,15 T300,25" fill="none" stroke="var(--primary-blue)" stroke-width="2.5" />
-                    </svg>
-                </div>
-
-                <div class="market-rate-box" style="background: var(--accent-blue-light); border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 15px; border: 1px dashed var(--primary-blue);">
-                    <div style="font-size: 12px; color: var(--text-secondary);">လက်ရှိလဲလှယ်နှုန်းထား</div>
-                    <div style="font-size: 16px; font-weight: bold; color: var(--primary-blue); margin-top: 4px;" id="marketRateDisplay">10 Coin = 100 MMK</div>
-                </div>
-
-                <div id="marketContainerUI">
-                    <div class="input-group">
-                        <label>လဲလှယ်မည့် Coin ပမာဏ</label>
-                        <input type="number" id="exchangeCoinInput" class="custom-input" placeholder="ဥပမာ - 100" oninput="calculateMMK()">
-                    </div>
-                    <div class="input-group">
-                        <label>ရရှိမည့် ကျပ်ငွေ (MMK)</label>
-                        <input type="text" id="exchangeMMKOutput" class="custom-input" readonly value="0 MMK">
-                    </div>
-                    <button class="action-btn" onclick="executeCoinExchange()">ငွေလဲလှယ်မည်</button>
-                </div>
-                <div id="marketClosedMsg" style="display:none; text-align:center; color: var(--accent-red); font-size: 13px; font-weight: bold; padding: 15px;">
-                    စျေးကွက်ကို ခဏပိတ်ထားပါသည်ခင်ဗျာ။
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. WITHDRAW SECTION -->
-        <div id="withdrawSection" class="page-section">
-            <div class="card-3d">
-                <h3><i class="fa-solid fa-wallet"></i> ငွေထုတ်ယူရန်</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;" id="withdrawInfoText">
-                    လက်ရှိအခြေအနေ: ဖွင့်ထားသည်
-                </p>
-
-                <div class="payment-methods">
-                    <div class="pay-option selected" id="kpayOpt" onclick="selectPayment('kpay')">
-                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100" alt="KBZPay" onerror="this.src='https://via.placeholder.com/35'">
-                        <span>KBZPay</span>
-                    </div>
-                    <div class="pay-option" id="wavepayOpt" onclick="selectPayment('wavepay')">
-                        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100" alt="WavePay" onerror="this.src='https://via.placeholder.com/35'">
-                        <span>WavePay</span>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>KBZPay / WavePay ဖုန်းနံပတ်</label>
-                    <input type="text" id="withdrawPhone" class="custom-input" placeholder="09xxxxxxxxx">
-                </div>
-                <div class="input-group">
-                    <label>ထုတ်ယူမည့် Coin ပမာဏ</label>
-                    <input type="number" id="withdrawCoinAmount" class="custom-input" placeholder="ထုတ်မည့် Coin" oninput="calculateWithdrawMMK()">
-                </div>
-                <div class="input-group">
-                    <label>ရရှိမည့် ငွေပမာဏ (MMK)</label>
-                    <input type="text" id="withdrawMMKOutput" class="custom-input" readonly value="0 MMK">
-                </div>
-                <button class="action-btn" onclick="requestWithdrawal()">ငွေထုတ်ရန် တောင်းဆိုမည်</button>
-            </div>
-
-            <div class="card-3d">
-                <h3><i class="fa-solid fa-clock-rotate-left"></i> ငွေထုတ်မှတ်တမ်း (History)</h3>
-                <div style="max-height: 150px; overflow-y: auto;" id="withdrawHistoryList">
-                    <div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">မှတ်တမ်းမရှိသေးပါ။</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. PROFILE SECTION -->
-        <div id="profileSection" class="page-section">
-            <div class="profile-box">
-                <div class="avatar-container">
-                    <img id="userAvatar" src="https://via.placeholder.com/100" alt="Profile Avatar">
-                    <label class="avatar-upload-btn">
-                        ပြောင်းရန် <input type="file" accept="image/*" style="display: none;" onchange="updateAvatar(event)">
-                    </label>
-                </div>
-                <div class="profile-info">
-                    <p>အမည် (Name): <span id="profileName">ကိုကို</span></p>
-                    <p>User ID: <span id="profileTgId">TG001</span></p>
-                    <p>စုစုပေါင်း Coin: <span id="profileCoins">120</span> Coins</p>
-                    <div id="userNotificationBox" style="margin-top: 10px; padding: 8px; background: rgba(16,185,129,0.1); border-radius: 8px; color: var(--accent-green); font-size: 12px; display: none;">
-                        🎉 Admin ငွေလွှဲပေးပြီးပါပြီ။
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 6. ADMIN PANEL SECTION -->
-        <div id="adminSection" class="page-section">
-            <div class="section-label" style="margin-bottom: 12px; color: var(--primary-blue);"><i class="fa-solid fa-shield-halved"></i> အက်တမင် ထိန်းချုပ်ခန်း</div>
-            
-            <div class="admin-card">
-                <h3>စျေးကွက် (Market) ထိန်းချုပ်ရန်</h3>
-                <div class="input-group">
-                    <label>Coin မှ MMK လဲလှယ်နှုန်း</label>
-                    <input type="text" id="adminMarketRateInput" class="custom-input" value="10 Coin = 100 MMK">
-                </div>
-                <button class="action-btn" onclick="saveMarketRate()" style="margin-bottom: 8px;">နှုန်းထား သိမ်းမည်</button>
-                <button class="action-btn" id="marketToggleBtn" onclick="toggleMarketStatus()" style="background: var(--accent-red); color:#fff;">စျေးကွက် ပိတ်မည်</button>
-            </div>
-
-            <div class="admin-card">
-                <h3>ဗီဒီယိုကြည့် Coin ဆုလာဘ် သတ်မှတ်ရန်</h3>
-                <div class="input-group">
-                    <label>ရရှိမည့် Coin ပမာဏ</label>
-                    <input type="number" id="adminVideoRewardInput" class="custom-input" value="10">
-                </div>
-                <button class="action-btn" onclick="saveVideoReward()">ဆုလာဘ် ပြောင်းလဲမည်</button>
-            </div>
-
-            <div class="admin-card">
-                <h3>Task Ads ဆုလာဘ် Coin သတ်မှတ်ရန်</h3>
-                <div class="input-group">
-                    <label>Task Ad ခလုတ်များအတွက် ရရှိမည့် Coin</label>
-                    <input type="number" id="adminTaskAdRewardInput" class="custom-input" value="15">
-                </div>
-                <button class="action-btn" onclick="saveTaskAdReward()">Task Coin ပြောင်းလဲမည်</button>
-            </div>
-
-            <div class="admin-card">
-                <h3>ငွေထုတ်တောင်းဆိုမှုများ စစ်ဆေးရန် (Admin Approve)</h3>
-                <div style="max-height: 200px; overflow-y: auto;" id="adminWithdrawRequestsList">
-                    <div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">တောင်းဆိုမှု မရှိပါ။</div>
-                </div>
-            </div>
-
-            <div class="admin-card">
-                <h3>User များ စီမံရန် (Ban / Coin တိုးလျှော့)</h3>
-                <div class="input-group">
-                    <label>User ID ဖြင့် ရှာရန်</label>
-                    <input type="text" id="adminSearchUserTgId" class="custom-input" placeholder="ဥပမာ - TG001" oninput="filterAdminUsers()">
-                </div>
-                <div class="admin-tabs-header">
-                    <button class="admin-sub-tab active" onclick="switchAdminUserTab('all', this)">အားလုံး</button>
-                    <button class="admin-sub-tab" onclick="switchAdminUserTab('active', this)">Active</button>
-                    <button class="admin-sub-tab" onclick="switchAdminUserTab('inactive', this)">Inactive</button>
-                </div>
-                <div style="max-height: 200px; overflow-y: auto;" id="adminUserMgmtList"></div>
-            </div>
-
-            <div class="admin-card">
-                <h3>Ads Links စီမံရန် (အလှည့်ကျစနစ်)</h3>
-                <input type="text" id="newAdLinkInput" class="custom-input" placeholder="https://example.com/ad-link" style="margin-bottom: 8px;">
-                <button class="action-btn" onclick="addNewAdLink()" style="margin-bottom: 10px;">လင့်ခ်အသစ် ထည့်မည်</button>
-                <div style="max-height: 100px; overflow-y: auto;" id="adminAdLinksList"></div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>ETH/USDT:</span> <span id="ethPrice" class="digital-num">--</span>
             </div>
         </div>
     </div>
 
-    <!-- NAVIGATION TAB BAR -->
-    <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('homeSection', this)">
-            <i class="fa-solid fa-house"></i>
-            <span>ဗီဒီယို</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('taskSection', this)">
-            <i class="fa-solid fa-gamepad"></i>
-            <span>တာဝန်</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('marketSection', this)">
-            <i class="fa-solid fa-store"></i>
-            <span>စျေးကွက်</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('withdrawSection', this)">
-            <i class="fa-solid fa-wallet"></i>
-            <span>ငွေထုတ်</span>
-        </button>
-        <button class="nav-tab" onclick="switchTab('profileSection', this)">
-            <i class="fa-solid fa-user"></i>
-            <span>Profile</span>
-        </button>
-        <button class="nav-tab" onclick="checkAdminAccess(this)">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>Admin</span>
-        </button>
-    </div>
-
-    <!-- Admin Password Modal -->
-    <div id="adminAuthModal">
-        <div class="auth-box">
-            <h3 style="color: var(--primary-blue); margin-bottom: 10px;"><i class="fa-solid fa-lock"></i> Admin Password</h3>
-            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">Password (199083) ထည့်ပါ</p>
-            <input type="password" id="adminPasswordInput" class="custom-input" placeholder="Password ထည့်ရန်" style="margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px;">
-                <button class="action-btn" onclick="verifyAdminPassword()" style="flex: 1;">ဝင်မည်</button>
-                <button class="action-btn" onclick="closeAdminAuth()" style="flex: 1; background: var(--border-color); color: var(--text-main);">ပယ်ဖျက်</button>
+    <!-- TASKS SECTION (3 Ad Watch Buttons, Billiards Removed) -->
+    <div id="tasks" class="section">
+        <div class="card">
+            <h3>🎯 Daily Ad Tasks</h3>
+            <div style="margin-bottom: 10px;">
+                <span>Watch Ad 1 (+50 Coins)</span>
+                <button class="btn" onclick="watchAd(50)">Watch Now</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <span>Watch Ad 2 (+50 Coins)</span>
+                <button class="btn" onclick="watchAd(50)">Watch Now</button>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <span>Watch Ad 3 (+50 Coins)</span>
+                <button class="btn" onclick="watchAd(50)">Watch Now</button>
             </div>
         </div>
     </div>
 
-    <!-- Ad Modal Overlay -->
-    <div id="adModal">
-        <div class="ad-content">
-            <h3>📢 ကြော်ငြာကြည့်ရှုရန်</h3>
-            <p>ကျေးဇူးပြု၍ အောက်ပါ ကြော်ငြာလင့်ခ်ကို နှိပ်ပြီး ဝင်ရောက်ကြည့်ရှုပါ</p>
-            <a href="#" id="currentAdAnchor" target="_blank" class="ad-link-btn" onclick="openAdLinkAction()">🔗 ကြော်ငြာလင့်ခ်သို့ သွားရန် (တန်းပွင့်မည်)</a>
-            <p id="adTimerText">Coin ရရန် ကျန်ရှိသောအချိန်: <span id="adTimer" style="color: var(--primary-blue); font-weight: bold; font-size: 18px;">15</span> စက္ကန့်</p>
-            <button class="close-ad-btn" id="closeAdBtn" onclick="closeAdAndReward()">❌ Close (ပြန်သွားရန်)</button>
+    <!-- WITHDRAW SECTION (Coin to MMK Conversion) -->
+    <div id="withdraw" class="section">
+        <div class="card">
+            <h3>💰 ငွေထုတ်ယူရန်</h3>
+            <p>လက်ကျန် Coin: <span id="displayCoins" class="digital-num">0</span></p>
+            <p>လဲလှယ်ရမည့် MMK: <span id="displayMMK" class="digital-num">0 MMK</span></p>
+            <p id="withdrawStatusMsg" style="color: #ff4d4d; font-size: 14px;"></p>
+            <button class="btn" onclick="requestWithdraw()">MMK ထုတ်မည်</button>
         </div>
     </div>
 
-    <script>
-        const YOUTUBE_API_KEY = 'AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c';
+    <!-- PROFILE SECTION (Telegram Name & ID Display) -->
+    <div id="profile" class="section">
+        <div class="card">
+            <h3>👤 User Profile</h3>
+            <p><strong>Telegram Name:</strong> <span id="tgName">Loading...</span></p>
+            <p><strong>Telegram ID:</strong> <span id="tgId">Loading...</span></p>
+            <p><strong>Coins:</strong> <span id="profileCoins">0</span></p>
+            <p><strong>MMK:</strong> <span id="profileMMK">0</span></p>
+        </div>
+    </div>
 
-        const initialVideos = [
-            { id: 'tXkh5pvP-zo', title: 'Top 10 Popular Songs 2026' },
-            { id: '4kULdbyVPLk', title: 'Relaxing Lofi Hip Hop Beats' },
-            { id: '5qap5aO4i9A', title: 'Lofi Girl - Live Radio' },
-            { id: 'jfKfPfyJRdk', title: 'Coding Music - Deep Focus' },
-            { id: 'L_LUpnjgPso', title: 'Beautiful Piano Instrumental' },
-            { id: 'kJQP7kiw5Fk', title: 'Despacito - Hit Song' },
-            { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
-            { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You' },
-            { id: 'RgKAFK5djSk', title: 'Wiz Khalifa - See You Again' },
-            { id: 'YQHsXMglC9A', title: 'Adele - Hello' }
-        ];
-
-        let currentCoins = 120;
-        let videoRewardCoin = 10;
-        let taskAdRewardCoin = 15;
-        let secondsPassed = 0;
-        let timerInterval = null;
-        let currentVideoId = 'tXkh5pvP-zo';
-
-        let taskAdCounts = { 1: 10, 2: 10, 3: 10 };
-
-        let adsLinks = ["https://idealistic-revenue.com/2SodzC"];
-        let currentAdIndex = 0;
-        let requiredAdSeconds = 15;
-        let adInterval = null;
-        let adTaskType = 'video';
-        let adTaskCallback = null;
-
-        let isMarketOpen = true;
-        let marketRateText = "10 Coin = 100 MMK";
-        let isWithdrawOpen = true;
-        let selectedPaymentMethod = "kpay";
-
-        let tasksLeft = 20;
-        let board = ['', '', '', '', '', '', '', '', ''];
-        let pendingTaskMoveIndex = null;
-
-        let withdrawHistory = [];
-        let adminWithdrawRequests = [];
-
-        let usersData = [
-            { id: "TG001", name: "ကိုကို", active: true, banned: false, coins: 120, notified: false }
-        ];
-        let currentAdminUserFilterTab = 'all';
-
-        window.onload = function() {
-            renderInitialVideos();
-            startRewardTimer();
-            updateCoinsUI();
-            startLiveMarketTicker();
-        };
-
-        function startLiveMarketTicker() {
-            setInterval(() => {
-                let coinRateEl = document.getElementById('tickerCoinRate');
-                let coinChgEl = document.getElementById('tickerCoinChange');
-                let usdtRateEl = document.getElementById('tickerUsdtRate');
-                let usdtChgEl = document.getElementById('tickerUsdtChange');
-                let wavePathEl = document.getElementById('marketWavePath');
-
-                if(!coinRateEl) return;
-
-                let randomVal = (Math.random() * 0.4 - 0.19);
-                let currentCoinVal = 10.0 + randomVal;
-                let pct = (randomVal >= 0 ? "+" : "") + (randomVal * 10).toFixed(1) + "%";
-
-                coinRateEl.innerText = currentCoinVal.toFixed(2) + " MMK";
-                coinChgEl.className = "crypto-change " + (randomVal >= 0 ? "price-up" : "price-down");
-                coinChgEl.innerHTML = `<i class="fa-solid fa-arrow-trend-${randomVal >= 0 ? 'up' : 'down'}"></i> ${pct}`;
-
-                let usdtVal = 4520 + Math.floor(Math.random() * 20 - 10);
-                usdtRateEl.innerText = usdtVal.toLocaleString() + " MMK";
-
-                if(wavePathEl) {
-                    let r1 = Math.floor(Math.random() * 20 + 10);
-                    let r2 = Math.floor(Math.random() * 35 + 5);
-                    let r3 = Math.floor(Math.random() * 25 + 10);
-                    wavePathEl.setAttribute('d', `M0,25 Q50,${r1} 100,${r2} T200,${r3} T300,25`);
-                }
-            }, 2500);
-        }
-
-        function toggleDarkMode() {
-            const body = document.body;
-            const themeIcon = document.getElementById('themeIcon');
-            const themeText = document.getElementById('themeText');
-            if (body.getAttribute('data-theme') === 'light') {
-                body.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'fa-solid fa-sun';
-                themeText.innerText = 'Light Mode';
-            } else {
-                body.setAttribute('data-theme', 'light');
-                themeIcon.className = 'fa-solid fa-moon';
-                themeText.innerText = 'Dark Mode';
-            }
-        }
-
-        function renderInitialVideos() {
-            let listContainer = document.getElementById('videoList');
-            if(!listContainer) return;
-            let html = '';
-            initialVideos.forEach(v => {
-                html += `
-                    <div class="video-item" onclick="playVideo('${v.id}')">
-                        <img src="https://img.youtube.com/vi/${v.id}/hqdefault.jpg" alt="Thumb">
-                        <div class="video-info">
-                            <h4>${v.title}</h4>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        }
-
-        function switchTab(sectionId, btnElement) {
-            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+    <!-- ADMIN SECTION -->
+    <div id="admin" class="section">
+        <div class="card">
+            <h3>🛠️ Admin Control Panel</h3>
+            <label>
+                <input type="checkbox" id="withdrawToggle" checked onchange="toggleWithdraw(this)"> Withdraw ဖွင့်ရန်/ပိတ်ရန်
+            </label>
+            <label style="margin-top: 10px; display: block;">ငွေထုတ်ရက် သတ်မှတ်ရန်:</label>
+            <input type="date" id="adminWithdrawDate">
             
-            const targetSec = document.getElementById(sectionId);
-            if(targetSec) targetSec.classList.add('active');
-            if(btnElement) btnElement.classList.add('active');
-        }
-
-        let pendingAdminBtn = null;
-        function checkAdminAccess(btnEl) {
-            pendingAdminBtn = btnEl;
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('adminAuthModal').style.display = 'flex';
-        }
-
-        function verifyAdminPassword() {
-            let pass = document.getElementById('adminPasswordInput').value.trim();
-            if(pass === "199083") {
-                document.getElementById('adminAuthModal').style.display = 'none';
-                switchTab('adminSection', pendingAdminBtn);
-                renderAdminData();
-            } else {
-                alert('Password မှားယွင်းနေပါသည်။ (မှန်ကန်သော Password: 199083)');
-            }
-        }
-
-        function closeAdminAuth() {
-            document.getElementById('adminAuthModal').style.display = 'none';
-        }
-
-        function updateAvatar(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('userAvatar').src = e.target.result;
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleSearchKey(event) {
-            if (event.key === 'Enter') searchYouTubeVideos();
-        }
-
-        async function searchYouTubeVideos() {
-            const query = document.getElementById('searchInput').value.trim();
-            const listContainer = document.getElementById('videoList');
+            <hr style="border-color: #475569; margin: 15px 0;">
             
-            if(!query) {
-                renderInitialVideos();
-                return;
-            }
+            <label>Telegram ID ဖြင့် User ရှာရန်:</label>
+            <input type="text" id="searchTgId" placeholder="Telegram ID ထည့်ပါ...">
+            <button class="btn" onclick="searchUser()">Search User</button>
+            <div id="searchResult" style="margin-top: 10px; font-size: 14px; color: #38bdf8;"></div>
+        </div>
+    </div>
+</div>
 
-            const cacheKey = `yt_search_${query}`;
-            const cachedData = localStorage.getItem(cacheKey);
+<script>
+    // --- APP STATE DATA ---
+    let userData = {
+        tgId: "123456789",
+        tgName: "Guest User",
+        coins: 0,
+        withdrawOpen: true,
+        withdrawDate: ""
+    };
 
-            if (cachedData) {
-                displayApiResults(JSON.parse(cachedData));
-                return;
-            }
+    const CONVERSION_RATE = 10; // 10 Coins = 1 MMK
 
-            listContainer.innerHTML = '<div style="text-align:center; color: var(--text-secondary); padding: 10px; font-size:13px;">ရှာဖွေနေပါသည်...</div>';
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.items && data.items.length > 0) {
-                    localStorage.setItem(cacheKey, JSON.stringify(data.items));
-                    displayApiResults(data.items);
-                } else {
-                    listContainer.innerHTML = '<div style="text-align:center; color: var(--accent-red); padding: 10px; font-size:13px;">ဘာဗီဒီယိုမှ မတွေ့ပါ။</div>';
-                }
-            } catch (error) {
-                listContainer.innerHTML = '<div style="text-align:center; color: var(--accent-red); padding: 10px; font-size:13px;">ချိတ်ဆက်မှု အမှားအယွင်း ရှိနေပါသည်။</div>';
-            }
+    // Load data from LocalStorage on start to prevent data loss on refresh/close
+    function loadData() {
+        let saved = localStorage.getItem('app_user_data');
+        if (saved) {
+            userData = JSON.parse(saved);
         }
-
-        function displayApiResults(items) {
-            let listContainer = document.getElementById('videoList');
-            let html = '';
-            items.forEach(item => {
-                const videoId = item.id.videoId;
-                if(!videoId) return;
-                const title = item.snippet.title;
-                const thumbnail = item.snippet.thumbnails.medium.url;
-                
-                html += `
-                    <div class="video-item" onclick="playVideo('${videoId}')">
-                        <img src="${thumbnail}" alt="Thumb">
-                        <div class="video-info">
-                            <h4>${title}</h4>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        }
-
-        function playVideo(videoId) {
-            currentVideoId = videoId;
-            const iframe = document.getElementById('ytPlayer');
-            if(iframe) iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-            resetRewardTimer();
-        }
-
-        function startRewardTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            
-            timerInterval = setInterval(() => {
-                const homeSec = document.getElementById('homeSection');
-                if (!homeSec || !homeSec.classList.contains('active')) return;
-
-                secondsPassed++;
-                let timerCountEl = document.getElementById('timerCount');
-                if (timerCountEl) timerCountEl.innerText = secondsPassed;
-
-                if (secondsPassed >= 100) {
-                    clearInterval(timerInterval);
-                    let rewardStatusEl = document.getElementById('rewardStatus');
-                    let claimBtnEl = document.getElementById('claimBtn');
-                    
-                    if (rewardStatusEl) rewardStatusEl.innerHTML = `<span style="color: var(--primary-blue); font-weight: bold;">🎉 ၁၀၀ စက္ကန့် ပြည့်ပါပြီ! Coin ရယူရန် နှိပ်ပါ။</span>`;
-                    if (claimBtnEl) claimBtnEl.style.display = 'block';
-                }
-            }, 1000);
-        }
-
-        function resetRewardTimer() {
-            secondsPassed = 0;
-            let claimBtnEl = document.getElementById('claimBtn');
-            let rewardStatusEl = document.getElementById('rewardStatus');
-
-            if (claimBtnEl) claimBtnEl.style.display = 'none';
-            if (rewardStatusEl) rewardStatusEl.innerHTML = `ဗီဒီယိုကြည့်ရှုနေပါသည်... ( <span id="timerCount">0</span> / 100 စက္ကန့် )`;
-            startRewardTimer();
-        }
-
-        function startTaskAd(btnId) {
-            if (taskAdCounts[btnId] <= 0) {
-                alert('ယနေ့အတွက် ဤ Ad ဇုန်အကြိမ်ရေ ပြည့်သွားပါပြီ။ နောက်ရက်မှ ပြန်ကြည့်ပါ။');
-                return;
-            }
-            triggerAdForReward('taskAd', () => {
-                taskAdCounts[btnId]--;
-                document.getElementById(`adTask${btnId}Count`).innerText = taskAdCounts[btnId];
-                currentCoins += taskAdRewardCoin;
-                updateCoinsUI();
-                alert(`🎉 ဂုဏ်ယူပါတယ်! Task Ad ကြည့်ရှုခြင်းအတွက် Coin ${taskAdRewardCoin} ရရှိသွားပါပြီ။`);
-            });
-        }
-
-        function triggerAdForReward(type, callback) {
-            if (adsLinks.length === 0) {
-                alert('ကြော်ငြာလင့်ခ်များ မရှိသေးပါ။');
-                return;
-            }
-
-            adTaskType = type;
-            adTaskCallback = callback;
-            requiredAdSeconds = 15;
-
-            let activeAdUrl = adsLinks[currentAdIndex];
-            let anchor = document.getElementById('currentAdAnchor');
-            anchor.setAttribute('href', activeAdUrl);
-            anchor.innerText = `🔗 Ad Link (${currentAdIndex + 1}/${adsLinks.length}) သို့ သွားရန် (တန်းပွင့်မည်)`;
-            currentAdIndex = (currentAdIndex + 1) % adsLinks.length;
-
-            document.getElementById('adTimer').innerText = requiredAdSeconds;
-            document.getElementById('adTimerText').style.display = 'block';
-            document.getElementById('closeAdBtn').style.display = 'none';
-
-            const adModal = document.getElementById('adModal');
-            adModal.style.display = 'flex';
-
-            window.open(activeAdUrl, '_blank');
-
-            if (adInterval) clearInterval(adInterval);
-            adInterval = setInterval(() => {
-                requiredAdSeconds--;
-                let timerEl = document.getElementById('adTimer');
-                if(timerEl) timerEl.innerText = requiredAdSeconds;
-
-                if (requiredAdSeconds <= 0) {
-                    clearInterval(adInterval);
-                    let timerText = document.getElementById('adTimerText');
-                    let closeBtn = document.getElementById('closeAdBtn');
-                    if(timerText) timerText.style.display = 'none';
-                    if(closeBtn) closeBtn.style.display = 'block';
-                }
-            }, 1000);
-        }
-
-        function openAdLinkAction() {}
-
-        function closeAdAndReward() {
-            const adModal = document.getElementById('adModal');
-            if(adModal) adModal.style.display = 'none';
-
-            if (adTaskType === 'video') {
-                currentCoins += videoRewardCoin;
-                updateCoinsUI();
-                alert(`🎉 ဂုဏ်ယူပါတယ်! Coin ${videoRewardCoin} အောင်မြင်စွာ ရရှိသွားပါပြီ။ ဗီဒီယိုကို ဆက်လက်ကြည့်ရှုနိုင်ပါပြီ။`);
-                resetRewardTimer();
-            } else if (adTaskType === 'taskAd' && adTaskCallback) {
-                adTaskCallback();
-            } else if (adTaskType === 'game' && adTaskCallback) {
-                adTaskCallback();
+        
+        // Telegram WebApp User Integration
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+            if (tgUser) {
+                userData.tgId = tgUser.id;
+                userData.tgName = tgUser.first_name || tgUser.username;
             }
         }
+        updateUI();
+    }
 
-        function updateCoinsUI() {
-            let coinBal = document.getElementById('coinBalance');
-            let profCoins = document.getElementById('profileCoins');
-            if(coinBal) coinBal.innerText = currentCoins;
-            if(profCoins) profCoins.innerText = currentCoins;
-            
-            let me = usersData.find(u => u.id === "TG001");
-            if (me) {
-                me.coins = currentCoins;
-                if (me.notified) {
-                    document.getElementById('userNotificationBox').style.display = 'block';
-                } else {
-                    document.getElementById('userNotificationBox').style.display = 'none';
-                }
-            }
+    // Save data automatically
+    function saveData() {
+        localStorage.setItem('app_user_data', JSON.stringify(userData));
+        updateUI();
+    }
+
+    // Update all UI elements
+    function updateUI() {
+        let mmk = Math.floor(userData.coins / CONVERSION_RATE);
+        
+        document.getElementById('displayCoins').innerText = userData.coins;
+        document.getElementById('displayMMK').innerText = mmk + " MMK";
+        
+        document.getElementById('profileCoins').innerText = userData.coins;
+        document.getElementById('profileMMK').innerText = mmk + " MMK";
+        
+        document.getElementById('tgName').innerText = userData.tgName;
+        document.getElementById('tgId').innerText = userData.tgId;
+    }
+
+    // Tab Switcher
+    function switchTab(tabId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // Watch Ad Task
+    function watchAd(reward) {
+        userData.coins += reward;
+        saveData();
+        alert("ကြော်ငြာကြည့်ရှုပြီးပါပြီ။ Coin " + reward + " ရရှိပါပြီ!");
+    }
+
+    // Withdraw Request
+    function requestWithdraw() {
+        if (!userData.withdrawOpen) {
+            alert("လက်တလော ငွေထုတ်ယူမှု ပိတ်ထားပါသည်။");
+            return;
         }
-
-        function makeMove(index) {
-            if (tasksLeft <= 0) {
-                alert('ယနေ့အတွက် ဆော့ကွက်အကြိမ်ရေ ပြည့်သွားပါပြီ။');
-                return;
-            }
-            if (board[index] !== '') return;
-
-            pendingTaskMoveIndex = index;
-            triggerAdForReward('game', () => {
-                board[pendingTaskMoveIndex] = 'X';
-                let boardContainer = document.getElementById('ticTacToeBoard');
-                if(boardContainer && boardContainer.children[pendingTaskMoveIndex]) {
-                    boardContainer.children[pendingTaskMoveIndex].innerText = 'X';
-                }
-                
-                tasksLeft--;
-                let taskLeftEl = document.getElementById('taskCountLeft');
-                if(taskLeftEl) taskLeftEl.innerText = tasksLeft;
-                
-                currentCoins += 30;
-                updateCoinsUI();
-                let statusText = document.getElementById('gameStatusText');
-                if(statusText) statusText.innerText = "🎉 နိုင်ပါပြီ! Coin 30 ရရှိသွားပါပြီ။";
-                
-                setTimeout(resetBoard, 1500);
-            });
+        let mmk = Math.floor(userData.coins / CONVERSION_RATE);
+        if (mmk <= 0) {
+            alert("ငွေထုတ်ရန် Coin မလုံလောက်ပါ။");
+            return;
         }
+        alert("အောင်မြင်ပါသည်! " + mmk + " MMK ထုတ်ယူရန် တောင်းဆိုပြီးပါပြီ။");
+        userData.coins = 0; // Reset coins after withdraw
+        saveData();
+    }
 
-        function resetBoard() {
-            board = ['', '', '', '', '', '', '', '', ''];
-            let boardContainer = document.getElementById('ticTacToeBoard');
-            if(boardContainer) {
-                let cells = boardContainer.children;
-                for (let c of cells) c.innerText = '';
-            }
-            let statusText = document.getElementById('gameStatusText');
-            if(statusText) statusText.innerText = "ဂိမ်းအသစ် ဆက်ဆော့ရန် ကွက်လပ်နှိပ်ပါ";
+    // Admin Controls
+    function toggleWithdraw(element) {
+        userData.withdrawOpen = element.checked;
+        saveData();
+    }
+
+    function searchUser() {
+        let searchId = document.getElementById('searchTgId').value;
+        let resDiv = document.getElementById('searchResult');
+        if (searchId === String(userData.tgId)) {
+            resDiv.innerHTML = `တွေ့ရှိသည်: ${userData.tgName} (Coins: ${userData.coins})`;
+        } else {
+            resDiv.innerHTML = "ရှာမတွေ့ပါ သို့မဟုတ် User မရှိပါ။";
         }
+    }
 
-        function calculateMMK() {
-            let coinInput = document.getElementById('exchangeCoinInput');
-            let mmkOutput = document.getElementById('exchangeMMKOutput');
-            if(!coinInput || !mmkOutput) return;
-            let coins = parseInt(coinInput.value);
-            if (isNaN(coins) || coins <= 0) {
-                mmkOutput.value = "0 MMK";
-                return;
-            }
-            mmkOutput.value = (coins * 10) + " MMK";
-        }
+    // Live Crypto Price Simulator
+    function updateMarket() {
+        let btc = (65000 + (Math.random() * 200 - 100)).toFixed(2);
+        let eth = (3500 + (Math.random() * 50 - 25)).toFixed(2);
+        document.getElementById('btcPrice').innerText = "$" + btc;
+        document.getElementById('ethPrice').innerText = "$" + eth;
+    }
+    setInterval(updateMarket, 3000);
 
-        function executeCoinExchange() {
-            if (!isMarketOpen) {
-                alert('စျေးကွက်ကို ပိတ်ထားပါသည်။');
-                return;
-            }
-            let coinInput = document.getElementById('exchangeCoinInput');
-            if(!coinInput) return;
-            let coins = parseInt(coinInput.value);
-            if (isNaN(coins) || coins <= 0 || coins > currentCoins) {
-                alert('လုံလောက်သော Coin မရှိပါ သို့မဟုတ် ပမာဏ မှားယွင်းနေပါသည်။');
-                return;
-            }
-            currentCoins -= coins;
-            updateCoinsUI();
-            alert('Coin များကို ကျပ်ငွေသို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ။');
-            coinInput.value = '';
-            let mmkOutput = document.getElementById('exchangeMMKOutput');
-            if(mmkOutput) mmkOutput.value = '0 MMK';
-        }
+    // Auto save on close/leave
+    window.addEventListener('beforeunload', saveData);
 
-        function selectPayment(method) {
-            selectedPaymentMethod = method;
-            let kpayOpt = document.getElementById('kpayOpt');
-            let waveOpt = document.getElementById('wavepayOpt');
-            if(method === 'kpay') {
-                if(kpayOpt) kpayOpt.classList.add('selected');
-                if(waveOpt) waveOpt.classList.remove('selected');
-            } else {
-                if(waveOpt) waveOpt.classList.add('selected');
-                if(kpayOpt) kpayOpt.classList.remove('selected');
-            }
-        }
+    // Initialize
+    loadData();
+    updateMarket();
+</script>
 
-        function calculateWithdrawMMK() {
-            let amountInput = document.getElementById('withdrawCoinAmount');
-            let mmkOutput = document.getElementById('withdrawMMKOutput');
-            if(!amountInput || !mmkOutput) return;
-            let amount = parseInt(amountInput.value);
-            if(isNaN(amount) || amount <= 0) {
-                mmkOutput.value = "0 MMK";
-                return;
-            }
-            mmkOutput.value = (amount * 10) + " MMK";
-        }
-
-        function requestWithdrawal() {
-            let phoneInput = document.getElementById('withdrawPhone');
-            let amountInput = document.getElementById('withdrawCoinAmount');
-            if(!phoneInput || !amountInput) return;
-
-            let phone = phoneInput.value.trim();
-            let amount = parseInt(amountInput.value);
-
-            if (!phone || isNaN(amount) || amount <= 0 || amount > currentCoins) {
-                alert('ဖုန်းနံပတ်နှင့် Coin ပမာဏကို မှန်ကန်စွာ ဖြည့်ပါ။');
-                return;
-            }
-
-            currentCoins -= amount;
-            updateCoinsUI();
-
-            let reqId = 'REQ' + Math.floor(1000 + Math.random() * 9000);
-            let mmkVal = amount * 10;
-            
-            adminWithdrawRequests.push({
-                id: reqId,
-                userId: "TG001",
-                name: "ကိုကို",
-                method: selectedPaymentMethod.toUpperCase(),
-                phone: phone,
-                amount: amount,
-                mmk: mmkVal,
-                status: 'Pending'
-            });
-
-            withdrawHistory.unshift({
-                id: reqId,
-                text: `${amount} Coins (${mmkVal} MMK) - ${selectedPaymentMethod.toUpperCase()}`,
-                status: 'စောင့်ဆိုင်းဆဲ (Pending)'
-            });
-            renderWithdrawHistory();
-
-            alert(`ငွေထုတ်ရန် တောင်းဆိုမှု (${reqId}) အောင်မြင်ပါသည်။ Admin စစ်ဆေးပြီး ငွေလွှဲပေးပါမည်။`);
-            phoneInput.value = '';
-            amountInput.value = '';
-            document.getElementById('withdrawMMKOutput').value = '0 MMK';
-        }
-
-        function renderWithdrawHistory() {
-            let listEl = document.getElementById('withdrawHistoryList');
-            if(!listEl) return;
-            if(withdrawHistory.length === 0) {
-                listEl.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">မှတ်တမ်းမရှိသေးပါ။</div>`;
-                return;
-            }
-            let html = '';
-            withdrawHistory.forEach(h => {
-                html += `
-                    <div class="history-item">
-                        <div><b>${h.id}</b>: ${h.text}</div>
-                        <span style="color: var(--primary-blue); font-weight: bold;">${h.status}</span>
-                    </div>
-                `;
-            });
-            listEl.innerHTML = html;
-        }
-
-        function renderAdminData() {
-            let marketUI = document.getElementById('marketContainerUI');
-            let marketMsg = document.getElementById('marketClosedMsg');
-            if(marketUI && marketMsg) {
-                if (isMarketOpen) {
-                    marketUI.style.display = 'block';
-                    marketMsg.style.display = 'none';
-                } else {
-                    marketUI.style.display = 'none';
-                    marketMsg.style.display = 'block';
-                }
-            }
-
-            filterAdminUsers();
-            renderAdminWithdrawRequests();
-
-            let adsListHtml = '';
-            adsLinks.forEach((link, idx) => {
-                adsListHtml += `
-                    <div class="user-mgmt-item" style="word-break: break-all;">
-                        <span style="font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${idx + 1}. ${link}</span>
-                        <button onclick="removeAdLink(${idx})" style="background: var(--accent-red); color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">ဖျက်ရန်</button>
-                    </div>
-                `;
-            });
-            let adListEl = document.getElementById('adminAdLinksList');
-            if(adListEl) adListEl.innerHTML = adsListHtml;
-        }
-
-        function renderAdminWithdrawRequests() {
-            let listEl = document.getElementById('adminWithdrawRequestsList');
-            if(!listEl) return;
-            let pendingReqs = adminWithdrawRequests.filter(r => r.status === 'Pending');
-            if(pendingReqs.length === 0) {
-                listEl.innerHTML = `<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">တောင်းဆိုမှု မရှိပါ။</div>`;
-                return;
-            }
-            let html = '';
-            pendingReqs.forEach(r => {
-                html += `
-                    <div class="user-mgmt-item">
-                        <div>
-                            <b>${r.name}</b> (${r.userId})<br>
-                            ${r.method}: <b>${r.phone}</b><br>
-                            ပမာဏ: <span style="color: var(--primary-blue);">${r.amount} Coins (${r.mmk} MMK)</span>
-                        </div>
-                        <button onclick="approveWithdraw('${r.id}')" style="background: var(--accent-green); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">ငွေလွှဲပြီး (Confirm)</button>
-                    </div>
-                `;
-            });
-            listEl.innerHTML = html;
-        }
-
-        function approveWithdraw(reqId) {
-            let req = adminWithdrawRequests.find(r => r.id === reqId);
-            if(req) {
-                req.status = 'Approved';
-                let hist = withdrawHistory.find(h => h.id === reqId);
-                if(hist) hist.status = 'အောင်မြင်ပြီး (Success)';
-
-                let u = usersData.find(user => user.id === req.userId);
-                if(u) u.notified = true;
-
-                renderAdminData();
-                updateCoinsUI();
-                alert(`(${req.id}) ငွေထုတ်တောင်းဆိုမှုကို အတည်ပြုပြီး ငွေလွှဲကြောင်း အကြောင်းကြားလိုက်ပါပြီ။`);
-            }
-        }
-
-        function switchAdminUserTab(tabName, btnEl) {
-            currentAdminUserFilterTab = tabName;
-            document.querySelectorAll('.admin-sub-tab').forEach(b => b.classList.remove('active'));
-            if(btnEl) btnEl.classList.add('active');
-            filterAdminUsers();
-        }
-
-        function filterAdminUsers() {
-            let searchInput = document.getElementById('adminSearchUserTgId');
-            let searchTgId = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            let userListHtml = '';
-
-            let filtered = usersData.filter(u => {
-                let matchesSearch = u.id.toLowerCase().includes(searchTgId) || u.name.toLowerCase().includes(searchTgId);
-                if (!matchesSearch) return false;
-
-                if (currentAdminUserFilterTab === 'active') return u.active && !u.banned;
-                if (currentAdminUserFilterTab === 'inactive') return !u.active || u.banned;
-                return true; 
-            });
-
-            if (filtered.length === 0) {
-                userListHtml = `<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 10px;">User မရှိပါ။</div>`;
-            } else {
-                filtered.forEach((u) => {
-                    let realIdx = usersData.findIndex(item => item.id === u.id);
-                    let statusBadge = u.banned ? '<span class="badge-inactive">Banned</span>' : (u.active ? '<span class="badge-active">Active</span>' : '<span class="badge-inactive">Inactive</span>');
-                    let banBtnText = u.banned ? 'Unban' : 'Ban';
-                    let banBtnColor = u.banned ? '#10b981' : '#ef4444';
-
-                    userListHtml += `
-                        <div class="user-mgmt-item">
-                            <div>
-                                <b>${u.name}</b> (${u.id})<br>
-                                Coin: <span style="color: var(--primary-blue);">${u.coins}</span> | ${statusBadge}
-                            </div>
-                            <div style="display: flex; gap: 4px; align-items: center;">
-                                <button onclick="adjustUserCoinPrompt(${realIdx})" style="background: var(--border-color); color: var(--text-main); border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;"><i class="fa-solid fa-coins"></i> တိုး/လျော့</button>
-                                <button onclick="toggleUserBan(${realIdx})" style="background: ${banBtnColor}; color: #fff; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-size: 11px;">${banBtnText}</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-            let userMgmtListEl = document.getElementById('adminUserMgmtList');
-            if(userMgmtListEl) userMgmtListEl.innerHTML = userListHtml;
-        }
-
-        function toggleUserBan(index) {
-            usersData[index].banned = !usersData[index].banned;
-            renderAdminData();
-            alert('User အခြေအနေ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
-        }
-
-        function adjustUserCoinPrompt(index) {
-            let u = usersData[index];
-            let inputVal = prompt(`(${u.name} - ${u.id}) ၏ လက်ရှိ Coin (${u.coins})\nတိုးလိုပါက (+10) သို့မဟုတ် လျှော့လိုပါက (-10) ပုံစံဖြင့် ထည့်ပါ:`, "10");
-            if (!inputVal) return;
-            
-            let val = parseInt(inputVal);
-            if (isNaN(val)) {
-                alert('ပမာဏ မှားယွင်းနေပါသည်။');
-                return;
-            }
-
-            u.coins += val;
-            if (u.coins < 0) u.coins = 0;
-
-            if (u.id === "TG001") {
-                currentCoins = u.coins;
-                updateCoinsUI();
-            }
-
-            renderAdminData();
-            alert(`User (${u.name}) ၏ Coin အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။ လက်ရှိ Coin: ${u.coins}`);
-        }
-
-        function saveMarketRate() {
-            let rateInput = document.getElementById('adminMarketRateInput');
-            if(!rateInput) return;
-            let val = rateInput.value.trim();
-            if (!val) return;
-            marketRateText = val;
-            let rateDisplay = document.getElementById('marketRateDisplay');
-            if(rateDisplay) rateDisplay.innerText = marketRateText;
-            alert('စျေးကွက်နှုန်းထား အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
-        }
-
-        function toggleMarketStatus() {
-            isMarketOpen = !isMarketOpen;
-            let btn = document.getElementById('marketToggleBtn');
-            if (btn) {
-                if (isMarketOpen) {
-                    btn.innerText = "စျေးကွက် ပိတ်မည်";
-                    btn.style.background = "var(--accent-red)";
-                } else {
-                    btn.innerText = "စျေးကွက် ဖွင့်မည်";
-                    btn.style.background = "var(--accent-green)";
-                }
-            }
-            renderAdminData();
-        }
-
-        function saveVideoReward() {
-            let rewardInput = document.getElementById('adminVideoRewardInput');
-            if(!rewardInput) return;
-            let val = parseInt(rewardInput.value);
-            if (isNaN(val) || val <= 0) return;
-            videoRewardCoin = val;
-            alert('ဗီဒီယိုကြည့် Coin ဆုလာဘ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
-        }
-
-        function saveTaskAdReward() {
-            let rewardInput = document.getElementById('adminTaskAdRewardInput');
-            if(!rewardInput) return;
-            let val = parseInt(rewardInput.value);
-            if(isNaN(val) || val <= 0) return;
-            taskAdRewardCoin = val;
-            alert('Task Ad Coin ဆုလာဘ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
-        }
-
-        function addNewAdLink() {
-            let adInput = document.getElementById('newAdLinkInput');
-            if(!adInput) return;
-            let newLink = adInput.value.trim();
-            if (!newLink) {
-                alert('ကျေးဇူးပြု၍ လင့်ခ်အမှန် ထည့်ပါ။');
-                return;
-            }
-            adsLinks.push(newLink);
-            adInput.value = '';
-            renderAdminData();
-            alert('ကြော်ငြာလင့်ခ် အသစ် ထည့်သွင်းပြီးပါပြီ။');
-        }
-
-        function removeAdLink(index) {
-            adsLinks.splice(index, 1);
-            renderAdminData();
-            alert('လင့်ခ် ဖျက်ပြီးပါပြီ။');
-        }
-    </script>
 </body>
 </html>
