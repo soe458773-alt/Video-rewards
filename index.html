@@ -622,9 +622,7 @@
             </div>
 
             <div class="section-label">ကြည့်ရှုရန် ဗီဒီယို ၁၀ ပုဒ်စာရင်း</div>
-            <div class="video-list" id="videoList">
-                <!-- Dynamic Initial 10 Videos will be injected here -->
-            </div>
+            <div class="video-list" id="videoList"></div>
         </div>
 
         <!-- 2. TASK / GAME SECTION -->
@@ -838,7 +836,6 @@
     <script>
         const YOUTUBE_API_KEY = 'AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c';
 
-        // Initial 10 YouTube Videos List
         const initialVideos = [
             { id: 'tXkh5pvP-zo', title: 'Top 10 Popular Songs 2026' },
             { id: '4kULdbyVPLk', title: 'Relaxing Lofi Hip Hop Beats' },
@@ -883,7 +880,6 @@
         ];
         let currentAdminUserFilterTab = 'all';
 
-        // Load Initial Videos on Window Load
         window.onload = function() {
             renderInitialVideos();
             startRewardTimer();
@@ -892,6 +888,7 @@
 
         function renderInitialVideos() {
             let listContainer = document.getElementById('videoList');
+            if(!listContainer) return;
             let html = '';
             initialVideos.forEach(v => {
                 html += `
@@ -910,11 +907,11 @@
             document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
             
-            document.getElementById(sectionId).classList.add('active');
-            btnElement.classList.add('active');
+            const targetSec = document.getElementById(sectionId);
+            if(targetSec) targetSec.classList.add('active');
+            if(btnElement) btnElement.classList.add('active');
         }
 
-        // Admin Security Authentication
         let pendingAdminBtn = null;
         function checkAdminAccess(btnEl) {
             pendingAdminBtn = btnEl;
@@ -929,7 +926,7 @@
                 switchTab('adminSection', pendingAdminBtn);
                 renderAdminData();
             } else {
-                alert('Password မှားယွင်းနေပါသည်။ (မှန်ကန်သော Password ထည့်ပါ)');
+                alert('Password မှားယွင်းနေပါသည်။ (မှန်ကန်သော Password: 199083)');
             }
         }
 
@@ -948,7 +945,6 @@
             }
         }
 
-        // Search YouTube
         function handleSearchKey(event) {
             if (event.key === 'Enter') searchYouTubeVideos();
         }
@@ -993,6 +989,7 @@
             let html = '';
             items.forEach(item => {
                 const videoId = item.id.videoId;
+                if(!videoId) return;
                 const title = item.snippet.title;
                 const thumbnail = item.snippet.thumbnails.medium.url;
                 
@@ -1011,16 +1008,16 @@
         function playVideo(videoId) {
             currentVideoId = videoId;
             const iframe = document.getElementById('ytPlayer');
-            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            if(iframe) iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
             resetRewardTimer();
         }
 
-        // Timer 100s
         function startRewardTimer() {
             if (timerInterval) clearInterval(timerInterval);
             
             timerInterval = setInterval(() => {
-                if (!document.getElementById('homeSection').classList.contains('active')) {
+                const homeSec = document.getElementById('homeSection');
+                if (!homeSec || !homeSec.classList.contains('active')) {
                     return;
                 }
 
@@ -1049,7 +1046,6 @@
             startRewardTimer();
         }
 
-        // Ad Modal & Auto Open Action
         function triggerAdForReward(type, callback) {
             if (adsLinks.length === 0) {
                 alert('ကြော်ငြာလင့်ခ်များ မရှိသေးပါ။');
@@ -1073,28 +1069,29 @@
             const adModal = document.getElementById('adModal');
             adModal.style.display = 'flex';
 
-            // Auto open ad link in new tab immediately
             window.open(activeAdUrl, '_blank');
 
             if (adInterval) clearInterval(adInterval);
             adInterval = setInterval(() => {
                 requiredAdSeconds--;
-                document.getElementById('adTimer').innerText = requiredAdSeconds;
+                let timerEl = document.getElementById('adTimer');
+                if(timerEl) timerEl.innerText = requiredAdSeconds;
 
                 if (requiredAdSeconds <= 0) {
                     clearInterval(adInterval);
-                    document.getElementById('adTimerText').style.display = 'none';
-                    document.getElementById('closeAdBtn').style.display = 'block';
+                    let timerText = document.getElementById('adTimerText');
+                    let closeBtn = document.getElementById('closeAdBtn');
+                    if(timerText) timerText.style.display = 'none';
+                    if(closeBtn) closeBtn.style.display = 'block';
                 }
             }, 1000);
         }
 
-        function openAdLinkAction() {
-            // User manually clicked ad anchor link
-        }
+        function openAdLinkAction() {}
 
         function closeAdAndReward() {
-            document.getElementById('adModal').style.display = 'none';
+            const adModal = document.getElementById('adModal');
+            if(adModal) adModal.style.display = 'none';
 
             if (adTaskType === 'video') {
                 currentCoins += videoRewardCoin;
@@ -1107,13 +1104,15 @@
         }
 
         function updateCoinsUI() {
-            document.getElementById('coinBalance').innerText = currentCoins;
-            document.getElementById('profileCoins').innerText = currentCoins;
-            let me = usersData.find(u => u.id === currentUserId);
+            let coinBal = document.getElementById('coinBalance');
+            let profCoins = document.getElementById('profileCoins');
+            if(coinBal) coinBal.innerText = currentCoins;
+            if(profCoins) profCoins.innerText = currentCoins;
+            
+            let me = usersData.find(u => u.id === "TG001");
             if (me) me.coins = currentCoins;
         }
 
-        // Game Task
         function makeMove(index) {
             if (tasksLeft <= 0) {
                 alert('ယနေ့အတွက် ဆော့ကွက်အကြိမ်ရေ ပြည့်သွားပါပြီ။ ၂၄ နာရီ စောင့်ပါ။');
@@ -1124,14 +1123,19 @@
             pendingTaskMoveIndex = index;
             triggerAdForReward('task', () => {
                 board[pendingTaskMoveIndex] = 'X';
-                document.getElementById('ticTacToeBoard').children[pendingTaskMoveIndex].innerText = 'X';
+                let cellEl = document.getElementById('ticTacToeBoard');
+                if(cellEl && cellEl.children[pendingTaskMoveIndex]) {
+                    cellEl.children[pendingTaskMoveIndex].innerText = 'X';
+                }
                 
                 tasksLeft--;
-                document.getElementById('taskCountLeft').innerText = tasksLeft;
+                let taskLeftEl = document.getElementById('taskCountLeft');
+                if(taskLeftEl) taskLeftEl.innerText = tasksLeft;
                 
                 currentCoins += 30;
                 updateCoinsUI();
-                document.getElementById('gameStatusText').innerText = "🎉 နိုင်ပါပြီ! Coin 30 ရရှိသွားပါပြီ။";
+                let statusText = document.getElementById('gameStatusText');
+                if(statusText) statusText.innerText = "🎉 နိုင်ပါပြီ! Coin 30 ရရှိသွားပါပြီ။";
                 
                 setTimeout(resetBoard, 1500);
             });
@@ -1139,19 +1143,25 @@
 
         function resetBoard() {
             board = ['', '', '', '', '', '', '', '', ''];
-            let cells = document.getElementById('ticTacToeBoard').children;
-            for (let c of cells) c.innerText = '';
-            document.getElementById('gameStatusText').innerText = "ဂိမ်းအသစ် ဆက်ဆော့ရန် ကွက်လပ်ကို နှိပ်ပါ";
+            let boardContainer = document.getElementById('ticTacToeBoard');
+            if(boardContainer) {
+                let cells = boardContainer.children;
+                for (let c of cells) c.innerText = '';
+            }
+            let statusText = document.getElementById('gameStatusText');
+            if(statusText) statusText.innerText = "ဂိမ်းအသစ် ဆက်ဆော့ရန် ကွက်လပ်ကို နှိပ်ပါ";
         }
 
-        // Market & Withdraw
         function calculateMMK() {
-            let coins = parseInt(document.getElementById('exchangeCoinInput').value);
+            let coinInput = document.getElementById('exchangeCoinInput');
+            let mmkOutput = document.getElementById('exchangeMMKOutput');
+            if(!coinInput || !mmkOutput) return;
+            let coins = parseInt(coinInput.value);
             if (isNaN(coins) || coins <= 0) {
-                document.getElementById('exchangeMMKOutput').value = "0 MMK";
+                mmkOutput.value = "0 MMK";
                 return;
             }
-            document.getElementById('exchangeMMKOutput').value = (coins * 10) + " MMK";
+            mmkOutput.value = (coins * 10) + " MMK";
         }
 
         function executeCoinExchange() {
@@ -1159,7 +1169,9 @@
                 alert('စျေးကွက်ကို ပိတ်ထားပါသည်။');
                 return;
             }
-            let coins = parseInt(document.getElementById('exchangeCoinInput').value);
+            let coinInput = document.getElementById('exchangeCoinInput');
+            if(!coinInput) return;
+            let coins = parseInt(coinInput.value);
             if (isNaN(coins) || coins <= 0 || coins > currentCoins) {
                 alert('လုံလောက်သော Coin မရှိပါ သို့မဟုတ် ပမာဏ မှားယွင်းနေပါသည်။');
                 return;
@@ -1167,18 +1179,21 @@
             currentCoins -= coins;
             updateCoinsUI();
             alert('Coin များကို ကျပ်ငွေသို့ အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ။');
-            document.getElementById('exchangeCoinInput').value = '';
-            document.getElementById('exchangeMMKOutput').value = '0 MMK';
+            coinInput.value = '';
+            let mmkOutput = document.getElementById('exchangeMMKOutput');
+            if(mmkOutput) mmkOutput.value = '0 MMK';
         }
 
         function selectPayment(method) {
             selectedPaymentMethod = method;
-            if (method === 'kpay') {
-                document.getElementById('kpayOpt').classList.add('selected');
-                document.getElementById('wavepayOpt').classList.remove('selected');
+            let kpayOpt = document.getElementById('kpayOpt');
+            let waveOpt = document.getElementById('wavepayOpt');
+            if(method === 'kpay') {
+                if(kpayOpt) kpayOpt.classList.add('selected');
+                if(waveOpt) waveOpt.classList.remove('selected');
             } else {
-                document.getElementById('wavepayOpt').classList.add('selected');
-                document.getElementById('kpayOpt').classList.remove('selected');
+                if(waveOpt) waveOpt.classList.add('selected');
+                if(kpayOpt) kpayOpt.classList.remove('selected');
             }
         }
 
@@ -1187,8 +1202,12 @@
                 alert('ငွေထုတ်စနစ်ကို ခဏပိတ်ထားပါသည်။');
                 return;
             }
-            let phone = document.getElementById('withdrawPhone').value.trim();
-            let amount = parseInt(document.getElementById('withdrawCoinAmount').value);
+            let phoneInput = document.getElementById('withdrawPhone');
+            let amountInput = document.getElementById('withdrawCoinAmount');
+            if(!phoneInput || !amountInput) return;
+
+            let phone = phoneInput.value.trim();
+            let amount = parseInt(amountInput.value);
 
             if (!phone || isNaN(amount) || amount <= 0 || amount > currentCoins) {
                 alert('ဖုန်းနံပတ်နှင့် Coin ပမာဏကို မှန်ကန်စွာ ဖြည့်ပါ။');
@@ -1198,19 +1217,21 @@
             currentCoins -= amount;
             updateCoinsUI();
             alert(`(${selectedPaymentMethod.toUpperCase()}) နံပတ် ${phone} သို့ ငွေထုတ်ရန် တောင်းဆိုမှု အောင်မြင်ပါသည်။`);
-            document.getElementById('withdrawPhone').value = '';
-            document.getElementById('withdrawCoinAmount').value = '';
+            phoneInput.value = '';
+            amountInput.value = '';
         }
 
-        // Admin Functions
-        let currentAdminUserFilterTab = 'all';
         function renderAdminData() {
-            if (isMarketOpen) {
-                document.getElementById('marketContainerUI').style.display = 'block';
-                document.getElementById('marketClosedMsg').style.display = 'none';
-            } else {
-                document.getElementById('marketContainerUI').style.display = 'none';
-                document.getElementById('marketClosedMsg').style.display = 'block';
+            let marketUI = document.getElementById('marketContainerUI');
+            let marketMsg = document.getElementById('marketClosedMsg');
+            if(marketUI && marketMsg) {
+                if (isMarketOpen) {
+                    marketUI.style.display = 'block';
+                    marketMsg.style.display = 'none';
+                } else {
+                    marketUI.style.display = 'none';
+                    marketMsg.style.display = 'block';
+                }
             }
 
             filterAdminUsers();
@@ -1224,18 +1245,20 @@
                     </div>
                 `;
             });
-            document.getElementById('adminAdLinksList').innerHTML = adsListHtml;
+            let adListEl = document.getElementById('adminAdLinksList');
+            if(adListEl) adListEl.innerHTML = adsListHtml;
         }
 
         function switchAdminUserTab(tabName, btnEl) {
             currentAdminUserFilterTab = tabName;
             document.querySelectorAll('.admin-sub-tab').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
+            if(btnEl) btnEl.classList.add('active');
             filterAdminUsers();
         }
 
         function filterAdminUsers() {
-            let searchTgId = document.getElementById('adminSearchUserTgId').value.trim().toLowerCase();
+            let searchInput = document.getElementById('adminSearchUserTgId');
+            let searchTgId = searchInput ? searchInput.value.trim().toLowerCase() : '';
             let userListHtml = '';
 
             let filtered = usersData.filter(u => {
@@ -1270,7 +1293,8 @@
                     `;
                 });
             }
-            document.getElementById('adminUserMgmtList').innerHTML = userListHtml;
+            let userMgmtListEl = document.getElementById('adminUserMgmtList');
+            if(userMgmtListEl) userMgmtListEl.innerHTML = userListHtml;
         }
 
         function toggleUserBan(index) {
@@ -1303,28 +1327,35 @@
         }
 
         function saveMarketRate() {
-            let val = document.getElementById('adminMarketRateInput').value.trim();
+            let rateInput = document.getElementById('adminMarketRateInput');
+            if(!rateInput) return;
+            let val = rateInput.value.trim();
             if (!val) return;
             marketRateText = val;
-            document.getElementById('marketRateDisplay').innerText = marketRateText;
+            let rateDisplay = document.getElementById('marketRateDisplay');
+            if(rateDisplay) rateDisplay.innerText = marketRateText;
             alert('စျေးကွက်နှုန်းထား အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
         }
 
         function toggleMarketStatus() {
             isMarketOpen = !isMarketOpen;
             let btn = document.getElementById('marketToggleBtn');
-            if (isMarketOpen) {
-                btn.innerText = "စျေးကွက် ပိတ်မည်";
-                btn.style.background = "var(--accent-red)";
-            } else {
-                btn.innerText = "စျေးကွက် ဖွင့်မည်";
-                btn.style.background = "var(--accent-green)";
+            if (btn) {
+                if (isMarketOpen) {
+                    btn.innerText = "စျေးကွက် ပိတ်မည်";
+                    btn.style.background = "var(--accent-red)";
+                } else {
+                    btn.innerText = "စျေးကွက် ဖွင့်မည်";
+                    btn.style.background = "var(--accent-green)";
+                }
             }
             renderAdminData();
         }
 
         function saveVideoReward() {
-            let val = parseInt(document.getElementById('adminVideoRewardInput').value);
+            let rewardInput = document.getElementById('adminVideoRewardInput');
+            if(!rewardInput) return;
+            let val = parseInt(rewardInput.value);
             if (isNaN(val) || val <= 0) return;
             videoRewardCoin = val;
             alert('ဗီဒီယိုကြည့် Coin ဆုလာဘ် အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။');
@@ -1334,25 +1365,29 @@
             isWithdrawOpen = !isWithdrawOpen;
             let btn = document.getElementById('adminWithdrawToggleBtn');
             let info = document.getElementById('withdrawInfoText');
-            if (isWithdrawOpen) {
-                btn.innerText = "ငွေထုတ်စနစ် ပိတ်မည်";
-                btn.style.background = "var(--accent-red)";
-                info.innerText = `လက်ရှိအခြေအနေ: ဖွင့်ထားသည် | သတ်မှတ်ရက်: ${targetWithdrawDate}`;
-            } else {
-                btn.innerText = "ငွေထုတ်စနစ် ဖွင့်မည်";
-                btn.style.background = "var(--accent-green)";
-                info.innerText = "လက်ရှိအခြေအနေ: ပိတ်ထားသည်";
+            if (btn && info) {
+                if (isWithdrawOpen) {
+                    btn.innerText = "ငွေထုတ်စနစ် ပိတ်မည်";
+                    btn.style.background = "var(--accent-red)";
+                    info.innerText = `လက်ရှိအခြေအနေ: ဖွင့်ထားသည် | သတ်မှတ်ရက်: ${targetWithdrawDate}`;
+                } else {
+                    btn.innerText = "ငွေထုတ်စနစ် ဖွင့်မည်";
+                    btn.style.background = "var(--accent-green)";
+                    info.innerText = "လက်ရှိအခြေအနေ: ပိတ်ထားသည်";
+                }
             }
         }
 
         function addNewAdLink() {
-            let newLink = document.getElementById('newAdLinkInput').value.trim();
+            let adInput = document.getElementById('newAdLinkInput');
+            if(!adInput) return;
+            let newLink = adInput.value.trim();
             if (!newLink) {
                 alert('ကျေးဇူးပြု၍ လင့်ခ်အမှန် ထည့်ပါ။');
                 return;
             }
             adsLinks.push(newLink);
-            document.getElementById('newAdLinkInput').value = '';
+            adInput.value = '';
             renderAdminData();
             alert('ကြော်ငြာလင့်ခ် အသစ် ထည့်သွင်းပြီးပါပြီ။');
         }
