@@ -133,7 +133,6 @@
         <div class="card">
             <h3>🎬 YouTube ဗီဒီယိုကြည့်ရှုရန်</h3>
             
-            <!-- Search Bar -->
             <div style="display: flex; gap: 8px;">
                 <input type="text" id="ytSearchQuery" placeholder="ဗီဒီယိုရှာရန် (Search)..." style="margin-bottom:8px;">
                 <button class="btn" style="width: 90px; margin-top:0;" onclick="searchYouTubeVideos()">ရှာမည်</button>
@@ -147,14 +146,11 @@
                 <div id="videoProgressFill" class="progress-bar-fill"></div>
             </div>
             
-            <button id="startVideoBtn" class="btn" onclick="startVideoProgress()">ဗီဒီယိုစတင်ကြည့်မည်</button>
-            <button id="claimVideoBtn" class="btn" style="display:none; background: #f39c12; color:#fff;" onclick="openAdForVideo('video')">Ads ကြည့်ပြီး Coin ယူမည်</button>
-            <button id="closeVideoBtn" class="btn btn-secondary" style="display:none;" onclick="closeAndResetVideo()">Close / ဆက်ကြည့်မည်</button>
+            <button id="claimVideoBtn" class="btn" style="display:none; background: #f39c12; color:#fff;" onclick="openAdForVideo('video')">Coin ယူရန်</button>
+            <div id="videoRewardMsg" style="text-align: center; font-size: 13px; color: var(--accent-green); margin-top: 8px; font-weight: bold;"></div>
 
             <h4 style="margin: 15px 0 8px 0; color: var(--accent-light);">အသင့်ပါဝင်သော ဗီဒီယို ၁၀ ပုဒ်</h4>
-            <div id="presetVideosList" style="max-height: 200px; overflow-y: auto;">
-                <!-- Populated via JS -->
-            </div>
+            <div id="presetVideosList" style="max-height: 200px; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -224,15 +220,18 @@
         </div>
     </div>
 
-    <!-- 6. ADMIN CONTROL PANEL -->
+    <!-- 6. ADMIN LOGIN & CONTROL PANEL -->
     <div id="adminSection" class="section">
-        <div id="adminLoginBox" class="card">
-            <h3>🔐 Admin Login</h3>
-            <input type="password" id="adminPassInput" placeholder="Password ထည့်ပါ (24680)">
-            <button class="btn" onclick="checkAdminPassword()">ဝင်မည်</button>
+        <!-- Password Prompt Box -->
+        <div id="adminLoginCard" class="card" style="border-color: #e74c3c; text-align: center;">
+            <h3 style="color: #e74c3c;">🔒 အက်ဒမန် လော့ဂ်အင်</h3>
+            <p style="font-size: 12px; color: var(--accent-light);">အက်ဒမန်ခန်းသို့ ဝင်ရောက်ရန် Password ထည့်ပါ။</p>
+            <input type="password" id="adminPasswordInput" placeholder="Password ထည့်ရန်..." style="text-align: center; letter-spacing: 3px;">
+            <button class="btn" style="background: #e74c3c; color: #fff;" onclick="verifyAdminPassword()">ဝင်မည်</button>
         </div>
 
-        <div id="adminDashboard" class="card" style="display:none; border-color: #e74c3c;">
+        <!-- Admin Dashboard (Hidden by default) -->
+        <div id="adminDashboard" class="card" style="border-color: #e74c3c; display: none;">
             <h3 style="color: #e74c3c;">🛠️ အက်ဒမန် ထိန်းချုပ်ခန်း</h3>
             
             <label>1. ဗီဒီယိုကြည့်လျှင် ရမည့် Coin:</label>
@@ -283,6 +282,8 @@
             <button class="btn btn-secondary" onclick="addAdLink()">Ads လင့်ခ် ထည့်မည်</button>
             <p style="font-size: 12px; margin-top: 5px;">ထည့်ထားပြီးသော Ads လင့်ခ် အရေအတွက်: <span id="adLinksCount" class="digital-num">0</span></p>
             <div id="adLinksList" style="font-size: 11px; max-height: 90px; overflow-y: auto;"></div>
+
+            <button class="btn" style="background: #7f8c8d; color: #fff; margin-top: 15px;" onclick="lockAdminDashboard()">လော့ခ်ချ ထွက်မည်</button>
         </div>
     </div>
 </div>
@@ -310,11 +311,11 @@
 <script>
     const firebaseConfig = { databaseURL: "https://real-caush-default-rtdb.firebaseio.com/" };
     const YOUTUBE_API_KEY = "AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c";
+    const ADMIN_SECRET_PASS = "24680"; // Admin Password
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Predefined 10 YouTube Videos with Thumbnails & Titles
     const presetVideos = [
         { id: "tXkh5pvP-zo", title: "Trending Music Mix 2026", thumb: "https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" },
         { id: "4kULdbyVPLk", title: "Lofi Chill Beats to Study", thumb: "https://img.youtube.com/vi/4kULdbyVPLk/hqdefault.jpg" },
@@ -343,7 +344,7 @@
     let adminSettings = {
         videoReward: 50,
         taskReward: 20,
-        conversionRule: "1000=100", // 1000 Coins = 100 MMK
+        conversionRule: "1000=100",
         conversionOpen: true,
         withdrawDate: "",
         withdrawOpen: true,
@@ -352,9 +353,9 @@
 
     let videoInterval = null;
     let videoProgress = 0;
-    let isVideoPlaying = false;
     let activeTaskIndex = null;
     let adCountdownInterval = null;
+    let isAdminLoggedIn = false;
 
     function initApp() {
         let saved = localStorage.getItem('real_caush_user_data');
@@ -374,6 +375,7 @@
         renderPresetVideosList();
         renderTaskButtons();
         updateUI();
+        startAutoVideoProgress();
     }
 
     function saveData() {
@@ -481,9 +483,42 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(sectionId).classList.add('active');
         btnElem.classList.add('active');
+        
+        if (sectionId === 'adminSection') {
+            if (isAdminLoggedIn) {
+                document.getElementById('adminLoginCard').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadAdminDashboardData();
+            } else {
+                document.getElementById('adminLoginCard').style.display = 'block';
+                document.getElementById('adminDashboard').style.display = 'none';
+                document.getElementById('adminPasswordInput').value = '';
+            }
+        }
     }
 
-    // --- VIDEO & PROGRESS LOGIC ---
+    // --- ADMIN PASSWORD VERIFICATION ---
+    function verifyAdminPassword() {
+        let enteredPass = document.getElementById('adminPasswordInput').value.trim();
+        if (enteredPass === ADMIN_SECRET_PASS) {
+            isAdminLoggedIn = true;
+            document.getElementById('adminLoginCard').style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'block';
+            loadAdminDashboardData();
+        } else {
+            alert("Password မှားယွင်းနေပါသည်။");
+            document.getElementById('adminPasswordInput').value = '';
+        }
+    }
+
+    function lockAdminDashboard() {
+        isAdminLoggedIn = false;
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('adminLoginCard').style.display = 'block';
+        document.getElementById('adminPasswordInput').value = '';
+    }
+
+    // --- AUTO VIDEO PROGRESS LOGIC ---
     function renderPresetVideosList() {
         let listContainer = document.getElementById('presetVideosList');
         let html = '';
@@ -499,6 +534,7 @@
     function loadPresetVideo(vId) {
         document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${vId}`;
         resetVideoProgress();
+        startAutoVideoProgress();
     }
 
     function searchYouTubeVideos() {
@@ -515,6 +551,7 @@
                     let vId = data.items[0].id.videoId;
                     document.getElementById('ytPlayer').src = `https://www.youtube.com/embed/${vId}`;
                     resetVideoProgress();
+                    startAutoVideoProgress();
                     alert("ဗီဒီယို တွေ့ရှိပါပြီ!");
                 } else {
                     alert("ဗီဒီယို ရှာမတွေ့ပါ။");
@@ -526,39 +563,26 @@
     function resetVideoProgress() {
         if (videoInterval) clearInterval(videoInterval);
         videoProgress = 0;
-        isVideoPlaying = false;
         document.getElementById('videoProgressFill').style.width = '0%';
-        document.getElementById('startVideoBtn').style.display = 'block';
         document.getElementById('claimVideoBtn').style.display = 'none';
-        document.getElementById('closeVideoBtn').style.display = 'none';
+        document.getElementById('videoRewardMsg').innerText = '';
     }
 
-    function startVideoProgress() {
-        document.getElementById('startVideoBtn').style.display = 'none';
-        isVideoPlaying = true;
-        videoProgress = 0;
-
+    function startAutoVideoProgress() {
         if (videoInterval) clearInterval(videoInterval);
         videoInterval = setInterval(() => {
-            if (!isVideoPlaying) return; // Stop if not playing
             videoProgress += 1;
             if (videoProgress > 100) videoProgress = 100;
             document.getElementById('videoProgressFill').style.width = videoProgress + '%';
 
             if (videoProgress >= 100) {
                 clearInterval(videoInterval);
-                isVideoPlaying = false;
                 document.getElementById('claimVideoBtn').style.display = 'block';
             }
-        }, 150); // ~15 seconds to fill 100%
+        }, 200);
     }
 
-    function closeAndResetVideo() {
-        resetVideoProgress();
-        alert("ဗီဒီယိုကို ဆက်ကြည့်နိုင်ပါပြီ (Progress အစမှ ပြန်စပါမည်)။");
-    }
-
-    // --- TASKS LOGIC (7 Buttons, 10 times max, 24h cooldown) ---
+    // --- TASKS LOGIC ---
     function renderTaskButtons() {
         let container = document.getElementById('taskButtonsContainer');
         container.innerHTML = '';
@@ -605,10 +629,9 @@
         modal.style.display = 'flex';
         closeBtn.style.display = 'none';
         
-        // Randomly pick an ad link if admin added some
         if (adminSettings.adLinks && adminSettings.adLinks.length > 0) {
             let randLink = adminSettings.adLinks[Math.floor(Math.random() * adminSettings.adLinks.length)];
-            window.open(randLink, '_blank'); // Rotation / open ad link
+            window.open(randLink, '_blank');
         }
 
         let timeLeft = 15;
@@ -637,9 +660,10 @@
             let reward = adminSettings.videoReward;
             userData.coins += reward;
             saveData();
-            alert(`adminမှသတ်မှတ်သော coin ${reward} ရရှိပါသည်!`);
             document.getElementById('claimVideoBtn').style.display = 'none';
-            document.getElementById('closeVideoBtn').style.display = 'block';
+            document.getElementById('videoRewardMsg').innerText = `adminမှသတ်မှတ်သော coin ${reward} ရရှိပါသည်!`;
+            resetVideoProgress();
+            startAutoVideoProgress();
         } else if (type === 'task' && activeTaskIndex !== null) {
             let reward = adminSettings.taskReward;
             userData.coins += reward;
@@ -686,7 +710,6 @@
         alert(`အောင်မြင်ပါသည်! Coin ${inputCoins} ကို MMK ${convertedMMK} သို့ ပြောင်းလဲပြီးပါပြီ။`);
     }
 
-    // Live Ticker simulation
     function updateMarketPrices() {
         let btc = (64250 + (Math.random() * 200 - 100)).toFixed(2);
         document.getElementById('btcLivePrice').innerText = "$" + btc;
@@ -743,18 +766,7 @@
         listDiv.innerHTML = html;
     }
 
-    // --- ADMIN LOGIN & CONTROLS ---
-    function checkAdminPassword() {
-        let pass = document.getElementById('adminPassInput').value.trim();
-        if (pass === "24680") {
-            document.getElementById('adminLoginBox').style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'block';
-            loadAdminDashboardData();
-        } else {
-            alert("Password မှားယွင်းနေပါသည်။");
-        }
-    }
-
+    // --- ADMIN CONTROLS ---
     function loadAdminDashboardData() {
         db.ref('users').once('value').then(snapshot => {
             let total = 0;
@@ -767,7 +779,6 @@
                 snapshot.forEach(child => {
                     total++;
                     let u = child.val();
-                    // Active if active within last 3 days or has coins/history
                     if ((now - (u.lastActive || 0)) < (3 * dayMs) || (u.coins > 0) || (u.history && u.history.length > 0)) {
                         active++;
                     } else {
