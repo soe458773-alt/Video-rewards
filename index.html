@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REAL CAUSH</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-color: #121814;
@@ -279,25 +277,15 @@
             <input type="text" id="adminSearchId" placeholder="Telegram ID ထည့်ပါ...">
             <button class="btn btn-secondary" onclick="adminSearchUser()">User ရှာမည်</button>
             <div id="adminSearchResult" style="margin-top: 8px; font-size: 12px;"></div>
-            
-            <p style="font-size: 12px; margin-top: 8px;">
-                👥 Active Users: <span id="countActive" class="digital-num">0</span> | 
-                💤 မသုံးသေးသူများ: <span id="countInactive" class="digital-num">0</span> | 
-                စုစုပေါင်း: <span id="countTotal" class="digital-num">0</span>
-            </p>
 
-            <label style="margin-top: 12px; display: block;">6. User Coin / MMK အတိုး/အလျော့ လုပ်ရန်:</label>
+            <label style="margin-top: 12px; display: block;">6. User Coin အတိုး/အလျော့ လုပ်ရန်:</label>
             <input type="text" id="adminTargetId" placeholder="Target Telegram ID">
             <input type="number" id="adminCoinAmt" placeholder="တိုး/လျော့မည့် Coin (+ သို့မဟုတ် -)">
             <button class="btn" style="background: #e74c3c; color: #fff;" onclick="adminModifyCoins()">Coin အတိုး/အလျော့ အတည်ပြုမည်</button>
 
             <hr style="border-color: var(--border-color); margin: 15px 0;">
 
-            <label>7. Ads လင့်ခ်များ ထည့်ရန် (Direct Link):</label>
-            <input type="text" id="newAdLinkInput" placeholder="https://example.com/ad">
-            <button class="btn btn-secondary" onclick="addAdLink()">Ads လင့်ခ် ထည့်မည်</button>
-            <p style="font-size: 12px; margin-top: 5px;">ထည့်ထားပြီးသော Ads လင့်ခ် အရေအတွက်: <span id="adLinksCount" class="digital-num">0</span></p>
-            <div id="adLinksList" style="font-size: 11px; max-height: 90px; overflow-y: auto;"></div>
+            <p style="font-size: 12px; color: var(--accent-light);">📌 ထည့်သွင်းထားသော Ad Link: <br><strong style="color: var(--text-color); word-break: break-all;" id="currentAdLinkDisplay"></strong></p>
 
             <button class="btn" style="background: #7f8c8d; color: #fff; margin-top: 15px;" onclick="lockAdminDashboard()">လော့ခ်ချ ထွက်မည်</button>
         </div>
@@ -327,12 +315,12 @@
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-    const firebaseConfig = { databaseURL: "https://real-caush-default-rtdb.firebaseio.com/" };
+    const SHEETDB_API_URL = "https://sheetdb.io/api/v1/zkm4ss0sr8p34";
     const YOUTUBE_API_KEY = "AIzaSyA2X32o4xCk53b4cEmf2S0ZWmB8cs1av_c";
     const ADMIN_SECRET_PASS = "24680";
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    
+    // ထည့်သွင်းပေးလိုက်သော တိကျသေချာသည့် Ad Link အသစ်
+    const FIXED_AD_LINK = "//data527.click/1c846536214c908a413b/554f5c3be9/?placementName=default";
 
     const presetVideos = [
         { id: "tXkh5pvP-zo", title: "Trending Music Mix 2026", thumb: "https://img.youtube.com/vi/tXkh5pvP-zo/hqdefault.jpg" },
@@ -354,9 +342,7 @@
         coins: 0,
         mmkBalance: 0,
         history: [],
-        taskProgress: {},
-        banned: false,
-        lastActive: Date.now()
+        taskProgress: {}
     };
 
     let adminSettings = {
@@ -365,8 +351,7 @@
         conversionRule: "1000=100",
         conversionOpen: true,
         withdrawDate: "",
-        withdrawOpen: true,
-        adLinks: []
+        withdrawOpen: true
     };
 
     let player;
@@ -377,9 +362,6 @@
     let isAdminLoggedIn = false;
 
     function initApp() {
-        let saved = localStorage.getItem('real_caush_user_data');
-        if (saved) userData = JSON.parse(saved);
-
         let savedTheme = localStorage.getItem('real_caush_theme');
         if (savedTheme === 'light') document.body.classList.add('light-mode');
 
@@ -389,14 +371,91 @@
                 userData.tgId = String(tgUser.id);
                 userData.tgName = tgUser.first_name || tgUser.username || "User";
                 if (tgUser.photo_url) userData.avatar = tgUser.photo_url;
-                loadFromFirebase(userData.tgId);
             }
         }
-        userData.lastActive = Date.now();
+        
+        loadUserDataFromSheet();
         loadAdminSettings();
         renderPresetVideosList();
         renderTaskButtons();
+    }
+
+    async function loadUserDataFromSheet() {
+        try {
+            let res = await fetch(`${SHEETDB_API_URL}/telegram_id/${userData.tgId}`);
+            let rows = await res.json();
+            if (rows && rows.length > 0) {
+                userData.coins = parseInt(rows[0].coins) || 0;
+                userData.mmkBalance = parseInt(rows[0].mmkBalance) || 0;
+                try { userData.history = JSON.parse(rows[0].history || '[]'); } catch(e){ userData.history = []; }
+                try { userData.taskProgress = JSON.parse(rows[0].taskProgress || '{}'); } catch(e){ userData.taskProgress = {}; }
+            } else {
+                await createNewUserInSheet();
+            }
+        } catch (err) {
+            console.error("Load user error:", err);
+        }
         updateUI();
+        renderTaskButtons();
+    }
+
+    async function createNewUserInSheet() {
+        try {
+            await fetch(SHEETDB_API_URL, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: [{
+                        "telegram_id": userData.tgId,
+                        "coins": 0,
+                        "mmkBalance": 0,
+                        "history": JSON.stringify([]),
+                        "taskProgress": JSON.stringify({})
+                    }]
+                })
+            });
+        } catch (err) {
+            console.error("Create user error:", err);
+        }
+    }
+
+    async function saveUserDataToSheet() {
+        try {
+            await fetch(`${SHEETDB_API_URL}/telegram_id/${userData.tgId}`, {
+                method: 'PATCH',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    data: {
+                        "coins": userData.coins,
+                        "mmkBalance": userData.mmkBalance,
+                        "history": JSON.stringify(userData.history),
+                        "taskProgress": JSON.stringify(userData.taskProgress)
+                    }
+                })
+            });
+        } catch (err) {
+            console.error("Save user error:", err);
+        }
+        updateUI();
+    }
+
+    function loadAdminSettings() {
+        let savedAdmin = localStorage.getItem('real_caush_admin_settings');
+        if (savedAdmin) {
+            let parsed = JSON.parse(savedAdmin);
+            adminSettings.videoReward = parsed.videoReward ?? 50;
+            adminSettings.taskReward = parsed.taskReward ?? 20;
+            adminSettings.conversionRule = parsed.conversionRule ?? "1000=100";
+            adminSettings.conversionOpen = parsed.conversionOpen ?? true;
+            adminSettings.withdrawDate = parsed.withdrawDate ?? "";
+            adminSettings.withdrawOpen = parsed.withdrawOpen ?? true;
+        }
+        applyAdminSettingsToUI();
+    }
+
+    function saveAdminSettingsToLocal() {
+        localStorage.setItem('real_caush_admin_settings', JSON.stringify(adminSettings));
+        applyAdminSettingsToUI();
     }
 
     function toggleThemeMode() {
@@ -411,14 +470,11 @@
             width: '100%',
             videoId: 'tXkh5pvP-zo',
             playerVars: { 'playsinline': 1 },
-            events: {
-                'onStateChange': onPlayerStateChange
-            }
+            events: { 'onStateChange': onPlayerStateChange }
         });
     }
 
     function onPlayerStateChange(event) {
-        // YT.PlayerState.PLAYING = 1
         if (event.data == YT.PlayerState.PLAYING) {
             startProgressTicker();
         } else {
@@ -430,7 +486,7 @@
         if (progressInterval) clearInterval(progressInterval);
         progressInterval = setInterval(() => {
             if (player && player.getPlayerState && player.getPlayerState() == YT.PlayerState.PLAYING) {
-                videoProgress += 0.5; // နှေးနှေးလေး တက်စေရန်
+                videoProgress += 0.5;
                 if (videoProgress > 100) videoProgress = 100;
                 document.getElementById('videoProgressFill').style.width = videoProgress + '%';
 
@@ -446,47 +502,6 @@
         if (progressInterval) clearInterval(progressInterval);
     }
 
-    function saveData() {
-        localStorage.setItem('real_caush_user_data', JSON.stringify(userData));
-        if (userData.tgId) {
-            db.ref('users/' + userData.tgId).set({
-                tgName: userData.tgName,
-                avatar: userData.avatar,
-                coins: userData.coins,
-                mmkBalance: userData.mmkBalance,
-                history: userData.history,
-                taskProgress: userData.taskProgress,
-                banned: userData.banned,
-                lastActive: userData.lastActive
-            });
-        }
-        updateUI();
-    }
-
-    function loadFromFirebase(tgId) {
-        db.ref('users/' + tgId).once('value').then(snapshot => {
-            if (snapshot.exists()) {
-                let d = snapshot.val();
-                if (d.coins !== undefined) userData.coins = d.coins;
-                if (d.mmkBalance !== undefined) userData.mmkBalance = d.mmkBalance;
-                if (d.history) userData.history = d.history;
-                if (d.taskProgress) userData.taskProgress = d.taskProgress;
-                if (d.banned) userData.banned = d.banned;
-                updateUI();
-            }
-        });
-    }
-
-    function loadAdminSettings() {
-        db.ref('adminSettings').once('value').then(snapshot => {
-            if (snapshot.exists()) {
-                adminSettings = snapshot.val();
-                if (!adminSettings.adLinks) adminSettings.adLinks = [];
-                applyAdminSettingsToUI();
-            }
-        });
-    }
-
     function applyAdminSettingsToUI() {
         document.getElementById('adminVideoReward').value = adminSettings.videoReward;
         document.getElementById('adminTaskReward').value = adminSettings.taskReward;
@@ -494,7 +509,7 @@
         document.getElementById('adminConversionToggle').checked = adminSettings.conversionOpen;
         document.getElementById('adminWithdrawDate').value = adminSettings.withdrawDate || "";
         document.getElementById('adminWithdrawToggle').checked = adminSettings.withdrawOpen;
-        renderAdLinksList();
+        document.getElementById('currentAdLinkDisplay').innerText = FIXED_AD_LINK;
         updateUI();
     }
 
@@ -506,9 +521,8 @@
         if (field === 'withdrawDate') adminSettings.withdrawDate = document.getElementById('adminWithdrawDate').value;
         if (field === 'withdrawOpen') adminSettings.withdrawOpen = document.getElementById('adminWithdrawToggle').checked;
 
-        db.ref('adminSettings').set(adminSettings);
+        saveAdminSettingsToLocal();
         alert(msg);
-        updateUI();
     }
 
     function updateUI() {
@@ -556,7 +570,6 @@
             if (isAdminLoggedIn) {
                 document.getElementById('adminLoginCard').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
-                loadAdminDashboardData();
             } else {
                 document.getElementById('adminLoginCard').style.display = 'block';
                 document.getElementById('adminDashboard').style.display = 'none';
@@ -571,7 +584,6 @@
             isAdminLoggedIn = true;
             document.getElementById('adminLoginCard').style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'block';
-            loadAdminDashboardData();
         } else {
             alert("Password မှားယွင်းနေပါသည်။");
             document.getElementById('adminPasswordInput').value = '';
@@ -598,27 +610,20 @@
     }
 
     function loadPresetVideo(vId) {
-        if (player && player.loadVideoById) {
-            player.loadVideoById(vId);
-        }
+        if (player && player.loadVideoById) player.loadVideoById(vId);
         resetVideoProgress();
     }
 
     function searchYouTubeVideos() {
         let q = document.getElementById('ytSearchQuery').value.trim();
-        if (!q) {
-            alert("ရှာလိုသည့် ခေါင်းစဉ်ထည့်ပါ။");
-            return;
-        }
+        if (!q) { alert("ရှာလိုသည့် ခေါင်းစဉ်ထည့်ပါ။"); return; }
         let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&key=${YOUTUBE_API_KEY}&type=video&maxResults=1`;
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 if (data.items && data.items.length > 0) {
                     let vId = data.items[0].id.videoId;
-                    if (player && player.loadVideoById) {
-                        player.loadVideoById(vId);
-                    }
+                    if (player && player.loadVideoById) player.loadVideoById(vId);
                     resetVideoProgress();
                     alert("ဗီဒီယို တွေ့ရှိပါပြီ!");
                 } else {
@@ -650,7 +655,7 @@
                 if (now - tData.lastTime >= twentyFourHours) {
                     tData.count = 0;
                     userData.taskProgress[tKey] = tData;
-                    saveData();
+                    saveUserDataToSheet();
                 }
             }
 
@@ -681,14 +686,8 @@
         modal.style.display = 'flex';
         closeBtn.style.display = 'none';
         
-        // Admin ထည့်ထားသော Ads လင့်ခ်များကို အမှန်တကယ် ဖွင့်ပေးရန် (Direct window.open)
-        if (adminSettings.adLinks && adminSettings.adLinks.length > 0) {
-            let randLink = adminSettings.adLinks[Math.floor(Math.random() * adminSettings.adLinks.length)];
-            window.open(randLink, '_blank');
-        } else {
-            // လင့်ခ်မရှိသေးရင် Default fallback
-            window.open("https://www.google.com", "_blank");
-        }
+        // ထည့်သွင်းပေးလိုက်သော Ad link အသစ်ကို ဖွင့်ပေးမည်
+        window.open(FIXED_AD_LINK, '_blank');
 
         let timeLeft = 15;
         timerText.innerText = timeLeft + "s";
@@ -715,7 +714,7 @@
         if (type === 'video') {
             let reward = adminSettings.videoReward;
             userData.coins += reward;
-            saveData();
+            saveUserDataToSheet();
             document.getElementById('claimVideoBtn').style.display = 'none';
             document.getElementById('videoRewardMsg').innerText = `Admin မှ သတ်မှတ်သော Coin ${reward} ရရှိပါသည်!`;
             resetVideoProgress();
@@ -728,7 +727,7 @@
             userData.taskProgress[tKey].count += 1;
             userData.taskProgress[tKey].lastTime = Date.now();
 
-            saveData();
+            saveUserDataToSheet();
             renderTaskButtons();
             alert(`Admin မှ သတ်မှတ်သော Coin ${reward} ရရှိပါသည်!`);
             activeTaskIndex = null;
@@ -752,14 +751,11 @@
         let mBase = parseFloat(parts[1]) || 100;
 
         let convertedMMK = Math.floor((inputCoins / cBase) * mBase);
-        if (convertedMMK <= 0) {
-            alert("လဲလှယ်ရန် Coin မလုံလောက်ပါ။");
-            return;
-        }
+        if (convertedMMK <= 0) { alert("လဲလှယ်ရန် Coin မလုံလောက်ပါ။"); return; }
 
         userData.coins -= inputCoins;
         userData.mmkBalance += convertedMMK;
-        saveData();
+        saveUserDataToSheet();
         document.getElementById('customCoinInput').value = '';
         alert(`အောင်မြင်ပါသည်! Coin ${inputCoins} ကို MMK ${convertedMMK} သို့ ပြောင်းလဲပြီးပါပြီ။`);
     }
@@ -779,14 +775,8 @@
         let phone = document.getElementById('phoneNumber').value.trim();
         let amount = userData.mmkBalance;
 
-        if (!phone || phone.length < 8) {
-            alert("မှန်ကန်သော ဖုန်းနံပါတ်ထည့်ပါ။");
-            return;
-        }
-        if (amount <= 0) {
-            alert("ထုတ်ယူရန် MMK လက်ကျန် မရှိပါ။");
-            return;
-        }
+        if (!phone || phone.length < 8) { alert("မှန်ကန်သော ဖုန်းနံပါတ်ထည့်ပါ။"); return; }
+        if (amount <= 0) { alert("ထုတ်ယူရန် MMK လက်ကျန် မရှိပါ။"); return; }
 
         let record = {
             date: new Date().toLocaleString(),
@@ -798,7 +788,7 @@
 
         userData.history.unshift(record);
         userData.mmkBalance = 0;
-        saveData();
+        saveUserDataToSheet();
         alert(`အောင်မြင်ပါသည်! ${amount} MMK (${method}) ထုတ်ယူရန် တောင်းဆိုပြီးပါပြီ။`);
         document.getElementById('phoneNumber').value = '';
     }
@@ -819,117 +809,50 @@
         listDiv.innerHTML = html;
     }
 
-    function loadAdminDashboardData() {
-        db.ref('users').once('value').then(snapshot => {
-            let total = 0;
-            let active = 0;
-            let inactive = 0;
-            let now = Date.now();
-            let dayMs = 24 * 60 * 60 * 1000;
-
-            if (snapshot.exists()) {
-                snapshot.forEach(child => {
-                    total++;
-                    let u = child.val();
-                    if ((now - (u.lastActive || 0)) < (3 * dayMs) || (u.coins > 0) || (u.history && u.history.length > 0)) {
-                        active++;
-                    } else {
-                        inactive++;
-                    }
-                });
-            }
-            document.getElementById('countTotal').innerText = total;
-            document.getElementById('countActive').innerText = active;
-            document.getElementById('countInactive').innerText = inactive;
-        });
-    }
-
     function adminSearchUser() {
         let sId = document.getElementById('adminSearchId').value.trim();
         let resDiv = document.getElementById('adminSearchResult');
-        if (!sId) {
-            resDiv.innerHTML = "Telegram ID ထည့်ပါ။";
-            return;
-        }
-        db.ref('users/' + sId).once('value').then(snapshot => {
-            if (snapshot.exists()) {
-                let u = snapshot.val();
-                let isBanned = u.banned ? true : false;
-                resDiv.innerHTML = `တွေ့ရှိသည် ✅<br>နာမည်: ${u.tgName}<br>Coins: ${u.coins} | MMK: ${u.mmkBalance}<br>Status: ${isBanned ? 'Banned ❌' : 'Active ✅'}<br>
-                <button class="btn" style="padding:6px; margin-top:5px; background:${isBanned?'#2ecc71':'#e74c3c'}; color:#fff;" onclick="toggleBanUser('${sId}', ${!isBanned})">${isBanned ? 'Unban လုပ်မည်' : 'Ban လုပ်မည်'}</button>`;
-            } else {
-                resDiv.innerHTML = "ရှာမတွေ့ပါ။";
-            }
-        });
-    }
-
-    function toggleBanUser(targetId, banStatus) {
-        db.ref('users/' + targetId).update({ banned: banStatus }).then(() => {
-            alert(banStatus ? "User ကို Ban လိုက်ပါပြီ။" : "User ကို Unban လိုက်ပါပြီ။");
-            adminSearchUser();
-        });
+        if (!sId) { resDiv.innerHTML = "Telegram ID ထည့်ပါ။"; return; }
+        
+        fetch(`${SHEETDB_API_URL}/telegram_id/${sId}`)
+            .then(res => res.json())
+            .then(rows => {
+                if (rows && rows.length > 0) {
+                    let u = rows[0];
+                    resDiv.innerHTML = `တွေ့ရှိသည် ✅<br>Telegram ID: ${u.telegram_id}<br>Coins: ${u.coins} | MMK: ${u.mmkBalance}`;
+                } else {
+                    resDiv.innerHTML = "ရှာမတွေ့ပါ။";
+                }
+            })
+            .catch(() => res.innerHTML = "အမှားအယွင်းရှိပါသည်။");
     }
 
     function adminModifyCoins() {
         let tId = document.getElementById('adminTargetId').value.trim();
         let amt = parseInt(document.getElementById('adminCoinAmt').value);
-        if (!tId || isNaN(amt)) {
-            alert("Telegram ID နှင့် Coin ပမာဏ မှန်ကန်စွာ ထည့်ပါ။");
-            return;
-        }
-        db.ref('users/' + tId).once('value').then(snapshot => {
-            if (snapshot.exists()) {
-                let u = snapshot.val();
-                u.coins = (u.coins || 0) + amt;
-                db.ref('users/' + tId).update({ coins: u.coins }).then(() => {
-                    alert(`အတည်ပြုပြီးပါပြီ! User (${tId}) ၏ Coin ကို ${amt > 0 ? '+' + amt : amt} ပြောင်းလဲလိုက်ပါပြီ။`);
-                    adminSearchUser();
-                });
-            } else {
-                alert("ဤ Telegram ID ဖြင့် User ရှာမတွေ့ပါ။");
-            }
-        });
-    }
-
-    function addAdLink() {
-        let link = document.getElementById('newAdLinkInput').value.trim();
-        if (!link) {
-            alert("Ads လင့်ခ် ထည့်ပါ။");
-            return;
-        }
-        if (!adminSettings.adLinks) adminSettings.adLinks = [];
-        adminSettings.adLinks.push(link);
-        db.ref('adminSettings').set(adminSettings);
-        document.getElementById('newAdLinkInput').value = '';
-        renderAdLinksList();
-        alert("Ads လင့်ခ် အောင်မြင်စွာ ထည့်သွင်းပြီးပါပြီ။");
-    }
-
-    function renderAdLinksList() {
-        let listDiv = document.getElementById('adLinksList');
-        document.getElementById('adLinksCount').innerText = adminSettings.adLinks ? adminSettings.adLinks.length : 0;
+        if (!tId || isNaN(amt)) { alert("Telegram ID နှင့် Coin ပမာဏ မှန်ကန်စွာ ထည့်ပါ။"); return; }
         
-        if (!adminSettings.adLinks || adminSettings.adLinks.length === 0) {
-            listDiv.innerHTML = "လင့်ခ် မရှိသေးပါ။";
-            return;
-        }
-        let html = '';
-        adminSettings.adLinks.forEach((l, idx) => {
-            html += `<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.05); padding: 4px 6px; border-radius: 4px; margin-bottom: 3px;">
-                <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:240px;">${l}</span>
-                <button onclick="removeAdLink(${idx})" style="background:#e74c3c; color:#fff; border:none; border-radius:3px; padding:2px 5px; cursor:pointer;">ဖျက်မည်</button>
-            </div>`;
-        });
-        listDiv.innerHTML = html;
+        fetch(`${SHEETDB_API_URL}/telegram_id/${tId}`)
+            .then(res => res.json())
+            .then(rows => {
+                if (rows && rows.length > 0) {
+                    let currentCoins = parseInt(rows[0].coins) || 0;
+                    let newCoins = currentCoins + amt;
+                    
+                    fetch(`${SHEETDB_API_URL}/telegram_id/${tId}`, {
+                        method: 'PATCH',
+                        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { "coins": newCoins } })
+                    }).then(() => {
+                        alert(`အတည်ပြုပြီးပါပြီ! User (${tId}) ၏ Coin ကို ${amt > 0 ? '+' + amt : amt} ပြောင်းလဲလိုက်ပါပြီ။`);
+                        adminSearchUser();
+                    });
+                } else {
+                    alert("ဤ Telegram ID ဖြင့် User ရှာမတွေ့ပါ။");
+                }
+            });
     }
 
-    function removeAdLink(idx) {
-        adminSettings.adLinks.splice(idx, 1);
-        db.ref('adminSettings').set(adminSettings);
-        renderAdLinksList();
-    }
-
-    window.addEventListener('beforeunload', saveData);
     window.onload = function() {
         initApp();
         updateMarketPrices();
