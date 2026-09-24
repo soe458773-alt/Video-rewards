@@ -95,18 +95,14 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
+        /* လုံးဝ လျှို့ဝှက်ထားသော Admin ဝင်ရန် နေရာ (Secret Trigger) */
         .secret-admin-trigger {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: transparent;
             border-radius: 50%;
             cursor: pointer;
-            opacity: 0.03;
-            transition: opacity 0.2s;
-        }
-        .secret-admin-trigger:hover {
-            opacity: 0.8;
-            background: var(--primary-accent);
+            opacity: 0; /* လုံးဝမမြင်ရအောင် ဖျောက်ထားသည် */
         }
 
         .balance-card {
@@ -318,7 +314,8 @@
             <div class="top-btns">
                 <button class="icon-btn" onclick="toggleLang()" id="langBtn">ENG</button>
                 <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
-                <div class="secret-admin-trigger" onclick="checkAdminPassword()" title="Admin"></div>
+                <!-- လုံးဝဖျောက်ထားပြီး နှိပ်လိုက်မှ Admin ပွင့်မည့် Secret Trigger -->
+                <div class="secret-admin-trigger" onclick="openAdminModalDirect()" title="Admin Control"></div>
             </div>
         </div>
 
@@ -481,16 +478,16 @@
             <!-- SUB-TAB 1: USERS LIST & MANAGEMENT -->
             <div id="admTabUsers" class="adm-sub-tab">
                 <div style="display:flex; gap:4px; margin-bottom:8px;">
-                    <input type="text" id="searchTgIdInput" placeholder="Telegram ID ဖြင့် ရှာရန်..." style="font-size:12px; padding:6px;">
-                    <button class="card-btn" style="padding:6px 10px;" onclick="searchUserByTelegramId()">ရှာရန်</button>
+                    <input type="text" id="searchTgIdInput" placeholder="နာမည် သို့မဟုတ် Telegram ID ဖြင့် ရှာရန်..." style="font-size:12px; padding:6px;" oninput="searchUserByTelegramId()">
+                    <button class="card-btn" style="padding:6px 10px;" onclick="renderAdminUsersList()">အစုံပြမည်</button>
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; opacity:0.8;">
                     <span>🟢 Active: <strong id="admActiveCount">0</strong></span>
                     <span>🔴 Inactive: <strong id="admInactiveCount">0</strong></span>
                     <span>🚫 Banned: <strong id="admBannedCount">0</strong></span>
                 </div>
-                <div id="adminUserListContainer" style="max-height: 240px; overflow-y:auto; font-size:12px; background:var(--card-bg); border:1px solid var(--primary-accent); border-radius:8px; padding:6px;">
-                    <!-- Rendered Users -->
+                <div id="adminUserListContainer" style="max-height: 250px; overflow-y:auto; font-size:12px; background:var(--card-bg); border:1px solid var(--primary-accent); border-radius:8px; padding:6px;">
+                    <!-- Rendered Users Sorted by Name/ID -->
                 </div>
             </div>
 
@@ -590,10 +587,10 @@
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        // Master Keys for Centralized Shared Storage (Admin & All Users)
-        const globalSettingsKey = 'moneycaush_master_settings_v3';
-        const globalUsersListKey = 'moneycaush_master_users_registry_v3';
-        const globalRequestsKey = 'moneycaush_master_requests_v3';
+        // Master Keys for Centralized Shared Storage
+        const globalSettingsKey = 'moneycaush_master_settings_v4';
+        const globalUsersListKey = 'moneycaush_master_users_registry_v4';
+        const globalRequestsKey = 'moneycaush_master_requests_v4';
 
         // Default Global Settings
         let settings = JSON.parse(localStorage.getItem(globalSettingsKey)) || {
@@ -619,11 +616,10 @@
                 mmk: 0,
                 history: [],
                 tasks: {},
-                status: 'active', // 'active' or 'banned'
+                status: 'active',
                 lastActive: Date.now()
             };
         } else {
-            // Update profile data and mark active
             allUsersRegistry[currentUser.id].name = currentUser.name;
             allUsersRegistry[currentUser.id].photo = currentUser.photo;
             allUsersRegistry[currentUser.id].lastActive = Date.now();
@@ -640,7 +636,6 @@
         function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
             
-            // Check if current user is banned
             if (userData.status === 'banned') {
                 document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2><p>ဆက်သွယ်ရန် Admin ထံသို့ ဆက်သွယ်ပါ။</p></div>`;
                 return;
@@ -653,7 +648,7 @@
             renderTasks();
             renderHistory();
 
-            // Real-time synchronization loop to sync settings and user data across tabs/devices simulation
+            // Real-time synchronization loop (Admin ထိန်းချုပ်သမျှ User ဆီချက်ချင်းရောက်စေရန်)
             setInterval(() => {
                 let latestSettings = JSON.parse(localStorage.getItem(globalSettingsKey));
                 let latestUsers = JSON.parse(localStorage.getItem(globalUsersListKey));
@@ -670,7 +665,7 @@
                     updateUI();
                     renderHistory();
                 }
-            }, 1500);
+            }, 1000);
         }
 
         function initUserData() {
@@ -887,15 +882,11 @@
             let phone = document.getElementById('withdrawPhone').value.trim();
             let amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
 
-            let requiredCoins = amountMmk / (settings.exMmk / settings.exCoins);
-
-            if (!phone || amountMmk <= 0 || userData.coins < requiredCoins) {
-                alert('Please check details and ensure sufficient balance.');
+            if (!phone || amountMmk <= 0 || amountMmk > userData.mmk) {
+                alert('Please check details and ensure sufficient MMK balance.');
                 return;
             }
 
-            userData.coins -= Math.ceil(requiredCoins);
-            
             let reqData = {
                 reqId: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
                 userId: currentUser.id,
@@ -910,16 +901,14 @@
             userData.history.push(reqData);
             allUsersRegistry[currentUser.id] = userData;
             saveUsersRegistry();
-            updateUI();
 
-            // Save to global requests
             let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
             allReqs.push(reqData);
             localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
 
             closeWithdrawModal();
             renderHistory();
-            alert('Withdrawal request submitted successfully!');
+            alert('Withdrawal request submitted successfully! Pending Admin approval.');
         }
 
         function renderHistory() {
@@ -939,21 +928,14 @@
             });
         }
 
-        // --- Admin Centralized Panel Controls ---
-        function checkAdminPassword() {
-            let pwd = prompt("Admin စကားဝှက် ထည့်ပါ (ဥပမာ: 13579):");
-            if (pwd === "13579") {
-                openAdminModal();
-            } else if (pwd !== null) {
-                alert("စကားဝှက် မှားယွင်းနေပါသည်။");
-            }
+        // --- Admin Centralized Panel Controls (Password Removed & Sorted Users) ---
+        function openAdminModalDirect() {
+            openAdminModal();
         }
 
         function openAdminModal() {
-            // Refresh registry data
             allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
             
-            // Populate Settings
             document.getElementById('admHomeCoin').value = settings.homeCoin;
             document.getElementById('admTaskCoin').value = settings.taskCoin;
             document.getElementById('admExCoins').value = settings.exCoins;
@@ -977,25 +959,29 @@
             document.getElementById('admTabWithdraws').style.display = tab === 'withdraws' ? 'block' : 'none';
         }
 
-        function renderAdminUsersList(filterId = '') {
+        function renderAdminUsersList(searchQuery = '') {
             let container = document.getElementById('adminUserListContainer');
             container.innerHTML = '';
             
             let usersArray = Object.values(allUsersRegistry);
             document.getElementById('admTotalCount').innerText = usersArray.length;
 
+            // အမည် (Name) အလိုက် အစဉ်လိုက် (Alphabetical Order) စီခြင်း
+            usersArray.sort((a, b) => a.name.localeCompare(b.name));
+
             let activeCount = 0;
             let inactiveCount = 0;
             let bannedCount = 0;
-
             let currentTime = Date.now();
+
             let filteredUsers = usersArray.filter(u => {
                 if (u.status === 'banned') bannedCount++;
                 else if ((currentTime - u.lastActive) < 10 * 60 * 1000) { activeCount++; u.status = 'active'; }
                 else { inactiveCount++; u.status = 'inactive'; }
 
-                if (filterId) {
-                    return u.id.includes(filterId) || u.name.toLowerCase().includes(filterId.toLowerCase());
+                if (searchQuery) {
+                    let q = searchQuery.toLowerCase();
+                    return u.name.toLowerCase().includes(q) || u.id.includes(q);
                 }
                 return true;
             });
@@ -1018,7 +1004,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <b>${u.name}</b> (ID: ${u.id})<br>
-                            Coins: <span style="color:var(--btn-color); font-weight:bold;">${u.coins}</span> | MMK: <b>${u.mmk.toFixed(2)}</b><br>
+                            🪙 Coins: <span style="color:var(--btn-color); font-weight:bold;">${u.coins}</span> | 💵 MMK: <b style="color:#bc6c25;">${u.mmk.toFixed(2)}</b><br>
                             Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${u.status}</span>
                         </div>
                         <button class="card-btn" style="padding:4px 8px; font-size:11px;" onclick="openUserControlModal('${u.id}')">ထိန်းချုပ်မည်</button>
@@ -1064,13 +1050,14 @@
             let mDelta = parseFloat(document.getElementById('editUserMmkInput').value) || 0;
 
             allUsersRegistry[selectedTargetUserId].coins += cDelta;
+            allUsersRegistry[selectedTitleId = selectedTargetUserId];
             allUsersRegistry[selectedTargetUserId].mmk += mDelta;
 
             if (allUsersRegistry[selectedTargetUserId].coins < 0) allUsersRegistry[selectedTargetUserId].coins = 0;
             if (allUsersRegistry[selectedTargetUserId].mmk < 0) allUsersRegistry[selectedTargetUserId].mmk = 0;
 
             saveUsersRegistry();
-            alert('User balance updated successfully!');
+            alert('User balance updated successfully! (User ဘက်သို့ ချက်ချင်းသက်ရောက်သွားပါပြီ)');
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
@@ -1103,7 +1090,7 @@
             saveGlobalSettings();
             updateMarketRateDisplay();
             renderTasks();
-            alert('Global settings updated successfully!');
+            alert('Global settings updated successfully! (User များအားလုံးဆီသို့ အော်တိုသက်ရောက်သွားပါပြီ)');
         }
 
         function addAdLink() {
@@ -1144,23 +1131,51 @@
                 return;
             }
             allReqs.forEach((req, index) => {
+                let isSent = req.status === 'Sent';
                 div.innerHTML += `
-                    <div style="border-bottom:1px solid #ccc; padding:4px 0; margin-bottom:4px;">
+                    <div style="border-bottom:1px solid #ccc; padding:6px 0; margin-bottom:4px;">
                         <b>Name:</b> ${req.name} (ID: ${req.userId})<br>
                         <b>Bank:</b> ${req.bank} | <b>Phone:</b> ${req.phone}<br>
-                        <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> ${req.status}<br>
-                        ${req.status === 'Pending' ? `<button onclick="approveRequest(${index})" style="background:#388e3c; color:white; border:none; padding:2px 6px; border-radius:4px; margin-top:4px; cursor:pointer;">Approve & Send</button>` : '<span style="color:green;">✔ Sent</span>'}
+                        <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> <span style="color:${isSent ? 'green' : '#bc6c25'}">${req.status}</span><br>
+                        ${!isSent ? `<button onclick="approveAndDeductRequest(${index})" style="background:#388e3c; color:white; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer; font-weight:bold;">Approve & Send (MMK နုတ်မည်)</button>` : '<span style="color:green; font-weight:bold;">✔ အတည်ပြုပြီး ငွေနုတ်ပြီးပါပြီ</span>'}
                     </div>
                 `;
             });
         }
 
-        function approveRequest(index) {
+        function approveAndDeductRequest(index) {
             let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+            let req = allReqs[index];
+
+            if (req.status === 'Sent') {
+                alert('ဤတောင်းဆိုမှုကို အတည်ပြုပြီးသား ဖြစ်ပါသည်။');
+                return;
+            }
+
+            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
+            let targetUser = allUsersRegistry[req.userId];
+
+            if (targetUser) {
+                if (targetUser.mmk >= req.amount) {
+                    targetUser.mmk -= req.amount;
+                } else {
+                    targetUser.mmk = 0;
+                }
+
+                if (targetUser.history) {
+                    let histItem = targetUser.history.find(h => h.reqId === req.reqId);
+                    if (histItem) histItem.status = 'Sent';
+                }
+
+                saveUsersRegistry();
+            }
+
             allReqs[index].status = 'Sent';
             localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
+
             renderAdminRequests();
-            alert('Request marked as Sent.');
+            renderAdminUsersList();
+            alert('ငွေထုတ်တောင်းဆိုမှုကို အတည်ပြုပြီး User ၏ MMK လက်ကျန်မှ အောင်မြင်စွာ နုတ်ယူလိုက်ပါပြီ။');
         }
 
         // Initialize App
