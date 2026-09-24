@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real money - Reward Platform (Standalone Local DB)</title>
+    <title>Real money - Reward Platform (Firebase Realtime DB)</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Firebase SDK (v9 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-color: #f7f3ee;
@@ -332,7 +335,7 @@
                 <div class="card-item" style="margin:0;">
                     <div class="card-info">
                         <h4 id="tEarnCoinTitle">Earn your coin (Ads)</h4>
-                        <p>Limit: <span id="adLimitCount">50</span>/50 left today</p>
+                        <p>Limit: Unlimited</p>
                     </div>
                     <button class="card-btn" id="homeWatchBtn" onclick="watchHomeAd()">Watch (20s)</button>
                 </div>
@@ -352,6 +355,23 @@
 
             <div class="market-ticker" id="marketTicker">
                 📊 DIGITAL LIVE SYSTEM: COIN/MMK RATE DYNAMICALLY ACTIVE 💹
+            </div>
+
+            <!-- ဈေးကွက် အတက်အကျနှုန်းထားပြရန် ဇယား -->
+            <div class="card-item" style="flex-direction: column; align-items: stretch; margin-bottom: 16px;">
+                <h4 style="margin: 0 0 8px 0; text-align: center;">📊 Live Market Trend & Fluctuations</h4>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <span>24h High Rate:</span>
+                    <b id="marketHighRate" style="color: #388e3c;">-- Coins = 100 MMK</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+                    <span>24h Low Rate:</span>
+                    <b id="marketLowRate" style="color: #d32f2f;">-- Coins = 100 MMK</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0;">
+                    <span>Market Trend Status:</span>
+                    <b id="marketTrendStatus" style="color: var(--btn-color);">🟢 Bullish (တက်ရိပ်ပြနေသည်)</b>
+                </div>
             </div>
 
             <div class="market-card">
@@ -564,8 +584,16 @@
         </div>
     </div>
 
-    <!-- Standalone Local Storage Database Engine Script -->
+    <!-- Firebase Realtime Database Script Engine -->
     <script>
+        // Firebase Configuration (အခမဲ့ Realtime Database)
+        const firebaseConfig = {
+            databaseURL: "https://realmoney-reward-platform-default-rtdb.firebaseio.com/"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         let tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -578,22 +606,15 @@
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        // Load database from LocalStorage or create default structure
-        let defaultDB = {
-            settings: {
-                homeCoin: 10,
-                taskCoin: 5,
-                exCoins: 1000,
-                exMmk: 100,
-                marketOpen: true,
-                withdrawOpen: true,
-                adLinks: ["https://www.highperformanceformat.com/"]
-            },
-            users: {},
-            requests: []
+        let globalSettings = {
+            homeCoin: 10,
+            taskCoin: 5,
+            exCoins: 1000,
+            exMmk: 100,
+            marketOpen: true,
+            withdrawOpen: true,
+            adLinks: ["https://www.highperformanceformat.com/"]
         };
-
-        let dbData = JSON.parse(localStorage.getItem('reward_app_db')) || defaultDB;
 
         let userData = {
             id: currentUser.id,
@@ -601,52 +622,69 @@
             photo: currentUser.photo,
             coins: 0,
             mmk: 0,
-            history: [],
+            history: {},
             tasks: {},
             status: 'active'
         };
 
         let currentAdIndex = 0;
         let selectedTargetUserId = null;
-
-        function saveDB() {
-            localStorage.setItem('reward_app_db', JSON.stringify(dbData));
-        }
+        let allUsersCache = {};
+        let allRequestsCache = {};
 
         function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
 
-            if (!dbData.users) dbData.users = {};
-            if (!dbData.users[currentUser.id]) {
-                dbData.users[currentUser.id] = {
-                    id: currentUser.id,
-                    name: currentUser.name,
-                    photo: currentUser.photo,
-                    coins: 0,
-                    mmk: 0,
-                    history: [],
-                    tasks: {},
-                    status: 'active'
-                };
-            } else {
-                dbData.users[currentUser.id].name = currentUser.name;
-                dbData.users[currentUser.id].photo = currentUser.photo;
-            }
+            // 1. Listen to Global Settings
+            db.ref('settings').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    globalSettings = snapshot.val();
+                    if(!globalSettings.adLinks) globalSettings.adLinks = ["https://www.highperformanceformat.com/"];
+                } else {
+                    db.ref('settings').set(globalSettings);
+                }
+                updateMarketRateDisplay();
+                startDigitalTicker();
+            });
 
-            userData = dbData.users[currentUser.id];
-            saveDB();
+            // 2. Listen to Current User Data
+            db.ref('users/' + currentUser.id).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    userData = snapshot.val();
+                    if (userData.status === 'banned') {
+                        document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
+                        return;
+                    }
+                } else {
+                    userData = {
+                        id: currentUser.id,
+                        name: currentUser.name,
+                        photo: currentUser.photo,
+                        coins: 0,
+                        mmk: 0,
+                        history: {},
+                        tasks: {},
+                        status: 'active'
+                    };
+                    db.ref('users/' + currentUser.id).set(userData);
+                }
+                initUserData();
+                updateUI();
+                renderTasks();
+                renderHistory();
+            });
 
-            if (userData.status === 'banned') {
-                document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
-                return;
-            }
+            // 3. Listen to All Users for Admin Panel
+            db.ref('users').on('value', (snapshot) => {
+                allUsersCache = snapshot.val() || {};
+                renderAdminUsersList();
+            });
 
-            initUserData();
-            startDigitalTicker();
-            updateUI();
-            updateMarketRateDisplay();
-            renderTasks();
-            renderHistory();
+            // 4. Listen to Requests for Admin Panel
+            db.ref('requests').on('value', (snapshot) => {
+                allRequestsCache = snapshot.val() || {};
+                renderAdminRequests();
+            });
         }
 
         function initUserData() {
@@ -685,57 +723,54 @@
         }
 
         function updateUI() {
-            document.getElementById('coinVal').innerText = userData.coins;
-            document.getElementById('mmkVal').innerText = userData.mmk.toFixed(2);
-            document.getElementById('profileCoinVal').innerText = userData.coins;
-            document.getElementById('profileMmkVal').innerText = userData.mmk.toFixed(2);
+            document.getElementById('coinVal').innerText = userData.coins || 0;
+            document.getElementById('mmkVal').innerText = (userData.mmk || 0).toFixed(2);
+            document.getElementById('profileCoinVal').innerText = userData.coins || 0;
+            document.getElementById('profileMmkVal').innerText = (userData.mmk || 0).toFixed(2);
         }
 
         function updateMarketRateDisplay() {
-            let s = dbData.settings;
+            let s = globalSettings;
             document.getElementById('marketRateDisplay').innerText = `Live Rate: ${s.exCoins} Coins = ${s.exMmk} MMK`;
+            document.getElementById('marketHighRate').innerText = `${Math.floor(s.exCoins * 0.95)} - ${s.exCoins} Coins = 100 MMK`;
+            document.getElementById('marketLowRate').innerText = `${Math.floor(s.exCoins * 1.05)} Coins = 100 MMK`;
         }
 
         function startDigitalTicker() {
             let ticker = document.getElementById('marketTicker');
-            setInterval(() => {
-                let s = dbData.settings;
-                ticker.innerHTML = `📊 DIGITAL MARKET LIVE: ${s.exCoins} Coins = ${s.exMmk} MMK 💹`;
-            }, 4000);
+            let s = globalSettings;
+            ticker.innerHTML = `📊 DIGITAL MARKET LIVE: ${s.exCoins} Coins = ${s.exMmk} MMK (Fluctuation Active) 💹`;
         }
 
         function calcExchange() {
             let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            let s = dbData.settings;
+            let s = globalSettings;
             let rateMultiplier = s.exMmk / s.exCoins;
             document.getElementById('previewMmk').innerText = (val * rateMultiplier).toFixed(2);
         }
 
         function executeCoinExchange() {
-            let s = dbData.settings;
+            let s = globalSettings;
             if (!s.marketOpen) {
                 alert('Market is currently closed by Admin.');
                 return;
             }
             let cInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            if (cInput <= 0 || cInput > userData.coins) {
+            if (cInput <= 0 || cInput > (userData.coins || 0)) {
                 alert('Invalid coin amount or insufficient balance.');
                 return;
             }
             let mmkEarned = cInput * (s.exMmk / s.exCoins);
             userData.coins -= cInput;
-            userData.mmk += mmkEarned;
+            userData.mmk = (userData.mmk || 0) + mmkEarned;
             
-            dbData.users[currentUser.id] = userData;
-            saveDB();
-            updateUI();
+            db.ref('users/' + currentUser.id).set(userData);
             document.getElementById('convertCoinInput').value = '';
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
         }
 
-        // Ads Link Opening Fix (Direct Link Popunder / Smartlink safe handler)
         function triggerNextRotatedAd() {
-            let s = dbData.settings;
+            let s = globalSettings;
             if (s.adLinks && s.adLinks.length > 0) {
                 let linkToOpen = s.adLinks[currentAdIndex];
                 let a = document.createElement('a');
@@ -767,10 +802,8 @@
                     modal.style.display = 'none';
 
                     if (rewardCoins > 0) {
-                        userData.coins += rewardCoins;
-                        dbData.users[currentUser.id] = userData;
-                        saveDB();
-                        updateUI();
+                        userData.coins = (userData.coins || 0) + rewardCoins;
+                        db.ref('users/' + currentUser.id).set(userData);
                     }
                     if (callback) callback();
                 }
@@ -778,8 +811,8 @@
         }
 
         function watchHomeAd() {
-            startAdTimer(dbData.settings.homeCoin, () => {
-                alert('Earned ' + dbData.settings.homeCoin + ' Coins!');
+            startAdTimer(globalSettings.homeCoin, () => {
+                alert('Earned ' + globalSettings.homeCoin + ' Coins!');
             });
         }
 
@@ -787,9 +820,9 @@
             let container = document.getElementById('taskListContainer');
             if(!container) return;
             container.innerHTML = '';
-            let taskCoin = dbData.settings.taskCoin;
+            let taskCoin = globalSettings.taskCoin;
             for (let i = 1; i <= 10; i++) {
-                let state = userData.tasks[i] || 'watch';
+                let state = (userData.tasks && userData.tasks[i]) || 'watch';
                 let btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
                 let isDisabled = state === 'done' ? 'disabled' : '';
 
@@ -807,29 +840,26 @@
         }
 
         function handleTask(taskId) {
-            let state = userData.tasks[taskId] || 'watch';
-            let taskCoin = dbData.settings.taskCoin;
+            let state = (userData.tasks && userData.tasks[taskId]) || 'watch';
+            let taskCoin = globalSettings.taskCoin;
             if (state === 'watch') {
                 startAdTimer(0, () => {
+                    if(!userData.tasks) userData.tasks = {};
                     userData.tasks[taskId] = 'claim';
-                    dbData.users[currentUser.id] = userData;
-                    saveDB();
-                    renderTasks();
+                    db.ref('users/' + currentUser.id).set(userData);
                     alert('Ad finished! Click Claim.');
                 });
             } else if (state === 'claim') {
-                userData.coins += taskCoin;
+                userData.coins = (userData.coins || 0) + taskCoin;
+                if(!userData.tasks) userData.tasks = {};
                 userData.tasks[taskId] = 'done';
-                dbData.users[currentUser.id] = userData;
-                saveDB();
-                updateUI();
-                renderTasks();
+                db.ref('users/' + currentUser.id).set(userData);
                 alert('Claimed ' + taskCoin + ' Coins!');
             }
         }
 
         function openWithdrawModal() {
-            if (!dbData.settings.withdrawOpen) {
+            if (!globalSettings.withdrawOpen) {
                 alert('Withdrawals are currently closed by Admin.');
                 return;
             }
@@ -845,13 +875,14 @@
             let phone = document.getElementById('withdrawPhone').value.trim();
             let amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
 
-            if (!phone || amountMmk <= 0 || amountMmk > userData.mmk) {
+            if (!phone || amountMmk <= 0 || amountMmk > (userData.mmk || 0)) {
                 alert('Please check details and ensure sufficient MMK balance.');
                 return;
             }
 
+            let reqId = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
             let reqData = {
-                reqId: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
+                reqId: reqId,
                 userId: currentUser.id,
                 name: currentUser.name,
                 bank: bank,
@@ -861,14 +892,11 @@
                 timestamp: Date.now()
             };
 
-            userData.history.push(reqData);
-            dbData.users[currentUser.id] = userData;
-            if(!dbData.requests) dbData.requests = [];
-            dbData.requests.push(reqData);
+            // Save to user history & global requests
+            db.ref('users/' + currentUser.id + '/history/' + reqId).set(reqData);
+            db.ref('requests/' + reqId).set(reqData);
 
-            saveDB();
             closeWithdrawModal();
-            renderHistory();
             alert('Withdrawal request submitted successfully!');
         }
 
@@ -876,27 +904,34 @@
             let container = document.getElementById('historyListContainer');
             if(!container) return;
             container.innerHTML = '';
-            if (!userData.history || userData.history.length === 0) {
+            let historyObj = userData.history || {};
+            let historyArr = Object.values(historyObj);
+
+            if (historyArr.length === 0) {
                 container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
                 return;
             }
-            userData.history.forEach(r => {
+
+            historyArr.sort((a,b) => b.timestamp - a.timestamp);
+
+            historyArr.forEach(r => {
+                let isSent = r.status === 'Sent';
+                let statusText = isSent ? 'အောင်မြင်ပါသည် (Sent)' : 'စစ်ဆေးဆဲ (Pending)';
                 let d = document.createElement('div');
                 d.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
-                d.style.padding = '4px 0';
-                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - ${r.amount} MMK <br><span style="color:${r.status === 'Sent' ? '#388e3c' : '#bc6c25'}">[Status: ${r.status}]</span>`;
+                d.style.padding = '6px 0';
+                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - <b>${r.amount} MMK</b> <br><span style="color:${isSent ? '#388e3c' : '#bc6c25'}; font-weight:bold;">[အခြေအနေ: ${statusText}]</span>`;
                 container.appendChild(d);
             });
         }
 
-        // --- Admin Centralized Panel Controls ---
+        // --- Admin Centralized Controls ---
         function openAdminModalDirect() {
             openAdminModal();
         }
 
         function openAdminModal() {
-            let s = dbData.settings;
-            
+            let s = globalSettings;
             document.getElementById('admHomeCoin').value = s.homeCoin;
             document.getElementById('admTaskCoin').value = s.taskCoin;
             document.getElementById('admExCoins').value = s.exCoins;
@@ -922,18 +957,18 @@
 
         function renderAdminUsersList(searchQuery = '') {
             let container = document.getElementById('adminUserListContainer');
+            if(!container) return;
             container.innerHTML = '';
             
-            let usersObj = dbData.users || {};
-            let usersArray = Object.values(usersObj);
+            let usersArray = Object.values(allUsersCache);
             document.getElementById('admTotalCount').innerText = usersArray.length;
 
-            usersArray.sort((a, b) => a.name.localeCompare(b.name));
+            usersArray.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
             let filteredUsers = usersArray.filter(u => {
                 if (searchQuery) {
                     let q = searchQuery.toLowerCase();
-                    return u.name.toLowerCase().includes(q) || u.id.toString().includes(q);
+                    return (u.name && u.name.toLowerCase().includes(q)) || (u.id && u.id.toString().includes(q));
                 }
                 return true;
             });
@@ -952,8 +987,8 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <b>${u.name}</b> (ID: ${u.id})<br>
-                            🪙 Coins: <span style="color:var(--btn-color); font-weight:bold;">${u.coins}</span> | 💵 MMK: <b style="color:#bc6c25;">${u.mmk.toFixed(2)}</b><br>
-                            Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${u.status}</span>
+                            🪙 Coins: <span style="color:var(--btn-color); font-weight:bold;">${u.coins || 0}</span> | 💵 MMK: <b style="color:#bc6c25;">${(u.mmk || 0).toFixed(2)}</b><br>
+                            Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${u.status || 'active'}</span>
                         </div>
                         <button class="card-btn" style="padding:4px 8px; font-size:11px;" onclick="openUserControlModal('${u.id}')">ထိန်းချုပ်မည်</button>
                     </div>
@@ -969,13 +1004,13 @@
 
         function openUserControlModal(userId) {
             selectedTargetUserId = userId;
-            let target = dbData.users[userId];
+            let target = allUsersCache[userId];
             if(!target) return;
 
             document.getElementById('editUserName').innerText = target.name;
             document.getElementById('editUserTgId').innerText = target.id;
-            document.getElementById('editUserCurrCoins').innerText = target.coins;
-            document.getElementById('editUserCurrMmk').innerText = target.mmk.toFixed(2);
+            document.getElementById('editUserCurrCoins').innerText = target.coins || 0;
+            document.getElementById('editUserCurrMmk').innerText = (target.mmk || 0).toFixed(2);
             document.getElementById('editUserCoinInput').value = '';
             document.getElementById('editUserMmkInput').value = '';
 
@@ -992,24 +1027,24 @@
         }
 
         function applyUserBalanceChanges() {
-            if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
+            if (!selectedTargetUserId || !allUsersCache[selectedTargetUserId]) return;
             
             let cDelta = parseInt(document.getElementById('editUserCoinInput').value) || 0;
             let mDelta = parseFloat(document.getElementById('editUserMmkInput').value) || 0;
 
-            dbData.users[selectedTargetUserId].coins += cDelta;
-            dbData.users[selectedTargetUserId].mmk += mDelta;
+            let target = allUsersCache[selectedTargetUserId];
+            target.coins = (target.coins || 0) + cDelta;
+            target.mmk = (target.mmk || 0) + mDelta;
 
-            saveDB();
+            db.ref('users/' + selectedTargetUserId).set(target);
             alert('User balance updated successfully!');
             document.getElementById('userControlModal').style.display = 'none';
-            renderAdminUsersList();
         }
 
         function toggleBanTargetUser() {
-            if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
+            if (!selectedTargetUserId || !allUsersCache[selectedTargetUserId]) return;
             
-            let target = dbData.users[selectedTargetUserId];
+            let target = allUsersCache[selectedTargetUserId];
             if (target.status === 'banned') {
                 target.status = 'active';
                 alert('User unbanned successfully.');
@@ -1018,22 +1053,19 @@
                 alert('User banned successfully.');
             }
 
-            saveDB();
+            db.ref('users/' + selectedTargetUserId).set(target);
             document.getElementById('userControlModal').style.display = 'none';
-            renderAdminUsersList();
         }
 
         function saveAdminGlobalSettings() {
-            dbData.settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
-            dbData.settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
-            dbData.settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
-            dbData.settings.exMmk = parseFloat(document.getElementById('admExMmk').value) || 100;
-            dbData.settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
-            dbData.settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
+            globalSettings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
+            globalSettings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
+            globalSettings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
+            globalSettings.exMmk = parseFloat(document.getElementById('admExMmk').value) || 100;
+            globalSettings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
+            globalSettings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             
-            saveDB();
-            updateMarketRateDisplay();
-            renderTasks();
+            db.ref('settings').set(globalSettings);
             alert('Global settings saved successfully!');
         }
 
@@ -1041,17 +1073,17 @@
             let input = document.getElementById('newAdLink');
             let val = input.value.trim();
             if (val) {
-                if(!dbData.settings.adLinks) dbData.settings.adLinks = [];
-                dbData.settings.adLinks.push(val);
+                if(!globalSettings.adLinks) globalSettings.adLinks = [];
+                globalSettings.adLinks.push(val);
                 input.value = '';
-                saveDB();
+                db.ref('settings').set(globalSettings);
                 renderAdminLinks();
             }
         }
 
         function removeAdLink(idx) {
-            dbData.settings.adLinks.splice(idx, 1);
-            saveDB();
+            globalSettings.adLinks.splice(idx, 1);
+            db.ref('settings').set(globalSettings);
             renderAdminLinks();
         }
 
@@ -1059,7 +1091,7 @@
             let div = document.getElementById('linkList');
             if(!div) return;
             div.innerHTML = '';
-            let links = dbData.settings.adLinks || [];
+            let links = globalSettings.adLinks || [];
             links.forEach((l, i) => {
                 div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,25)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
             });
@@ -1069,49 +1101,54 @@
             let div = document.getElementById('adminWithdrawRequests');
             if(!div) return;
             div.innerHTML = '';
-            let allReqs = dbData.requests || [];
-            if (allReqs.length === 0) {
+            let allReqsArr = Object.values(allRequestsCache);
+            
+            if (allReqsArr.length === 0) {
                 div.innerHTML = '<p>No pending requests.</p>';
                 return;
             }
-            allReqs.forEach((req, index) => {
+
+            allReqsArr.sort((a,b) => b.timestamp - a.timestamp);
+
+            allReqsArr.forEach((req) => {
                 let isSent = req.status === 'Sent';
                 div.innerHTML += `
                     <div style="border-bottom:1px solid #ccc; padding:6px 0; margin-bottom:4px;">
-                        <b>Name:</b> ${req.name} (ID: ${req.userId})<br>
-                        <b>Bank:</b> ${req.bank} | <b>Phone:</b> ${req.phone}<br>
-                        <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> <span style="color:${isSent ? 'green' : '#bc6c25'}">${req.status}</span><br>
-                        ${!isSent ? `<button onclick="approveAndDeductRequest(${index})" style="background:#388e3c; color:white; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer; font-weight:bold;">Approve & Send</button>` : '<span style="color:green; font-weight:bold;">✔ အတည်ပြုပြီး</span>'}
+                        <b>နာမည်:</b> ${req.name} <br>
+                        <b>Telegram ID:</b> ${req.userId}<br>
+                        <b>ဘဏ်အကောင့်/ဖုန်း:</b> ${req.bank} (${req.phone})<br>
+                        <b>တောင်းဆိုငွေ:</b> <b style="color:#bc6c25;">${req.amount} MMK</b><br>
+                        <b>အခြေအနေ:</b> <span style="color:${isSent ? 'green' : '#bc6c25'}; font-weight:bold;">${req.status}</span><br>
+                        ${!isSent ? `<button onclick="approveAndDeductRequest('${req.reqId}', '${req.userId}',${req.amount})" style="background:#388e3c; color:white; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer; font-weight:bold;">Approve & Send</button>` : '<span style="color:green; font-weight:bold;">✔ အတည်ပြုပြီး (Sent)</span>'}
                     </div>
                 `;
             });
         }
 
-        function approveAndDeductRequest(index) {
-            let allReqs = dbData.requests || [];
-            let req = allReqs[index];
-
-            if (req.status === 'Sent') return;
-
-            let targetUser = dbData.users[req.userId];
+        // Admin က Approve လိုက်ရင် User ရဲ့ MMK ကို အော်တိုနုတ်ယူပြီး သက်ဆိုင်ရာ User ရဲ့မှတ်တမ်းမှာ အောင်မြင်ပါသည် (Sent) လို့ပြပေးမည့် စနစ်
+        function approveAndDeductRequest(reqId, userId, amount) {
+            let targetUser = allUsersCache[userId];
             if (targetUser) {
-                if (targetUser.mmk >= req.amount) {
-                    targetUser.mmk -= req.amount;
+                let currentMmk = targetUser.mmk || 0;
+                if (currentMmk >= amount) {
+                    targetUser.mmk = currentMmk - amount;
                 } else {
                     targetUser.mmk = 0;
                 }
-                if (targetUser.history) {
-                    let h = targetUser.history.find(item => item.reqId === req.reqId);
-                    if (h) h.status = 'Sent';
+
+                // Update User History status
+                if (targetUser.history && targetUser.history[reqId]) {
+                    targetUser.history[reqId].status = 'Sent';
                 }
+
+                // Push updated user back to Firebase
+                db.ref('users/' + userId).set(targetUser);
             }
 
-            allReqs[index].status = 'Sent';
-            saveDB();
+            // Update Global Request status
+            db.ref('requests/' + reqId + '/status').set('Sent');
 
-            renderAdminRequests();
-            renderAdminUsersList();
-            alert('အတည်ပြုပြီး အောင်မြင်စွာ သိမ်းဆည်းလိုက်ပါပြီ။');
+            alert('အတည်ပြုပြီး User ရဲ့လက်ကျန်ငွေကို အော်တိုနုတ်ယူကာ မှတ်တမ်းတွင် အောင်မြင်ပါသည်ဟု အပ်ဒိတ်လုပ်ပြီးပါပြီ။');
         }
 
         initApp();
