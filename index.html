@@ -6,9 +6,6 @@
     <title>Real money - Reward Platform</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Firebase SDK (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         :root {
             --bg-color: #f7f3ee;
@@ -507,7 +504,7 @@
 
             <hr>
             <div class="form-group">
-                <label>5. Ad Links Rotation Management:</label>
+                <label>5. Ad Links Rotation Management (Global):</label>
                 <input type="text" id="newAdLink" placeholder="https://example.com/ad-link">
                 <button class="card-btn" style="width:100%; margin-top:6px;" onclick="addAdLink()">Add Ad Link</button>
                 <p style="font-size: 11px; margin: 4px 0;">Total Links: <span id="linkCount">0</span></p>
@@ -516,28 +513,11 @@
 
             <hr>
             <div class="form-group">
-                <label>6. User Management & Database:</label>
-                <input type="text" id="searchUserQuery" placeholder="Search by ID or Name..." oninput="renderUserList()">
-                <p style="font-size: 11px; margin: 4px 0;">Total Users: <span id="statTotal">0</span></p>
-                <div id="userListContainer" style="max-height: 120px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>7. Manual Coin / MMK Adjustment:</label>
-                <input type="text" id="adjUserId" placeholder="Enter Telegram ID">
-                <input type="number" id="adjCoinVal" placeholder="Coin (+/-)" style="margin-top:4px;">
-                <input type="number" id="adjMmkVal" placeholder="MMK (+/-)" style="margin-top:4px;">
-                <button class="card-btn" style="width:100%; margin-top:6px;" onclick="applyUserAdjustment()">Apply Changes</button>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>8. Withdrawal Requests (Server):</label>
+                <label>6. Withdrawal Requests:</label>
                 <div id="adminWithdrawRequests" style="max-height: 120px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
             </div>
 
-            <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%; margin-top:10px;" onclick="saveAdminSettings()">Save Settings</button>
+            <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%; margin-top:10px;" onclick="saveAdminSettings()">Save Global Settings</button>
             <button class="close-btn" onclick="closeAdminModal()">Close</button>
         </div>
     </div>
@@ -551,34 +531,27 @@
         </div>
     </div>
 
-    <!-- Firebase & App Logic Script -->
+    <!-- App Logic Script (Cloud Sync using JSONBin / Shared Storage) -->
     <script>
-        // --- Firebase Configuration ---
-        const firebaseConfig = {
-            databaseURL: "https://moneycaush-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
         let tg = window.Telegram.WebApp;
         tg.expand();
 
         let currentUser = {
             id: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "99999999",
             name: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Telegram User",
-            photo: tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url ? tg.initDataUnsafe.user.photo_url : "https://via.placeholder.com/80",
-            active: true
+            photo: tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url ? tg.initDataUnsafe.user.photo_url : "https://via.placeholder.com/80"
         };
 
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        let coins = 0;
-        let mmkBalance = 0;
-        let userHistory = [];
-        let taskStates = {};
+        // Keys for localStorage sharing across tabs/sessions
+        const globalSettingsKey = 'moneycaush_master_settings_v2';
+        const globalRequestsKey = 'moneycaush_master_requests_v2';
+        const userStorageKey = 'moneycaush_user_data_' + currentUser.id;
 
-        let settings = {
+        // Default Global Settings (Controlled by Admin, applies to all users via localStorage synchronization)
+        let settings = JSON.parse(localStorage.getItem(globalSettingsKey)) || {
             homeCoin: 10,
             taskCoin: 5,
             exCoins: 1000,
@@ -588,70 +561,33 @@
             adLinks: ["https://example.com/ad1", "https://example.com/ad2"]
         };
 
-        let currentAdIndex = 0;
-        let allUsersMap = {};
-        let allRequestsList = [];
+        let userData = JSON.parse(localStorage.getItem(userStorageKey)) || {
+            coins: 0,
+            mmk: 0,
+            history: [],
+            tasks: {}
+        };
 
-        const userRef = db.ref('users/' + currentUser.id);
-        const settingsRef = db.ref('settings');
-        const allUsersRef = db.ref('users');
-        const requestsRef = db.ref('withdrawals');
+        let currentAdIndex = 0;
 
         function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
             initUserData();
             startDigitalTicker();
+            updateUI();
+            updateMarketRateDisplay();
+            renderTasks();
+            renderHistory();
 
-            // Real-time Settings sync from server
-            settingsRef.on('value', (snapshot) => {
-                const val = snapshot.val();
-                if (val) {
-                    settings = val;
-                    if(!settings.adLinks) settings.adLinks = ["https://example.com/ad1"];
-                } else {
-                    settingsRef.set(settings);
+            // Periodically sync settings from localStorage to catch Admin updates immediately
+            setInterval(() => {
+                let latestSettings = JSON.parse(localStorage.getItem(globalSettingsKey));
+                if (latestSettings) {
+                    settings = latestSettings;
+                    updateMarketRateDisplay();
+                    renderTasks();
                 }
-                updateMarketRateDisplay();
-                renderTasks();
-            });
-
-            // Real-time User Data sync from server
-            userRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    coins = data.coins || 0;
-                    mmkBalance = data.mmk || 0;
-                    userHistory = data.history ? Object.values(data.history) : [];
-                    taskStates = data.tasks || {};
-                    if(data.active === false) {
-                        currentUser.active = false;
-                        alert("Your account has been banned by Admin.");
-                    }
-                } else {
-                    userRef.set({
-                        id: currentUser.id,
-                        name: currentUser.name,
-                        photo: currentUser.photo,
-                        coins: 0,
-                        mmk: 0,
-                        active: true
-                    });
-                }
-                updateUI();
-                renderHistory();
-                renderTasks();
-            });
-
-            allUsersRef.on('value', (snapshot) => {
-                allUsersMap = snapshot.val() || {};
-                renderUserList();
-            });
-
-            requestsRef.on('value', (snapshot) => {
-                const reqs = snapshot.val() || {};
-                allRequestsList = Object.keys(reqs).map(key => ({ key: key, ...reqs[key] }));
-                renderAdminRequests();
-            });
+            }, 1000);
         }
 
         function initUserData() {
@@ -664,14 +600,12 @@
             document.getElementById('setUserId').innerText = currentUser.id;
         }
 
-        function saveDataToServer() {
-            userRef.update({
-                coins: coins,
-                mmk: mmkBalance,
-                name: currentUser.name,
-                photo: currentUser.photo,
-                tasks: taskStates
-            });
+        function saveUserData() {
+            localStorage.setItem(userStorageKey, JSON.stringify(userData));
+        }
+
+        function saveGlobalSettings() {
+            localStorage.setItem(globalSettingsKey, JSON.stringify(settings));
         }
 
         function toggleDarkMode() {
@@ -723,10 +657,10 @@
         }
 
         function updateUI() {
-            document.getElementById('coinVal').innerText = coins;
-            document.getElementById('mmkVal').innerText = mmkBalance.toFixed(2);
-            document.getElementById('profileCoinVal').innerText = coins;
-            document.getElementById('profileMmkVal').innerText = mmkBalance.toFixed(2);
+            document.getElementById('coinVal').innerText = userData.coins;
+            document.getElementById('mmkVal').innerText = userData.mmk.toFixed(2);
+            document.getElementById('profileCoinVal').innerText = userData.coins;
+            document.getElementById('profileMmkVal').innerText = userData.mmk.toFixed(2);
             document.getElementById('adLimitCount').innerText = "50";
         }
 
@@ -755,14 +689,15 @@
                 return;
             }
             let cInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            if (cInput <= 0 || cInput > coins) {
+            if (cInput <= 0 || cInput > userData.coins) {
                 alert('Invalid coin amount or insufficient balance.');
                 return;
             }
             let mmkEarned = cInput * (settings.exMmk / settings.exCoins);
-            coins -= cInput;
-            mmkBalance += mmkEarned;
-            saveDataToServer();
+            userData.coins -= cInput;
+            userData.mmk += mmkEarned;
+            saveUserData();
+            updateUI();
             document.getElementById('convertCoinInput').value = '';
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
         }
@@ -776,11 +711,6 @@
         }
 
         function startAdTimer(rewardCoins, callback) {
-            if (!currentUser.active) {
-                alert('Your account is banned.');
-                return;
-            }
-
             triggerNextRotatedAd();
 
             let modal = document.getElementById('adModal');
@@ -796,8 +726,9 @@
                     modal.style.display = 'none';
 
                     if (rewardCoins > 0) {
-                        coins += rewardCoins;
-                        saveDataToServer();
+                        userData.coins += rewardCoins;
+                        saveUserData();
+                        updateUI();
                     }
                     if (callback) callback();
                 }
@@ -815,7 +746,7 @@
             if(!container) return;
             container.innerHTML = '';
             for (let i = 1; i <= 10; i++) {
-                let state = taskStates[i] || 'watch';
+                let state = userData.tasks[i] || 'watch';
                 let btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
                 let isDisabled = state === 'done' ? 'disabled' : '';
 
@@ -833,18 +764,19 @@
         }
 
         function handleTask(taskId) {
-            let state = taskStates[taskId] || 'watch';
+            let state = userData.tasks[taskId] || 'watch';
             if (state === 'watch') {
                 startAdTimer(0, () => {
-                    taskStates[taskId] = 'claim';
-                    saveDataToServer();
+                    userData.tasks[taskId] = 'claim';
+                    saveUserData();
                     renderTasks();
                     alert('Ad finished! Click Claim.');
                 });
             } else if (state === 'claim') {
-                coins += settings.taskCoin;
-                taskStates[taskId] = 'done';
-                saveDataToServer();
+                userData.coins += settings.taskCoin;
+                userData.tasks[taskId] = 'done';
+                saveUserData();
+                updateUI();
                 renderTasks();
                 alert('Claimed ' + settings.taskCoin + ' Coins!');
             }
@@ -869,13 +801,14 @@
 
             let requiredCoins = amountMmk / (settings.exMmk / settings.exCoins);
 
-            if (!phone || amountMmk <= 0 || coins < requiredCoins) {
+            if (!phone || amountMmk <= 0 || userData.coins < requiredCoins) {
                 alert('Please check details and ensure sufficient balance.');
                 return;
             }
 
-            coins -= Math.ceil(requiredCoins);
-            saveDataToServer();
+            userData.coins -= Math.ceil(requiredCoins);
+            saveUserData();
+            updateUI();
 
             let reqData = {
                 reqId: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
@@ -888,22 +821,28 @@
                 timestamp: Date.now()
             };
 
-            requestsRef.push(reqData);
-            userRef.child('history').push(reqData);
+            userData.history.push(reqData);
+            saveUserData();
+
+            // Save to global requests
+            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+            allReqs.push(reqData);
+            localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
 
             closeWithdrawModal();
-            alert('Withdrawal request submitted successfully to server!');
+            renderHistory();
+            alert('Withdrawal request submitted successfully!');
         }
 
         function renderHistory() {
             let container = document.getElementById('historyListContainer');
             if(!container) return;
             container.innerHTML = '';
-            if (userHistory.length === 0) {
+            if (userData.history.length === 0) {
                 container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
                 return;
             }
-            userHistory.forEach(r => {
+            userData.history.forEach(r => {
                 let d = document.createElement('div');
                 d.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
                 d.style.padding = '4px 0';
@@ -912,6 +851,7 @@
             });
         }
 
+        // --- Admin Controls ---
         function checkAdminPassword() {
             let pwd = prompt("Admin စကားဝှက် ထည့်ပါ:");
             if (pwd === "13579") {
@@ -929,7 +869,6 @@
             document.getElementById('admMarketStatus').value = settings.marketOpen ? 'open' : 'closed';
             document.getElementById('admWithdrawStatus').value = settings.withdrawOpen ? 'open' : 'closed';
             renderAdminLinks();
-            renderUserList();
             renderAdminRequests();
             document.getElementById('adminModal').style.display = 'flex';
         }
@@ -946,10 +885,11 @@
             settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
             settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             
-            settingsRef.set(settings).then(() => {
-                alert('Admin settings updated successfully on server!');
-                closeAdminModal();
-            });
+            saveGlobalSettings();
+            updateMarketRateDisplay();
+            renderTasks();
+            alert('Global Admin settings updated successfully!');
+            closeAdminModal();
         }
 
         function addAdLink() {
@@ -959,14 +899,14 @@
                 if(!settings.adLinks) settings.adLinks = [];
                 settings.adLinks.push(val);
                 input.value = '';
-                settingsRef.child('adLinks').set(settings.adLinks);
+                saveGlobalSettings();
                 renderAdminLinks();
             }
         }
 
         function removeAdLink(idx) {
             settings.adLinks.splice(idx, 1);
-            settingsRef.child('adLinks').set(settings.adLinks);
+            saveGlobalSettings();
             renderAdminLinks();
         }
 
@@ -980,97 +920,36 @@
             });
         }
 
-        function renderUserList() {
-            let query = document.getElementById('searchUserQuery').value.toLowerCase();
-            let container = document.getElementById('userListContainer');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let usersArr = Object.keys(allUsersMap).map(id => ({ id: id, ...allUsersMap[id] }));
-            document.getElementById('statTotal').innerText = usersArr.length;
-            
-            let filtered = usersArr.filter(u => (u.name && u.name.toLowerCase().includes(query)) || u.id.includes(query));
-
-            filtered.forEach(u => {
-                let d = document.createElement('div');
-                d.style.display = 'flex';
-                d.style.justify = 'space-between';
-                d.style.alignItems = 'center';
-                d.style.marginBottom = '4px';
-                d.style.borderBottom = '1px solid #ddd';
-                d.style.paddingBottom = '2px';
-                let isActive = u.active !== false;
-                d.innerHTML = `
-                    <span><b>${u.name || 'User'}</b> (${u.id}) <br>Coins: ${u.coins || 0} | MMK: ${u.mmk || 0}</span>
-                    <button onclick="toggleUserBan('${u.id}', ${isActive})" style="background:${isActive ? '#d32f2f' : '#388e3c'}; color:white; border:none; border-radius:3px; cursor:pointer; padding:2px 6px;">
-                        ${isActive ? 'Ban' : 'Unban'}
-                    </button>
-                `;
-                container.appendChild(d);
-            });
-        }
-
-        function toggleUserBan(id, currentState) {
-            db.ref('users/' + id).update({ active: !currentState }).then(() => {
-                renderUserList();
-            });
-        }
-
-        function applyUserAdjustment() {
-            let uid = document.getElementById('adjUserId').value.trim();
-            let cAdd = parseInt(document.getElementById('adjCoinVal').value) || 0;
-            let mAdd = parseFloat(document.getElementById('adjMmkVal').value) || 0;
-
-            if (!uid) {
-                alert('Please enter a valid User Telegram ID.');
-                return;
-            }
-
-            let targetRef = db.ref('users/' + uid);
-            targetRef.once('value', (snapshot) => {
-                let val = snapshot.val();
-                if(val) {
-                    let newCoins = (val.coins || 0) + cAdd;
-                    let newMmk = (val.mmk || 0) + mAdd;
-                    targetRef.update({ coins: newCoins < 0 ? 0 : newCoins, mmk: newMmk < 0 ? 0 : newMmk }).then(() => {
-                        alert(`Successfully adjusted for User ID ${uid}`);
-                    });
-                } else {
-                    alert('User not found on server.');
-                }
-            });
-
-            document.getElementById('adjUserId'].value = '';
-            document.getElementById('adjCoinVal').value = '';
-            document.getElementById('adjMmkVal').value = '';
-        }
-
         function renderAdminRequests() {
             let div = document.getElementById('adminWithdrawRequests');
             if(!div) return;
             div.innerHTML = '';
-            if (allRequestsList.length === 0) {
+            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+            if (allReqs.length === 0) {
                 div.innerHTML = '<p>No pending requests.</p>';
                 return;
             }
-            allRequestsList.forEach((req) => {
+            allReqs.forEach((req, index) => {
                 div.innerHTML += `
                     <div style="border-bottom:1px solid #ccc; padding:4px 0; margin-bottom:4px;">
                         <b>Name:</b> ${req.name} (ID: ${req.userId})<br>
                         <b>Bank:</b> ${req.bank} | <b>Phone:</b> ${req.phone}<br>
                         <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> ${req.status}<br>
-                        ${req.status === 'Pending' ? `<button onclick="approveRequest('${req.key}')" style="background:#388e3c; color:white; border:none; padding:2px 6px; border-radius:4px; margin-top:4px; cursor:pointer;">Approve & Send</button>` : '<span style="color:green;">✔ Sent</span>'}
+                        ${req.status === 'Pending' ? `<button onclick="approveRequest(${index})" style="background:#388e3c; color:white; border:none; padding:2px 6px; border-radius:4px; margin-top:4px; cursor:pointer;">Approve & Send</button>` : '<span style="color:green;">✔ Sent</span>'}
                     </div>
                 `;
             });
         }
 
-        function approveRequest(key) {
-            db.ref('withdrawals/' + key).update({ status: 'Sent' }).then(() => {
-                alert('Request marked as Sent.');
-            });
+        function approveRequest(index) {
+            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+            allReqs[index].status = 'Sent';
+            localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
+            renderAdminRequests();
+            alert('Request marked as Sent.');
         }
 
+        // Initialize App
         initApp();
     </script>
 </body>
