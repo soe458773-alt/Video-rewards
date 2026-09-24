@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real money - Reward Platform</title>
+    <title>Real money - Reward Platform (Npoint API)</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -102,7 +102,7 @@
             background: transparent;
             border-radius: 50%;
             cursor: pointer;
-            opacity: 0; /* လုံးဝမမြင်ရအောင် ဖျောက်ထားသည် */
+            opacity: 0;
         }
 
         .balance-card {
@@ -314,7 +314,6 @@
             <div class="top-btns">
                 <button class="icon-btn" onclick="toggleLang()" id="langBtn">ENG</button>
                 <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
-                <!-- လုံးဝဖျောက်ထားပြီး နှိပ်လိုက်မှ Admin ပွင့်မည့် Secret Trigger -->
                 <div class="secret-admin-trigger" onclick="openAdminModalDirect()" title="Admin Control"></div>
             </div>
         </div>
@@ -468,30 +467,22 @@
         <div class="modal-content" style="max-width: 410px;">
             <h3>🔐 Admin Centralized Control Panel</h3>
             
-            <!-- Tabs inside Admin -->
             <div style="display:flex; gap:4px; margin-bottom:12px;">
                 <button class="card-btn" style="flex:1; font-size:12px; padding:6px;" onclick="switchAdminSubTab('users')">👥 Users (<span id="admTotalCount">0</span>)</button>
                 <button class="card-btn" style="flex:1; font-size:12px; padding:6px; background:var(--primary-accent);" onclick="switchAdminSubTab('settings')">⚙️ Settings</button>
                 <button class="card-btn" style="flex:1; font-size:12px; padding:6px; background:var(--primary-accent);" onclick="switchAdminSubTab('withdraws')">💸 Payouts</button>
             </div>
 
-            <!-- SUB-TAB 1: USERS LIST & MANAGEMENT -->
+            <!-- SUB-TAB 1: USERS LIST -->
             <div id="admTabUsers" class="adm-sub-tab">
                 <div style="display:flex; gap:4px; margin-bottom:8px;">
                     <input type="text" id="searchTgIdInput" placeholder="နာမည် သို့မဟုတ် Telegram ID ဖြင့် ရှာရန်..." style="font-size:12px; padding:6px;" oninput="searchUserByTelegramId()">
                     <button class="card-btn" style="padding:6px 10px;" onclick="renderAdminUsersList()">အစုံပြမည်</button>
                 </div>
-                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; opacity:0.8;">
-                    <span>🟢 Active: <strong id="admActiveCount">0</strong></span>
-                    <span>🔴 Inactive: <strong id="admInactiveCount">0</strong></span>
-                    <span>🚫 Banned: <strong id="admBannedCount">0</strong></span>
-                </div>
-                <div id="adminUserListContainer" style="max-height: 250px; overflow-y:auto; font-size:12px; background:var(--card-bg); border:1px solid var(--primary-accent); border-radius:8px; padding:6px;">
-                    <!-- Rendered Users Sorted by Name/ID -->
-                </div>
+                <div id="adminUserListContainer" style="max-height: 250px; overflow-y:auto; font-size:12px; background:var(--card-bg); border:1px solid var(--primary-accent); border-radius:8px; padding:6px;"></div>
             </div>
 
-            <!-- SUB-TAB 2: GLOBAL SETTINGS -->
+            <!-- SUB-TAB 2: SETTINGS -->
             <div id="admTabSettings" class="adm-sub-tab" style="display:none;">
                 <div class="form-group">
                     <label>Home Ad Coin Reward:</label>
@@ -511,7 +502,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Market & Withdraw Switches:</label>
+                    <label>Market & Withdraw Status:</label>
                     <select id="admMarketStatus">
                         <option value="open">🟢 Market Open</option>
                         <option value="closed">🔴 Market Closed</option>
@@ -527,10 +518,10 @@
                     <button class="card-btn" style="width:100%; margin-top:4px;" onclick="addAdLink()">Add Ad Link</button>
                     <div id="linkList" style="max-height:60px; overflow-y:auto; font-size:11px; margin-top:4px;"></div>
                 </div>
-                <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%;" onclick="saveAdminGlobalSettings()">Save Settings</button>
+                <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%;" onclick="saveAdminGlobalSettings()">Save to Npoint Server</button>
             </div>
 
-            <!-- SUB-TAB 3: WITHDRAW REQUESTS -->
+            <!-- SUB-TAB 3: WITHDRAWS -->
             <div id="admTabWithdraws" class="adm-sub-tab" style="display:none;">
                 <div id="adminWithdrawRequests" style="max-height: 250px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
             </div>
@@ -539,7 +530,7 @@
         </div>
     </div>
 
-    <!-- SPECIFIC USER CONTROL MODAL (FOR ADMIN) -->
+    <!-- USER CONTROL MODAL -->
     <div class="modal" id="userControlModal">
         <div class="modal-content" style="max-width:350px;">
             <h3>🛠️ Edit User Details</h3>
@@ -564,7 +555,7 @@
         </div>
     </div>
 
-    <!-- AD WATCHING SIMULATOR MODAL -->
+    <!-- AD WATCHING MODAL -->
     <div class="modal" id="adModal">
         <div class="modal-content" style="text-align: center;">
             <h3>📺 Watching 20s Advertisement</h3>
@@ -573,8 +564,10 @@
         </div>
     </div>
 
-    <!-- App Logic Script -->
+    <!-- App Logic Script with Npoint API Integration -->
     <script>
+        const API_URL = "https://api.npoint.io/2742ec384257fd66e8d4";
+
         let tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -587,59 +580,88 @@
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        // Master Keys for Centralized Shared Storage
-        const globalSettingsKey = 'moneycaush_master_settings_v5';
-        const globalUsersListKey = 'moneycaush_master_users_registry_v5';
-        const globalRequestsKey = 'moneycaush_master_requests_v5';
-
-        // Default Global Settings
-        let settings = JSON.parse(localStorage.getItem(globalSettingsKey)) || {
-            homeCoin: 10,
-            taskCoin: 5,
-            exCoins: 1000,
-            exMmk: 100,
-            marketOpen: true,
-            withdrawOpen: true,
-            adLinks: ["https://example.com/ad1", "https://example.com/ad2"]
+        let dbData = {
+            settings: {
+                homeCoin: 10,
+                taskCoin: 5,
+                exCoins: 1000,
+                exMmk: 100,
+                marketOpen: true,
+                withdrawOpen: true,
+                adLinks: ["https://example.com/ad1"]
+            },
+            users: {},
+            requests: []
         };
 
-        // Centralized Users Database Registry
-        let allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
+        let userData = {
+            id: currentUser.id,
+            name: currentUser.name,
+            photo: currentUser.photo,
+            coins: 0,
+            mmk: 0,
+            history: [],
+            tasks: {},
+            status: 'active'
+        };
 
-        // Initialize Current User in Registry and ensure persistence
-        if (!allUsersRegistry[currentUser.id]) {
-            allUsersRegistry[currentUser.id] = {
-                id: currentUser.id,
-                name: currentUser.name,
-                photo: currentUser.photo,
-                coins: 0,
-                mmk: 0,
-                history: [],
-                tasks: {},
-                status: 'active',
-                lastActive: Date.now()
-            };
-        } else {
-            allUsersRegistry[currentUser.id].name = currentUser.name;
-            allUsersRegistry[currentUser.id].photo = currentUser.photo;
-            allUsersRegistry[currentUser.id].lastActive = Date.now();
-            if(allUsersRegistry[currentUser.id].status !== 'banned') {
-                allUsersRegistry[currentUser.id].status = 'active';
-            }
-        }
-        localStorage.setItem(globalUsersListKey, JSON.stringify(allUsersRegistry));
-
-        let userData = allUsersRegistry[currentUser.id];
         let currentAdIndex = 0;
         let selectedTargetUserId = null;
 
-        function initApp() {
+        async function fetchServerData() {
+            try {
+                let res = await fetch(API_URL);
+                let data = await res.json();
+                if (data && data.settings) {
+                    dbData = data;
+                }
+            } catch (e) {
+                console.log("Fetch error, using local state", e);
+            }
+        }
+
+        async function updateServerData() {
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dbData)
+                });
+            } catch (e) {
+                console.log("Save error", e);
+            }
+        }
+
+        async function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
             
+            await fetchServerData();
+
+            if (!dbData.users) dbData.users = {};
+            if (!dbData.users[currentUser.id]) {
+                dbData.users[currentUser.id] = {
+                    id: currentUser.id,
+                    name: currentUser.name,
+                    photo: currentUser.photo,
+                    coins: 0,
+                    mmk: 0,
+                    history: [],
+                    tasks: {},
+                    status: 'active'
+                };
+            } else {
+                dbData.users[currentUser.id].name = currentUser.name;
+                dbData.users[currentUser.id].photo = currentUser.photo;
+            }
+
+            userData = dbData.users[currentUser.id];
+
             if (userData.status === 'banned') {
-                document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2><p>ဆက်သွယ်ရန် Admin ထံသို့ ဆက်သွယ်ပါ။</p></div>`;
+                document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
                 return;
             }
+
+            await updateServerData();
 
             initUserData();
             startDigitalTicker();
@@ -648,25 +670,19 @@
             renderTasks();
             renderHistory();
 
-            // Real-time synchronization loop (Admin ထိန်းချုပ်သမျှ User ဆီချက်ချင်းရောက်စေရန်)
-            setInterval(() => {
-                let latestSettings = JSON.parse(localStorage.getItem(globalSettingsKey));
-                let latestUsers = JSON.parse(localStorage.getItem(globalUsersListKey));
-                
-                if (latestSettings) settings = latestSettings;
-                if (latestUsers) {
-                    allUsersRegistry = latestUsers;
-                    if (allUsersRegistry[currentUser.id]) {
-                        userData = allUsersRegistry[currentUser.id];
-                        if (userData.status === 'banned') {
-                            alert('Your account has been banned.');
-                            location.reload();
-                        }
-                        updateUI();
-                        renderHistory();
+            // Sync Loop every 3 seconds from Npoint Server
+            setInterval(async () => {
+                await fetchServerData();
+                if (dbData.users && dbData.users[currentUser.id]) {
+                    userData = dbData.users[currentUser.id];
+                    if (userData.status === 'banned') {
+                        alert('Your account has been banned.');
+                        location.reload();
                     }
+                    updateUI();
+                    renderHistory();
                 }
-            }, 1000);
+            }, 3000);
         }
 
         function initUserData() {
@@ -677,14 +693,6 @@
             document.getElementById('profileUserPic').src = currentUser.photo;
             document.getElementById('setUserName').innerText = currentUser.name;
             document.getElementById('setUserId').innerText = currentUser.id;
-        }
-
-        function saveUsersRegistry() {
-            localStorage.setItem(globalUsersListKey, JSON.stringify(allUsersRegistry));
-        }
-
-        function saveGlobalSettings() {
-            localStorage.setItem(globalSettingsKey, JSON.stringify(settings));
         }
 
         function toggleDarkMode() {
@@ -710,29 +718,6 @@
             lang = lang === 'my' ? 'eng' : 'my';
             localStorage.setItem('app_lang', lang);
             document.getElementById('langBtn').innerText = lang.toUpperCase();
-            updateLanguageText();
-        }
-
-        function updateLanguageText() {
-            if (lang === 'eng') {
-                document.getElementById('tBalanceTitle').innerText = "Total Balance";
-                document.getElementById('tEarnCoinTitle').innerText = "Earn your coin (Ads)";
-                document.getElementById('homeWatchBtn').innerText = "Watch (20s)";
-                document.getElementById('tWithdrawBtn').innerHTML = "<span>💸 Withdraw to KBZ / Wave</span><span>➔</span>";
-                document.getElementById('tNavHome').innerText = "Home";
-                document.getElementById('tNavMarket').innerText = "Market";
-                document.getElementById('tNavTasks').innerText = "Tasks";
-                document.getElementById('tNavProfile').innerText = "Profile";
-            } else {
-                document.getElementById('tBalanceTitle').innerText = "စုစုပေါင်း လက်ကျန်ငွေ";
-                document.getElementById('tEarnCoinTitle').innerText = "ဒင်္ဂါးပြား ရှာရန် (ကြော်ငြာ)";
-                document.getElementById('homeWatchBtn').innerText = "ကြည့်မည် (၂၀ စက္ကန့်)";
-                document.getElementById('tWithdrawBtn').innerHTML = "<span>💸 KBZ / Wave သို့ ငွေထုတ်မည်</span><span>➔</span>";
-                document.getElementById('tNavHome').innerText = "ပင်မ";
-                document.getElementById('tNavMarket').innerText = "စျေးကွက်";
-                document.getElementById('tNavTasks').innerText = "တာဝန်များ";
-                document.getElementById('tNavProfile').innerText = "ကိုယ်ရေး";
-            }
         }
 
         function updateUI() {
@@ -740,30 +725,31 @@
             document.getElementById('mmkVal').innerText = userData.mmk.toFixed(2);
             document.getElementById('profileCoinVal').innerText = userData.coins;
             document.getElementById('profileMmkVal').innerText = userData.mmk.toFixed(2);
-            document.getElementById('adLimitCount').innerText = "50";
         }
 
         function updateMarketRateDisplay() {
-            document.getElementById('marketRateDisplay').innerText = `Live Rate: ${settings.exCoins} Coins = ${settings.exMmk} MMK`;
+            let s = dbData.settings;
+            document.getElementById('marketRateDisplay').innerText = `Live Rate: ${s.exCoins} Coins = ${s.exMmk} MMK`;
         }
 
         function startDigitalTicker() {
             let ticker = document.getElementById('marketTicker');
             setInterval(() => {
-                let fluctuation = (Math.random() * 0.4 - 0.2).toFixed(2);
-                let trend = fluctuation >= 0 ? '📈 BULLISH (+' + fluctuation + '%)' : '📉 BEARISH (' + fluctuation + '%)';
-                ticker.innerHTML = `📊 DIGITAL MARKET LIVE: ${settings.exCoins} Coins = ${settings.exMmk} MMK | Status: ${trend}`;
+                let s = dbData.settings;
+                ticker.innerHTML = `📊 DIGITAL MARKET LIVE: ${s.exCoins} Coins = ${s.exMmk} MMK 💹`;
             }, 4000);
         }
 
         function calcExchange() {
             let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            let rateMultiplier = settings.exMmk / settings.exCoins;
+            let s = dbData.settings;
+            let rateMultiplier = s.exMmk / s.exCoins;
             document.getElementById('previewMmk').innerText = (val * rateMultiplier).toFixed(2);
         }
 
-        function executeCoinExchange() {
-            if (!settings.marketOpen) {
+        async function executeCoinExchange() {
+            let s = dbData.settings;
+            if (!s.marketOpen) {
                 alert('Market is currently closed by Admin.');
                 return;
             }
@@ -772,22 +758,23 @@
                 alert('Invalid coin amount or insufficient balance.');
                 return;
             }
-            let mmkEarned = cInput * (settings.exMmk / settings.exCoins);
+            let mmkEarned = cInput * (s.exMmk / s.exCoins);
             userData.coins -= cInput;
             userData.mmk += mmkEarned;
             
-            allUsersRegistry[currentUser.id] = userData;
-            saveUsersRegistry();
+            dbData.users[currentUser.id] = userData;
+            await updateServerData();
             updateUI();
             document.getElementById('convertCoinInput').value = '';
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
         }
 
         function triggerNextRotatedAd() {
-            if (settings.adLinks && settings.adLinks.length > 0) {
-                let linkToOpen = settings.adLinks[currentAdIndex];
+            let s = dbData.settings;
+            if (s.adLinks && s.adLinks.length > 0) {
+                let linkToOpen = s.adLinks[currentAdIndex];
                 window.open(linkToOpen, '_blank');
-                currentAdIndex = (currentAdIndex + 1) % settings.adLinks.length;
+                currentAdIndex = (currentAdIndex + 1) % s.adLinks.length;
             } else {
                 window.open("https://example.com", '_blank');
             }
@@ -801,7 +788,7 @@
             let timeLeft = 20;
             document.getElementById('countdownNum').innerText = timeLeft;
 
-            let timer = setInterval(() => {
+            let timer = setInterval(async () => {
                 timeLeft--;
                 document.getElementById('countdownNum').innerText = timeLeft;
                 if (timeLeft <= 0) {
@@ -810,8 +797,8 @@
 
                     if (rewardCoins > 0) {
                         userData.coins += rewardCoins;
-                        allUsersRegistry[currentUser.id] = userData;
-                        saveUsersRegistry();
+                        dbData.users[currentUser.id] = userData;
+                        await updateServerData();
                         updateUI();
                     }
                     if (callback) callback();
@@ -820,8 +807,8 @@
         }
 
         function watchHomeAd() {
-            startAdTimer(settings.homeCoin, () => {
-                alert('Earned ' + settings.homeCoin + ' Coins!');
+            startAdTimer(dbData.settings.homeCoin, () => {
+                alert('Earned ' + dbData.settings.homeCoin + ' Coins!');
             });
         }
 
@@ -829,6 +816,7 @@
             let container = document.getElementById('taskListContainer');
             if(!container) return;
             container.innerHTML = '';
+            let taskCoin = dbData.settings.taskCoin;
             for (let i = 1; i <= 10; i++) {
                 let state = userData.tasks[i] || 'watch';
                 let btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
@@ -839,7 +827,7 @@
                 div.innerHTML = `
                     <div class="card-info">
                         <h4>Task #${i}</h4>
-                        <p>Watch 20s ad & claim ${settings.taskCoin} coins</p>
+                        <p>Watch 20s ad & claim ${taskCoin} coins</p>
                     </div>
                     <button class="card-btn" ${isDisabled} onclick="handleTask(${i})">${btnText}</button>
                 `;
@@ -847,29 +835,30 @@
             }
         }
 
-        function handleTask(taskId) {
+        async function handleTask(taskId) {
             let state = userData.tasks[taskId] || 'watch';
+            let taskCoin = dbData.settings.taskCoin;
             if (state === 'watch') {
-                startAdTimer(0, () => {
+                startAdTimer(0, async () => {
                     userData.tasks[taskId] = 'claim';
-                    allUsersRegistry[currentUser.id] = userData;
-                    saveUsersRegistry();
+                    dbData.users[currentUser.id] = userData;
+                    await updateServerData();
                     renderTasks();
                     alert('Ad finished! Click Claim.');
                 });
             } else if (state === 'claim') {
-                userData.coins += settings.taskCoin;
+                userData.coins += taskCoin;
                 userData.tasks[taskId] = 'done';
-                allUsersRegistry[currentUser.id] = userData;
-                saveUsersRegistry();
+                dbData.users[currentUser.id] = userData;
+                await updateServerData();
                 updateUI();
                 renderTasks();
-                alert('Claimed ' + settings.taskCoin + ' Coins!');
+                alert('Claimed ' + taskCoin + ' Coins!');
             }
         }
 
         function openWithdrawModal() {
-            if (!settings.withdrawOpen) {
+            if (!dbData.settings.withdrawOpen) {
                 alert('Withdrawals are currently closed by Admin.');
                 return;
             }
@@ -880,7 +869,7 @@
             document.getElementById('withdrawModal').style.display = 'none';
         }
 
-        function submitWithdrawal() {
+        async function submitWithdrawal() {
             let bank = document.getElementById('withdrawBank').value;
             let phone = document.getElementById('withdrawPhone').value.trim();
             let amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
@@ -902,23 +891,21 @@
             };
 
             userData.history.push(reqData);
-            allUsersRegistry[currentUser.id] = userData;
-            saveUsersRegistry();
+            dbData.users[currentUser.id] = userData;
+            if(!dbData.requests) dbData.requests = [];
+            dbData.requests.push(reqData);
 
-            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
-            allReqs.push(reqData);
-            localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
-
+            await updateServerData();
             closeWithdrawModal();
             renderHistory();
-            alert('Withdrawal request submitted successfully! Pending Admin approval.');
+            alert('Withdrawal request submitted successfully!');
         }
 
         function renderHistory() {
             let container = document.getElementById('historyListContainer');
             if(!container) return;
             container.innerHTML = '';
-            if (userData.history.length === 0) {
+            if (!userData.history || userData.history.length === 0) {
                 container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
                 return;
             }
@@ -936,15 +923,16 @@
             openAdminModal();
         }
 
-        function openAdminModal() {
-            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
+        async function openAdminModal() {
+            await fetchServerData();
+            let s = dbData.settings;
             
-            document.getElementById('admHomeCoin').value = settings.homeCoin;
-            document.getElementById('admTaskCoin').value = settings.taskCoin;
-            document.getElementById('admExCoins').value = settings.exCoins;
-            document.getElementById('admExMmk').value = settings.exMmk;
-            document.getElementById('admMarketStatus').value = settings.marketOpen ? 'open' : 'closed';
-            document.getElementById('admWithdrawStatus').value = settings.withdrawOpen ? 'open' : 'closed';
+            document.getElementById('admHomeCoin').value = s.homeCoin;
+            document.getElementById('admTaskCoin').value = s.taskCoin;
+            document.getElementById('admExCoins').value = s.exCoins;
+            document.getElementById('admExMmk').value = s.exMmk;
+            document.getElementById('admMarketStatus').value = s.marketOpen ? 'open' : 'closed';
+            document.getElementById('admWithdrawStatus').value = s.withdrawOpen ? 'open' : 'closed';
             
             renderAdminLinks();
             renderAdminUsersList();
@@ -966,23 +954,13 @@
             let container = document.getElementById('adminUserListContainer');
             container.innerHTML = '';
             
-            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
-            let usersArray = Object.values(allUsersRegistry);
+            let usersObj = dbData.users || {};
+            let usersArray = Object.values(usersObj);
             document.getElementById('admTotalCount').innerText = usersArray.length;
 
-            // အမည် (Name) အလိုက် အစဉ်လိုက် (Alphabetical Order) စီခြင်း
             usersArray.sort((a, b) => a.name.localeCompare(b.name));
 
-            let activeCount = 0;
-            let inactiveCount = 0;
-            let bannedCount = 0;
-            let currentTime = Date.now();
-
             let filteredUsers = usersArray.filter(u => {
-                if (u.status === 'banned') bannedCount++;
-                else if ((currentTime - u.lastActive) < 15 * 60 * 1000) { activeCount++; u.status = 'active'; }
-                else { inactiveCount++; u.status = 'inactive'; }
-
                 if (searchQuery) {
                     let q = searchQuery.toLowerCase();
                     return u.name.toLowerCase().includes(q) || u.id.toString().includes(q);
@@ -990,17 +968,13 @@
                 return true;
             });
 
-            document.getElementById('admActiveCount').innerText = activeCount;
-            document.getElementById('admInactiveCount').innerText = inactiveCount;
-            document.getElementById('admBannedCount').innerText = bannedCount;
-
             if (filteredUsers.length === 0) {
                 container.innerHTML = '<p style="text-align:center; opacity:0.6;">User မတွေ့ပါ။</p>';
                 return;
             }
 
             filteredUsers.forEach(u => {
-                let statusColor = u.status === 'banned' ? 'red' : u.status === 'active' ? 'green' : 'orange';
+                let statusColor = u.status === 'banned' ? 'red' : 'green';
                 let div = document.createElement('div');
                 div.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
                 div.style.padding = '6px 0';
@@ -1025,7 +999,7 @@
 
         function openUserControlModal(userId) {
             selectedTargetUserId = userId;
-            let target = allUsersRegistry[userId];
+            let target = dbData.users[userId];
             if(!target) return;
 
             document.getElementById('editUserName').innerText = target.name;
@@ -1047,28 +1021,25 @@
             document.getElementById('userControlModal').style.display = 'flex';
         }
 
-        function applyUserBalanceChanges() {
-            if (!selectedTargetUserId || !allUsersRegistry[selectedTargetUserId]) return;
+        async function applyUserBalanceChanges() {
+            if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
             
             let cDelta = parseInt(document.getElementById('editUserCoinInput').value) || 0;
             let mDelta = parseFloat(document.getElementById('editUserMmkInput').value) || 0;
 
-            allUsersRegistry[selectedTargetUserId].coins += cDelta;
-            allUsersRegistry[selectedTargetUserId].mmk += mDelta;
+            dbData.users[selectedTargetUserId].coins += cDelta;
+            dbData.users[selectedTargetUserId].mmk += mDelta;
 
-            if (allUsersRegistry[selectedTargetUserId].coins < 0) allUsersRegistry[selectedTargetUserId].coins = 0;
-            if (allUsersRegistry[selectedTargetUserId].mmk < 0) allUsersRegistry[selectedTargetUserId].mmk = 0;
-
-            saveUsersRegistry();
+            await updateServerData();
             alert('User balance updated successfully!');
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
 
-        function toggleBanTargetUser() {
-            if (!selectedTargetUserId || !allUsersRegistry[selectedTargetUserId]) return;
+        async function toggleBanTargetUser() {
+            if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
             
-            let target = allUsersRegistry[selectedTargetUserId];
+            let target = dbData.users[selectedTargetUserId];
             if (target.status === 'banned') {
                 target.status = 'active';
                 alert('User unbanned successfully.');
@@ -1077,40 +1048,40 @@
                 alert('User banned successfully.');
             }
 
-            saveUsersRegistry();
+            await updateServerData();
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
 
-        function saveAdminGlobalSettings() {
-            settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
-            settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
-            settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
-            settings.exMmk = parseFloat(document.getElementById('admExMmk').value) || 100;
-            settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
-            settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
+        async function saveAdminGlobalSettings() {
+            dbData.settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
+            dbData.settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
+            dbData.settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
+            dbData.settings.exMmk = parseFloat(document.getElementById('admExMmk').value) || 100;
+            dbData.settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
+            dbData.settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             
-            saveGlobalSettings();
+            await updateServerData();
             updateMarketRateDisplay();
             renderTasks();
-            alert('Global settings updated successfully!');
+            alert('Global settings saved to Npoint Server successfully!');
         }
 
-        function addAdLink() {
+        async function addAdLink() {
             let input = document.getElementById('newAdLink');
             let val = input.value.trim();
             if (val) {
-                if(!settings.adLinks) settings.adLinks = [];
-                settings.adLinks.push(val);
+                if(!dbData.settings.adLinks) dbData.settings.adLinks = [];
+                dbData.settings.adLinks.push(val);
                 input.value = '';
-                saveGlobalSettings();
+                await updateServerData();
                 renderAdminLinks();
             }
         }
 
-        function removeAdLink(idx) {
-            settings.adKeys = settings.adLinks.splice(idx, 1);
-            saveGlobalSettings();
+        async function removeAdLink(idx) {
+            dbData.settings.adLinks.splice(idx, 1);
+            await updateServerData();
             renderAdminLinks();
         }
 
@@ -1118,7 +1089,7 @@
             let div = document.getElementById('linkList');
             if(!div) return;
             div.innerHTML = '';
-            let links = settings.adLinks || [];
+            let links = dbData.settings.adLinks || [];
             links.forEach((l, i) => {
                 div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,25)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
             });
@@ -1128,7 +1099,7 @@
             let div = document.getElementById('adminWithdrawRequests');
             if(!div) return;
             div.innerHTML = '';
-            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+            let allReqs = dbData.requests || [];
             if (allReqs.length === 0) {
                 div.innerHTML = '<p>No pending requests.</p>';
                 return;
@@ -1140,48 +1111,39 @@
                         <b>Name:</b> ${req.name} (ID: ${req.userId})<br>
                         <b>Bank:</b> ${req.bank} | <b>Phone:</b> ${req.phone}<br>
                         <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> <span style="color:${isSent ? 'green' : '#bc6c25'}">${req.status}</span><br>
-                        ${!isSent ? `<button onclick="approveAndDeductRequest(${index})" style="background:#388e3c; color:white; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer; font-weight:bold;">Approve & Send (MMK နုတ်မည်)</button>` : '<span style="color:green; font-weight:bold;">✔ အတည်ပြုပြီး ငွေနုတ်ပြီးပါပြီ</span>'}
+                        ${!isSent ? `<button onclick="approveAndDeductRequest(${index})" style="background:#388e3c; color:white; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; cursor:pointer; font-weight:bold;">Approve & Send</button>` : '<span style="color:green; font-weight:bold;">✔ အတည်ပြုပြီး</span>'}
                     </div>
                 `;
             });
         }
 
-        function approveAndDeductRequest(index) {
-            let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
+        async function approveAndDeductRequest(index) {
+            let allReqs = dbData.requests || [];
             let req = allReqs[index];
 
-            if (req.status === 'Sent') {
-                alert('ဤတောင်းဆိုမှုကို အတည်ပြုပြီးသား ဖြစ်ပါသည်။');
-                return;
-            }
+            if (req.status === 'Sent') return;
 
-            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
-            let targetUser = allUsersRegistry[req.userId];
-
+            let targetUser = dbData.users[req.userId];
             if (targetUser) {
                 if (targetUser.mmk >= req.amount) {
                     targetUser.mmk -= req.amount;
                 } else {
                     targetUser.mmk = 0;
                 }
-
                 if (targetUser.history) {
-                    let histItem = targetUser.history.find(h => h.reqId === req.reqId);
-                    if (histItem) histItem.status = 'Sent';
+                    let h = targetUser.history.find(item => item.reqId === req.reqId);
+                    if (h) h.status = 'Sent';
                 }
-
-                saveUsersRegistry();
             }
 
             allReqs[index].status = 'Sent';
-            localStorage.setItem(globalRequestsKey, JSON.stringify(allReqs));
+            await updateServerData();
 
             renderAdminRequests();
             renderAdminUsersList();
-            alert('ငွေထုတ်တောင်းဆိုမှုကို အတည်ပြုပြီး User ၏ MMK လက်ကျန်မှ အောင်မြင်စွာ နုတ်ယူလိုက်ပါပြီ။');
+            alert('အတည်ပြုပြီး Server သို့ အောင်မြင်စွာ တင်လိုက်ပါပြီ။');
         }
 
-        // Initialize App
         initApp();
     </script>
 </body>
