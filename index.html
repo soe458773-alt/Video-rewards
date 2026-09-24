@@ -553,7 +553,7 @@
 
     <!-- Firebase & App Logic Script -->
     <script>
-        // --- Firebase Configuration (Updated to Project 'moneycaush') ---
+        // --- Firebase Configuration ---
         const firebaseConfig = {
             databaseURL: "https://moneycaush-default-rtdb.firebaseio.com"
         };
@@ -563,7 +563,6 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Telegram User Data Auto-Capture
         let currentUser = {
             id: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "99999999",
             name: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Telegram User",
@@ -579,7 +578,6 @@
         let userHistory = [];
         let taskStates = {};
 
-        // Global Settings & Data Refs in Firebase
         let settings = {
             homeCoin: 10,
             taskCoin: 5,
@@ -594,7 +592,6 @@
         let allUsersMap = {};
         let allRequestsList = [];
 
-        // --- Firebase Realtime Listeners ---
         const userRef = db.ref('users/' + currentUser.id);
         const settingsRef = db.ref('settings');
         const allUsersRef = db.ref('users');
@@ -605,20 +602,20 @@
             initUserData();
             startDigitalTicker();
 
-            // Sync Settings from Firebase Server
+            // Real-time Settings sync from server
             settingsRef.on('value', (snapshot) => {
                 const val = snapshot.val();
                 if (val) {
                     settings = val;
                     if(!settings.adLinks) settings.adLinks = ["https://example.com/ad1"];
                 } else {
-                    settingsRef.set(settings); // Initialize default settings on server
+                    settingsRef.set(settings);
                 }
                 updateMarketRateDisplay();
                 renderTasks();
             });
 
-            // Sync User Data from Firebase Server
+            // Real-time User Data sync from server
             userRef.on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -631,7 +628,6 @@
                         alert("Your account has been banned by Admin.");
                     }
                 } else {
-                    // Create initial user node on server
                     userRef.set({
                         id: currentUser.id,
                         name: currentUser.name,
@@ -646,13 +642,11 @@
                 renderTasks();
             });
 
-            // Sync All Users for Admin Panel
             allUsersRef.on('value', (snapshot) => {
                 allUsersMap = snapshot.val() || {};
                 renderUserList();
             });
 
-            // Sync Withdraw Requests for Admin Panel
             requestsRef.on('value', (snapshot) => {
                 const reqs = snapshot.val() || {};
                 allRequestsList = Object.keys(reqs).map(key => ({ key: key, ...reqs[key] }));
@@ -773,7 +767,6 @@
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
         }
 
-        // --- Ad Links Rotation & Trigger ---
         function triggerNextRotatedAd() {
             if (settings.adLinks && settings.adLinks.length > 0) {
                 let linkToOpen = settings.adLinks[currentAdIndex];
@@ -782,7 +775,7 @@
             }
         }
 
-        function startAdTimer(rewardCoins, isHomeAd, callback) {
+        function startAdTimer(rewardCoins, callback) {
             if (!currentUser.active) {
                 alert('Your account is banned.');
                 return;
@@ -812,7 +805,7 @@
         }
 
         function watchHomeAd() {
-            startAdTimer(settings.homeCoin, true, () => {
+            startAdTimer(settings.homeCoin, () => {
                 alert('Earned ' + settings.homeCoin + ' Coins!');
             });
         }
@@ -842,7 +835,7 @@
         function handleTask(taskId) {
             let state = taskStates[taskId] || 'watch';
             if (state === 'watch') {
-                startAdTimer(0, false, () => {
+                startAdTimer(0, () => {
                     taskStates[taskId] = 'claim';
                     saveDataToServer();
                     renderTasks();
@@ -895,7 +888,6 @@
                 timestamp: Date.now()
             };
 
-            // Push to Firebase Server Requests & User History
             requestsRef.push(reqData);
             userRef.child('history').push(reqData);
 
@@ -920,7 +912,6 @@
             });
         }
 
-        // --- Admin Panel Controls ---
         function checkAdminPassword() {
             let pwd = prompt("Admin စကားဝှက် ထည့်ပါ:");
             if (pwd === "13579") {
@@ -955,7 +946,6 @@
             settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
             settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             
-            // Save settings to Firebase Server
             settingsRef.set(settings).then(() => {
                 alert('Admin settings updated successfully on server!');
                 closeAdminModal();
@@ -1050,7 +1040,7 @@
                 }
             });
 
-            document.getElementById('adjUserId').value = '';
+            document.getElementById('adjUserId'].value = '';
             document.getElementById('adjCoinVal').value = '';
             document.getElementById('adjMmkVal').value = '';
         }
@@ -1081,7 +1071,6 @@
             });
         }
 
-        // Run application initialization
         initApp();
     </script>
 </body>
