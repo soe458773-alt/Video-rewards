@@ -97,8 +97,8 @@
 
         /* လုံးဝ လျှို့ဝှက်ထားသော Admin ဝင်ရန် နေရာ (Secret Trigger) */
         .secret-admin-trigger {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             background: transparent;
             border-radius: 50%;
             cursor: pointer;
@@ -588,9 +588,9 @@
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
         // Master Keys for Centralized Shared Storage
-        const globalSettingsKey = 'moneycaush_master_settings_v4';
-        const globalUsersListKey = 'moneycaush_master_users_registry_v4';
-        const globalRequestsKey = 'moneycaush_master_requests_v4';
+        const globalSettingsKey = 'moneycaush_master_settings_v5';
+        const globalUsersListKey = 'moneycaush_master_users_registry_v5';
+        const globalRequestsKey = 'moneycaush_master_requests_v5';
 
         // Default Global Settings
         let settings = JSON.parse(localStorage.getItem(globalSettingsKey)) || {
@@ -606,7 +606,7 @@
         // Centralized Users Database Registry
         let allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
 
-        // Initialize Current User in Registry
+        // Initialize Current User in Registry and ensure persistence
         if (!allUsersRegistry[currentUser.id]) {
             allUsersRegistry[currentUser.id] = {
                 id: currentUser.id,
@@ -627,7 +627,7 @@
                 allUsersRegistry[currentUser.id].status = 'active';
             }
         }
-        saveUsersRegistry();
+        localStorage.setItem(globalUsersListKey, JSON.stringify(allUsersRegistry));
 
         let userData = allUsersRegistry[currentUser.id];
         let currentAdIndex = 0;
@@ -654,16 +654,17 @@
                 let latestUsers = JSON.parse(localStorage.getItem(globalUsersListKey));
                 
                 if (latestSettings) settings = latestSettings;
-                if (latestUsers && latestUsers[currentUser.id]) {
+                if (latestUsers) {
                     allUsersRegistry = latestUsers;
-                    userData = allUsersRegistry[currentUser.id];
-                    
-                    if (userData.status === 'banned') {
-                        alert('Your account has been banned.');
-                        location.reload();
+                    if (allUsersRegistry[currentUser.id]) {
+                        userData = allUsersRegistry[currentUser.id];
+                        if (userData.status === 'banned') {
+                            alert('Your account has been banned.');
+                            location.reload();
+                        }
+                        updateUI();
+                        renderHistory();
                     }
-                    updateUI();
-                    renderHistory();
                 }
             }, 1000);
         }
@@ -787,6 +788,8 @@
                 let linkToOpen = settings.adLinks[currentAdIndex];
                 window.open(linkToOpen, '_blank');
                 currentAdIndex = (currentAdIndex + 1) % settings.adLinks.length;
+            } else {
+                window.open("https://example.com", '_blank');
             }
         }
 
@@ -928,7 +931,7 @@
             });
         }
 
-        // --- Admin Centralized Panel Controls (Password Removed & Sorted Users) ---
+        // --- Admin Centralized Panel Controls ---
         function openAdminModalDirect() {
             openAdminModal();
         }
@@ -963,6 +966,7 @@
             let container = document.getElementById('adminUserListContainer');
             container.innerHTML = '';
             
+            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
             let usersArray = Object.values(allUsersRegistry);
             document.getElementById('admTotalCount').innerText = usersArray.length;
 
@@ -976,12 +980,12 @@
 
             let filteredUsers = usersArray.filter(u => {
                 if (u.status === 'banned') bannedCount++;
-                else if ((currentTime - u.lastActive) < 10 * 60 * 1000) { activeCount++; u.status = 'active'; }
+                else if ((currentTime - u.lastActive) < 15 * 60 * 1000) { activeCount++; u.status = 'active'; }
                 else { inactiveCount++; u.status = 'inactive'; }
 
                 if (searchQuery) {
                     let q = searchQuery.toLowerCase();
-                    return u.name.toLowerCase().includes(q) || u.id.includes(q);
+                    return u.name.toLowerCase().includes(q) || u.id.toString().includes(q);
                 }
                 return true;
             });
@@ -1050,14 +1054,13 @@
             let mDelta = parseFloat(document.getElementById('editUserMmkInput').value) || 0;
 
             allUsersRegistry[selectedTargetUserId].coins += cDelta;
-            allUsersRegistry[selectedTitleId = selectedTargetUserId];
             allUsersRegistry[selectedTargetUserId].mmk += mDelta;
 
             if (allUsersRegistry[selectedTargetUserId].coins < 0) allUsersRegistry[selectedTargetUserId].coins = 0;
             if (allUsersRegistry[selectedTargetUserId].mmk < 0) allUsersRegistry[selectedTargetUserId].mmk = 0;
 
             saveUsersRegistry();
-            alert('User balance updated successfully! (User ဘက်သို့ ချက်ချင်းသက်ရောက်သွားပါပြီ)');
+            alert('User balance updated successfully!');
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
@@ -1090,7 +1093,7 @@
             saveGlobalSettings();
             updateMarketRateDisplay();
             renderTasks();
-            alert('Global settings updated successfully! (User များအားလုံးဆီသို့ အော်တိုသက်ရောက်သွားပါပြီ)');
+            alert('Global settings updated successfully!');
         }
 
         function addAdLink() {
@@ -1106,7 +1109,7 @@
         }
 
         function removeAdLink(idx) {
-            settings.adLinks.splice(idx, 1);
+            settings.adKeys = settings.adLinks.splice(idx, 1);
             saveGlobalSettings();
             renderAdminLinks();
         }
@@ -1117,7 +1120,7 @@
             div.innerHTML = '';
             let links = settings.adLinks || [];
             links.forEach((l, i) => {
-                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,20)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
+                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,25)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
             });
         }
 
