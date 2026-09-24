@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real money - Reward Platform (Npoint API)</title>
+    <title>Real money - Reward Platform (Standalone Local DB)</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -513,12 +513,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Ad Links Management:</label>
-                    <input type="text" id="newAdLink" placeholder="https://example.com/ad-link">
+                    <label>Ad Links Management (Direct Link / Smartlink):</label>
+                    <input type="text" id="newAdLink" placeholder="https://www.highperformanceformat.com/...">
                     <button class="card-btn" style="width:100%; margin-top:4px;" onclick="addAdLink()">Add Ad Link</button>
-                    <div id="linkList" style="max-height:60px; overflow-y:auto; font-size:11px; margin-top:4px;"></div>
+                    <div id="linkList" style="max-height:80px; overflow-y:auto; font-size:11px; margin-top:4px;"></div>
                 </div>
-                <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%;" onclick="saveAdminGlobalSettings()">Save to Npoint Server</button>
+                <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%;" onclick="saveAdminGlobalSettings()">Save Settings</button>
             </div>
 
             <!-- SUB-TAB 3: WITHDRAWS -->
@@ -564,10 +564,8 @@
         </div>
     </div>
 
-    <!-- App Logic Script with Npoint API Integration -->
+    <!-- Standalone Local Storage Database Engine Script -->
     <script>
-        const API_URL = "https://api.npoint.io/6ac429a4ae5fe4395b4a";
-
         let tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -580,7 +578,8 @@
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        let dbData = {
+        // Load database from LocalStorage or create default structure
+        let defaultDB = {
             settings: {
                 homeCoin: 10,
                 taskCoin: 5,
@@ -588,11 +587,13 @@
                 exMmk: 100,
                 marketOpen: true,
                 withdrawOpen: true,
-                adLinks: ["https://example.com/ad1"]
+                adLinks: ["https://www.highperformanceformat.com/"]
             },
             users: {},
             requests: []
         };
+
+        let dbData = JSON.parse(localStorage.getItem('reward_app_db')) || defaultDB;
 
         let userData = {
             id: currentUser.id,
@@ -608,34 +609,12 @@
         let currentAdIndex = 0;
         let selectedTargetUserId = null;
 
-        async function fetchServerData() {
-            try {
-                let res = await fetch(API_URL);
-                let data = await res.json();
-                if (data && data.settings) {
-                    dbData = data;
-                }
-            } catch (e) {
-                console.log("Fetch error, using local state", e);
-            }
+        function saveDB() {
+            localStorage.setItem('reward_app_db', JSON.stringify(dbData));
         }
 
-        async function updateServerData() {
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dbData)
-                });
-            } catch (e) {
-                console.log("Save error", e);
-            }
-        }
-
-        async function initApp() {
+        function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
-            
-            await fetchServerData();
 
             if (!dbData.users) dbData.users = {};
             if (!dbData.users[currentUser.id]) {
@@ -655,13 +634,12 @@
             }
 
             userData = dbData.users[currentUser.id];
+            saveDB();
 
             if (userData.status === 'banned') {
                 document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
                 return;
             }
-
-            await updateServerData();
 
             initUserData();
             startDigitalTicker();
@@ -669,20 +647,6 @@
             updateMarketRateDisplay();
             renderTasks();
             renderHistory();
-
-            // Sync Loop every 3 seconds from Npoint Server
-            setInterval(async () => {
-                await fetchServerData();
-                if (dbData.users && dbData.users[currentUser.id]) {
-                    userData = dbData.users[currentUser.id];
-                    if (userData.status === 'banned') {
-                        alert('Your account has been banned.');
-                        location.reload();
-                    }
-                    updateUI();
-                    renderHistory();
-                }
-            }, 3000);
         }
 
         function initUserData() {
@@ -747,7 +711,7 @@
             document.getElementById('previewMmk').innerText = (val * rateMultiplier).toFixed(2);
         }
 
-        async function executeCoinExchange() {
+        function executeCoinExchange() {
             let s = dbData.settings;
             if (!s.marketOpen) {
                 alert('Market is currently closed by Admin.');
@@ -763,20 +727,27 @@
             userData.mmk += mmkEarned;
             
             dbData.users[currentUser.id] = userData;
-            await updateServerData();
+            saveDB();
             updateUI();
             document.getElementById('convertCoinInput').value = '';
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
         }
 
+        // Ads Link Opening Fix (Direct Link Popunder / Smartlink safe handler)
         function triggerNextRotatedAd() {
             let s = dbData.settings;
             if (s.adLinks && s.adLinks.length > 0) {
                 let linkToOpen = s.adLinks[currentAdIndex];
-                window.open(linkToOpen, '_blank');
+                let a = document.createElement('a');
+                a.href = linkToOpen;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
                 currentAdIndex = (currentAdIndex + 1) % s.adLinks.length;
             } else {
-                window.open("https://example.com", '_blank');
+                window.open("https://www.highperformanceformat.com/", '_blank');
             }
         }
 
@@ -788,7 +759,7 @@
             let timeLeft = 20;
             document.getElementById('countdownNum').innerText = timeLeft;
 
-            let timer = setInterval(async () => {
+            let timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('countdownNum').innerText = timeLeft;
                 if (timeLeft <= 0) {
@@ -798,7 +769,7 @@
                     if (rewardCoins > 0) {
                         userData.coins += rewardCoins;
                         dbData.users[currentUser.id] = userData;
-                        await updateServerData();
+                        saveDB();
                         updateUI();
                     }
                     if (callback) callback();
@@ -835,14 +806,14 @@
             }
         }
 
-        async function handleTask(taskId) {
+        function handleTask(taskId) {
             let state = userData.tasks[taskId] || 'watch';
             let taskCoin = dbData.settings.taskCoin;
             if (state === 'watch') {
-                startAdTimer(0, async () => {
+                startAdTimer(0, () => {
                     userData.tasks[taskId] = 'claim';
                     dbData.users[currentUser.id] = userData;
-                    await updateServerData();
+                    saveDB();
                     renderTasks();
                     alert('Ad finished! Click Claim.');
                 });
@@ -850,7 +821,7 @@
                 userData.coins += taskCoin;
                 userData.tasks[taskId] = 'done';
                 dbData.users[currentUser.id] = userData;
-                await updateServerData();
+                saveDB();
                 updateUI();
                 renderTasks();
                 alert('Claimed ' + taskCoin + ' Coins!');
@@ -869,7 +840,7 @@
             document.getElementById('withdrawModal').style.display = 'none';
         }
 
-        async function submitWithdrawal() {
+        function submitWithdrawal() {
             let bank = document.getElementById('withdrawBank').value;
             let phone = document.getElementById('withdrawPhone').value.trim();
             let amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
@@ -895,7 +866,7 @@
             if(!dbData.requests) dbData.requests = [];
             dbData.requests.push(reqData);
 
-            await updateServerData();
+            saveDB();
             closeWithdrawModal();
             renderHistory();
             alert('Withdrawal request submitted successfully!');
@@ -923,8 +894,7 @@
             openAdminModal();
         }
 
-        async function openAdminModal() {
-            await fetchServerData();
+        function openAdminModal() {
             let s = dbData.settings;
             
             document.getElementById('admHomeCoin').value = s.homeCoin;
@@ -1021,7 +991,7 @@
             document.getElementById('userControlModal').style.display = 'flex';
         }
 
-        async function applyUserBalanceChanges() {
+        function applyUserBalanceChanges() {
             if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
             
             let cDelta = parseInt(document.getElementById('editUserCoinInput').value) || 0;
@@ -1030,13 +1000,13 @@
             dbData.users[selectedTargetUserId].coins += cDelta;
             dbData.users[selectedTargetUserId].mmk += mDelta;
 
-            await updateServerData();
+            saveDB();
             alert('User balance updated successfully!');
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
 
-        async function toggleBanTargetUser() {
+        function toggleBanTargetUser() {
             if (!selectedTargetUserId || !dbData.users[selectedTargetUserId]) return;
             
             let target = dbData.users[selectedTargetUserId];
@@ -1048,12 +1018,12 @@
                 alert('User banned successfully.');
             }
 
-            await updateServerData();
+            saveDB();
             document.getElementById('userControlModal').style.display = 'none';
             renderAdminUsersList();
         }
 
-        async function saveAdminGlobalSettings() {
+        function saveAdminGlobalSettings() {
             dbData.settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
             dbData.settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
             dbData.settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
@@ -1061,27 +1031,27 @@
             dbData.settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
             dbData.settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             
-            await updateServerData();
+            saveDB();
             updateMarketRateDisplay();
             renderTasks();
-            alert('Global settings saved to Npoint Server successfully!');
+            alert('Global settings saved successfully!');
         }
 
-        async function addAdLink() {
+        function addAdLink() {
             let input = document.getElementById('newAdLink');
             let val = input.value.trim();
             if (val) {
                 if(!dbData.settings.adLinks) dbData.settings.adLinks = [];
                 dbData.settings.adLinks.push(val);
                 input.value = '';
-                await updateServerData();
+                saveDB();
                 renderAdminLinks();
             }
         }
 
-        async function removeAdLink(idx) {
+        function removeAdLink(idx) {
             dbData.settings.adLinks.splice(idx, 1);
-            await updateServerData();
+            saveDB();
             renderAdminLinks();
         }
 
@@ -1117,7 +1087,7 @@
             });
         }
 
-        async function approveAndDeductRequest(index) {
+        function approveAndDeductRequest(index) {
             let allReqs = dbData.requests || [];
             let req = allReqs[index];
 
@@ -1137,11 +1107,11 @@
             }
 
             allReqs[index].status = 'Sent';
-            await updateServerData();
+            saveDB();
 
             renderAdminRequests();
             renderAdminUsersList();
-            alert('အတည်ပြုပြီး Server သို့ အောင်မြင်စွာ တင်လိုက်ပါပြီ။');
+            alert('အတည်ပြုပြီး အောင်မြင်စွာ သိမ်းဆည်းလိုက်ပါပြီ။');
         }
 
         initApp();
