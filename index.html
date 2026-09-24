@@ -290,7 +290,7 @@
             border: 3px solid var(--primary-accent);
             border-radius: 16px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             max-height: 90vh;
             overflow-y: auto;
             padding: 20px;
@@ -466,59 +466,104 @@
         </div>
     </div>
 
-    <!-- ADMIN MODAL -->
+    <!-- ADMIN PANEL MODAL -->
     <div class="modal" id="adminModal">
-        <div class="modal-content">
-            <h3>🔐 Admin Control Panel</h3>
+        <div class="modal-content" style="max-width: 410px;">
+            <h3>🔐 Admin Centralized Control Panel</h3>
             
-            <div class="form-group">
-                <label>1. Home Ad Coin Reward:</label>
-                <input type="number" id="admHomeCoin" value="10">
+            <!-- Tabs inside Admin -->
+            <div style="display:flex; gap:4px; margin-bottom:12px;">
+                <button class="card-btn" style="flex:1; font-size:12px; padding:6px;" onclick="switchAdminSubTab('users')">👥 Users (<span id="admTotalCount">0</span>)</button>
+                <button class="card-btn" style="flex:1; font-size:12px; padding:6px; background:var(--primary-accent);" onclick="switchAdminSubTab('settings')">⚙️ Settings</button>
+                <button class="card-btn" style="flex:1; font-size:12px; padding:6px; background:var(--primary-accent);" onclick="switchAdminSubTab('withdraws')">💸 Payouts</button>
             </div>
 
-            <div class="form-group">
-                <label>2. Task Ad Coin Reward:</label>
-                <input type="number" id="admTaskCoin" value="5">
-            </div>
-
-            <div class="form-group">
-                <label>3. Exchange Rate (Coin to MMK):</label>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <input type="number" id="admExCoins" value="1000" placeholder="Coins">
-                    <span>Coins =</span>
-                    <input type="number" id="admExMmk" value="100" placeholder="MMK">
+            <!-- SUB-TAB 1: USERS LIST & MANAGEMENT -->
+            <div id="admTabUsers" class="adm-sub-tab">
+                <div style="display:flex; gap:4px; margin-bottom:8px;">
+                    <input type="text" id="searchTgIdInput" placeholder="Telegram ID ဖြင့် ရှာရန်..." style="font-size:12px; padding:6px;">
+                    <button class="card-btn" style="padding:6px 10px;" onclick="searchUserByTelegramId()">ရှာရန်</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; opacity:0.8;">
+                    <span>🟢 Active: <strong id="admActiveCount">0</strong></span>
+                    <span>🔴 Inactive: <strong id="admInactiveCount">0</strong></span>
+                    <span>🚫 Banned: <strong id="admBannedCount">0</strong></span>
+                </div>
+                <div id="adminUserListContainer" style="max-height: 240px; overflow-y:auto; font-size:12px; background:var(--card-bg); border:1px solid var(--primary-accent); border-radius:8px; padding:6px;">
+                    <!-- Rendered Users -->
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>4. Market & Withdraw Switch:</label>
-                <select id="admMarketStatus">
-                    <option value="open">🟢 Market Open</option>
-                    <option value="closed">🔴 Market Closed</option>
-                </select>
-                <select id="admWithdrawStatus" style="margin-top:4px;">
-                    <option value="open">🟢 Withdraw Open</option>
-                    <option value="closed">🔴 Withdraw Closed</option>
-                </select>
+            <!-- SUB-TAB 2: GLOBAL SETTINGS -->
+            <div id="admTabSettings" class="adm-sub-tab" style="display:none;">
+                <div class="form-group">
+                    <label>Home Ad Coin Reward:</label>
+                    <input type="number" id="admHomeCoin" value="10">
+                </div>
+                <div class="form-group">
+                    <label>Task Ad Coin Reward:</label>
+                    <input type="number" id="admTaskCoin" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Exchange Rate (Coin to MMK):</label>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input type="number" id="admExCoins" value="1000">
+                        <span>Coins =</span>
+                        <input type="number" id="admExMmk" value="100">
+                        <span>MMK</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Market & Withdraw Switches:</label>
+                    <select id="admMarketStatus">
+                        <option value="open">🟢 Market Open</option>
+                        <option value="closed">🔴 Market Closed</option>
+                    </select>
+                    <select id="admWithdrawStatus" style="margin-top:4px;">
+                        <option value="open">🟢 Withdraw Open</option>
+                        <option value="closed">🔴 Withdraw Closed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ad Links Management:</label>
+                    <input type="text" id="newAdLink" placeholder="https://example.com/ad-link">
+                    <button class="card-btn" style="width:100%; margin-top:4px;" onclick="addAdLink()">Add Ad Link</button>
+                    <div id="linkList" style="max-height:60px; overflow-y:auto; font-size:11px; margin-top:4px;"></div>
+                </div>
+                <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%;" onclick="saveAdminGlobalSettings()">Save Settings</button>
             </div>
 
-            <hr>
-            <div class="form-group">
-                <label>5. Ad Links Rotation Management (Global):</label>
-                <input type="text" id="newAdLink" placeholder="https://example.com/ad-link">
-                <button class="card-btn" style="width:100%; margin-top:6px;" onclick="addAdLink()">Add Ad Link</button>
-                <p style="font-size: 11px; margin: 4px 0;">Total Links: <span id="linkCount">0</span></p>
-                <div id="linkList" style="max-height: 80px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
+            <!-- SUB-TAB 3: WITHDRAW REQUESTS -->
+            <div id="admTabWithdraws" class="adm-sub-tab" style="display:none;">
+                <div id="adminWithdrawRequests" style="max-height: 250px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
             </div>
 
-            <hr>
+            <button class="close-btn" onclick="closeAdminModal()">Close Panel</button>
+        </div>
+    </div>
+
+    <!-- SPECIFIC USER CONTROL MODAL (FOR ADMIN) -->
+    <div class="modal" id="userControlModal">
+        <div class="modal-content" style="max-width:350px;">
+            <h3>🛠️ Edit User Details</h3>
+            <p style="font-size:13px; margin:4px 0;">Name: <b id="editUserName"></b></p>
+            <p style="font-size:13px; margin:4px 0;">Telegram ID: <b id="editUserTgId"></b></p>
+            
+            <div class="form-group" style="margin-top:10px;">
+                <label>Coins ချိန်ညှိရန် (လက်ရှိ: <span id="editUserCurrCoins"></span>):</label>
+                <input type="number" id="editUserCoinInput" placeholder="တိုးရန် (+) သို့မဟုတ် လျော့ရန် (-)">
+            </div>
+            
             <div class="form-group">
-                <label>6. Withdrawal Requests:</label>
-                <div id="adminWithdrawRequests" style="max-height: 120px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
+                <label>MMK ချိန်ညှိရန် (လက်ရှိ: <span id="editUserCurrMmk"></span>):</label>
+                <input type="number" step="0.01" id="editUserMmkInput" placeholder="တိုးရန် (+) သို့မဟုတ် လျော့ရန် (-)">
             </div>
 
-            <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%; margin-top:10px;" onclick="saveAdminSettings()">Save Global Settings</button>
-            <button class="close-btn" onclick="closeAdminModal()">Close</button>
+            <div style="display:flex; gap:8px; margin-top:14px;">
+                <button class="card-btn" style="flex:1; background:#388e3c; color:white;" onclick="applyUserBalanceChanges()">Save Changes</button>
+                <button class="card-btn" style="flex:1; background:#d32f2f; color:white;" onclick="toggleBanTargetUser()" id="banUnbanBtn">Ban User</button>
+            </div>
+            <button class="close-btn" onclick="document.getElementById('userControlModal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -531,7 +576,7 @@
         </div>
     </div>
 
-    <!-- App Logic Script (Cloud Sync using JSONBin / Shared Storage) -->
+    <!-- App Logic Script -->
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -545,12 +590,12 @@
         let lang = localStorage.getItem('app_lang') || 'my';
         let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
-        // Keys for localStorage sharing across tabs/sessions
-        const globalSettingsKey = 'moneycaush_master_settings_v2';
-        const globalRequestsKey = 'moneycaush_master_requests_v2';
-        const userStorageKey = 'moneycaush_user_data_' + currentUser.id;
+        // Master Keys for Centralized Shared Storage (Admin & All Users)
+        const globalSettingsKey = 'moneycaush_master_settings_v3';
+        const globalUsersListKey = 'moneycaush_master_users_registry_v3';
+        const globalRequestsKey = 'moneycaush_master_requests_v3';
 
-        // Default Global Settings (Controlled by Admin, applies to all users via localStorage synchronization)
+        // Default Global Settings
         let settings = JSON.parse(localStorage.getItem(globalSettingsKey)) || {
             homeCoin: 10,
             taskCoin: 5,
@@ -561,17 +606,46 @@
             adLinks: ["https://example.com/ad1", "https://example.com/ad2"]
         };
 
-        let userData = JSON.parse(localStorage.getItem(userStorageKey)) || {
-            coins: 0,
-            mmk: 0,
-            history: [],
-            tasks: {}
-        };
+        // Centralized Users Database Registry
+        let allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
 
+        // Initialize Current User in Registry
+        if (!allUsersRegistry[currentUser.id]) {
+            allUsersRegistry[currentUser.id] = {
+                id: currentUser.id,
+                name: currentUser.name,
+                photo: currentUser.photo,
+                coins: 0,
+                mmk: 0,
+                history: [],
+                tasks: {},
+                status: 'active', // 'active' or 'banned'
+                lastActive: Date.now()
+            };
+        } else {
+            // Update profile data and mark active
+            allUsersRegistry[currentUser.id].name = currentUser.name;
+            allUsersRegistry[currentUser.id].photo = currentUser.photo;
+            allUsersRegistry[currentUser.id].lastActive = Date.now();
+            if(allUsersRegistry[currentUser.id].status !== 'banned') {
+                allUsersRegistry[currentUser.id].status = 'active';
+            }
+        }
+        saveUsersRegistry();
+
+        let userData = allUsersRegistry[currentUser.id];
         let currentAdIndex = 0;
+        let selectedTargetUserId = null;
 
         function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
+            
+            // Check if current user is banned
+            if (userData.status === 'banned') {
+                document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red; font-family:sans-serif;"><h2>🚫 Your account has been banned by Admin.</h2><p>ဆက်သွယ်ရန် Admin ထံသို့ ဆက်သွယ်ပါ။</p></div>`;
+                return;
+            }
+
             initUserData();
             startDigitalTicker();
             updateUI();
@@ -579,15 +653,24 @@
             renderTasks();
             renderHistory();
 
-            // Periodically sync settings from localStorage to catch Admin updates immediately
+            // Real-time synchronization loop to sync settings and user data across tabs/devices simulation
             setInterval(() => {
                 let latestSettings = JSON.parse(localStorage.getItem(globalSettingsKey));
-                if (latestSettings) {
-                    settings = latestSettings;
-                    updateMarketRateDisplay();
-                    renderTasks();
+                let latestUsers = JSON.parse(localStorage.getItem(globalUsersListKey));
+                
+                if (latestSettings) settings = latestSettings;
+                if (latestUsers && latestUsers[currentUser.id]) {
+                    allUsersRegistry = latestUsers;
+                    userData = allUsersRegistry[currentUser.id];
+                    
+                    if (userData.status === 'banned') {
+                        alert('Your account has been banned.');
+                        location.reload();
+                    }
+                    updateUI();
+                    renderHistory();
                 }
-            }, 1000);
+            }, 1500);
         }
 
         function initUserData() {
@@ -600,8 +683,8 @@
             document.getElementById('setUserId').innerText = currentUser.id;
         }
 
-        function saveUserData() {
-            localStorage.setItem(userStorageKey, JSON.stringify(userData));
+        function saveUsersRegistry() {
+            localStorage.setItem(globalUsersListKey, JSON.stringify(allUsersRegistry));
         }
 
         function saveGlobalSettings() {
@@ -696,7 +779,9 @@
             let mmkEarned = cInput * (settings.exMmk / settings.exCoins);
             userData.coins -= cInput;
             userData.mmk += mmkEarned;
-            saveUserData();
+            
+            allUsersRegistry[currentUser.id] = userData;
+            saveUsersRegistry();
             updateUI();
             document.getElementById('convertCoinInput').value = '';
             alert('Successfully exchanged to ' + mmkEarned.toFixed(2) + ' MMK');
@@ -727,7 +812,8 @@
 
                     if (rewardCoins > 0) {
                         userData.coins += rewardCoins;
-                        saveUserData();
+                        allUsersRegistry[currentUser.id] = userData;
+                        saveUsersRegistry();
                         updateUI();
                     }
                     if (callback) callback();
@@ -768,14 +854,16 @@
             if (state === 'watch') {
                 startAdTimer(0, () => {
                     userData.tasks[taskId] = 'claim';
-                    saveUserData();
+                    allUsersRegistry[currentUser.id] = userData;
+                    saveUsersRegistry();
                     renderTasks();
                     alert('Ad finished! Click Claim.');
                 });
             } else if (state === 'claim') {
                 userData.coins += settings.taskCoin;
                 userData.tasks[taskId] = 'done';
-                saveUserData();
+                allUsersRegistry[currentUser.id] = userData;
+                saveUsersRegistry();
                 updateUI();
                 renderTasks();
                 alert('Claimed ' + settings.taskCoin + ' Coins!');
@@ -807,9 +895,7 @@
             }
 
             userData.coins -= Math.ceil(requiredCoins);
-            saveUserData();
-            updateUI();
-
+            
             let reqData = {
                 reqId: 'REQ-' + Math.floor(100000 + Math.random() * 900000),
                 userId: currentUser.id,
@@ -822,7 +908,9 @@
             };
 
             userData.history.push(reqData);
-            saveUserData();
+            allUsersRegistry[currentUser.id] = userData;
+            saveUsersRegistry();
+            updateUI();
 
             // Save to global requests
             let allReqs = JSON.parse(localStorage.getItem(globalRequestsKey)) || [];
@@ -851,9 +939,9 @@
             });
         }
 
-        // --- Admin Controls ---
+        // --- Admin Centralized Panel Controls ---
         function checkAdminPassword() {
-            let pwd = prompt("Admin စကားဝှက် ထည့်ပါ:");
+            let pwd = prompt("Admin စကားဝှက် ထည့်ပါ (ဥပမာ: 13579):");
             if (pwd === "13579") {
                 openAdminModal();
             } else if (pwd !== null) {
@@ -862,13 +950,19 @@
         }
 
         function openAdminModal() {
+            // Refresh registry data
+            allUsersRegistry = JSON.parse(localStorage.getItem(globalUsersListKey)) || {};
+            
+            // Populate Settings
             document.getElementById('admHomeCoin').value = settings.homeCoin;
             document.getElementById('admTaskCoin').value = settings.taskCoin;
             document.getElementById('admExCoins').value = settings.exCoins;
             document.getElementById('admExMmk').value = settings.exMmk;
             document.getElementById('admMarketStatus').value = settings.marketOpen ? 'open' : 'closed';
             document.getElementById('admWithdrawStatus').value = settings.withdrawOpen ? 'open' : 'closed';
+            
             renderAdminLinks();
+            renderAdminUsersList();
             renderAdminRequests();
             document.getElementById('adminModal').style.display = 'flex';
         }
@@ -877,7 +971,128 @@
             document.getElementById('adminModal').style.display = 'none';
         }
 
-        function saveAdminSettings() {
+        function switchAdminSubTab(tab) {
+            document.getElementById('admTabUsers').style.display = tab === 'users' ? 'block' : 'none';
+            document.getElementById('admTabSettings').style.display = tab === 'settings' ? 'block' : 'none';
+            document.getElementById('admTabWithdraws').style.display = tab === 'withdraws' ? 'block' : 'none';
+        }
+
+        function renderAdminUsersList(filterId = '') {
+            let container = document.getElementById('adminUserListContainer');
+            container.innerHTML = '';
+            
+            let usersArray = Object.values(allUsersRegistry);
+            document.getElementById('admTotalCount').innerText = usersArray.length;
+
+            let activeCount = 0;
+            let inactiveCount = 0;
+            let bannedCount = 0;
+
+            let currentTime = Date.now();
+            let filteredUsers = usersArray.filter(u => {
+                if (u.status === 'banned') bannedCount++;
+                else if ((currentTime - u.lastActive) < 10 * 60 * 1000) { activeCount++; u.status = 'active'; }
+                else { inactiveCount++; u.status = 'inactive'; }
+
+                if (filterId) {
+                    return u.id.includes(filterId) || u.name.toLowerCase().includes(filterId.toLowerCase());
+                }
+                return true;
+            });
+
+            document.getElementById('admActiveCount').innerText = activeCount;
+            document.getElementById('admInactiveCount').innerText = inactiveCount;
+            document.getElementById('admBannedCount').innerText = bannedCount;
+
+            if (filteredUsers.length === 0) {
+                container.innerHTML = '<p style="text-align:center; opacity:0.6;">User မတွေ့ပါ။</p>';
+                return;
+            }
+
+            filteredUsers.forEach(u => {
+                let statusColor = u.status === 'banned' ? 'red' : u.status === 'active' ? 'green' : 'orange';
+                let div = document.createElement('div');
+                div.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
+                div.style.padding = '6px 0';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <b>${u.name}</b> (ID: ${u.id})<br>
+                            Coins: <span style="color:var(--btn-color); font-weight:bold;">${u.coins}</span> | MMK: <b>${u.mmk.toFixed(2)}</b><br>
+                            Status: <span style="color:${statusColor}; font-weight:bold; text-transform:uppercase;">${u.status}</span>
+                        </div>
+                        <button class="card-btn" style="padding:4px 8px; font-size:11px;" onclick="openUserControlModal('${u.id}')">ထိန်းချုပ်မည်</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function searchUserByTelegramId() {
+            let query = document.getElementById('searchTgIdInput').value.trim();
+            renderAdminUsersList(query);
+        }
+
+        function openUserControlModal(userId) {
+            selectedTargetUserId = userId;
+            let target = allUsersRegistry[userId];
+            if(!target) return;
+
+            document.getElementById('editUserName').innerText = target.name;
+            document.getElementById('editUserTgId').innerText = target.id;
+            document.getElementById('editUserCurrCoins').innerText = target.coins;
+            document.getElementById('editUserCurrMmk').innerText = target.mmk.toFixed(2);
+            document.getElementById('editUserCoinInput').value = '';
+            document.getElementById('editUserMmkInput').value = '';
+
+            let banBtn = document.getElementById('banUnbanBtn');
+            if (target.status === 'banned') {
+                banBtn.innerText = "Unban User";
+                banBtn.style.background = "#388e3c";
+            } else {
+                banBtn.innerText = "Ban User";
+                banBtn.style.background = "#d32f2f";
+            }
+
+            document.getElementById('userControlModal').style.display = 'flex';
+        }
+
+        function applyUserBalanceChanges() {
+            if (!selectedTargetUserId || !allUsersRegistry[selectedTargetUserId]) return;
+            
+            let cDelta = parseInt(document.getElementById('editUserCoinInput').value) || 0;
+            let mDelta = parseFloat(document.getElementById('editUserMmkInput').value) || 0;
+
+            allUsersRegistry[selectedTargetUserId].coins += cDelta;
+            allUsersRegistry[selectedTargetUserId].mmk += mDelta;
+
+            if (allUsersRegistry[selectedTargetUserId].coins < 0) allUsersRegistry[selectedTargetUserId].coins = 0;
+            if (allUsersRegistry[selectedTargetUserId].mmk < 0) allUsersRegistry[selectedTargetUserId].mmk = 0;
+
+            saveUsersRegistry();
+            alert('User balance updated successfully!');
+            document.getElementById('userControlModal').style.display = 'none';
+            renderAdminUsersList();
+        }
+
+        function toggleBanTargetUser() {
+            if (!selectedTargetUserId || !allUsersRegistry[selectedTargetUserId]) return;
+            
+            let target = allUsersRegistry[selectedTargetUserId];
+            if (target.status === 'banned') {
+                target.status = 'active';
+                alert('User unbanned successfully.');
+            } else {
+                target.status = 'banned';
+                alert('User banned successfully.');
+            }
+
+            saveUsersRegistry();
+            document.getElementById('userControlModal').style.display = 'none';
+            renderAdminUsersList();
+        }
+
+        function saveAdminGlobalSettings() {
             settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
             settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
             settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
@@ -888,8 +1103,7 @@
             saveGlobalSettings();
             updateMarketRateDisplay();
             renderTasks();
-            alert('Global Admin settings updated successfully!');
-            closeAdminModal();
+            alert('Global settings updated successfully!');
         }
 
         function addAdLink() {
@@ -912,11 +1126,11 @@
 
         function renderAdminLinks() {
             let div = document.getElementById('linkList');
+            if(!div) return;
             div.innerHTML = '';
             let links = settings.adLinks || [];
-            document.getElementById('linkCount').innerText = links.length;
             links.forEach((l, i) => {
-                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,22)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
+                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,20)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
             });
         }
 
