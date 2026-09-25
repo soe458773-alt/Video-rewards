@@ -349,7 +349,7 @@
         <!-- MARKET TAB -->
         <div id="marketTab" class="tab-content">
             <div style="text-align: center; margin-bottom: 12px;">
-                <h2 style="margin:0;" id="mTitleMain">📈 Digital Market Exchange</h2>
+                <h2 style="margin:0;">📈 Digital Market Exchange</h2>
                 <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: Loading...</p>
             </div>
 
@@ -359,28 +359,28 @@
 
             <!-- ဈေးကွက် အတက်အကျနှုန်းထားပြရန် ဇယား -->
             <div class="card-item" style="flex-direction: column; align-items: stretch; margin-bottom: 16px;">
-                <h4 style="margin: 0 0 8px 0; text-align: center;" id="mTrendTitle">📊 Live Market Trend & Fluctuations</h4>
+                <h4 style="margin: 0 0 8px 0; text-align: center;">📊 Live Market Trend & Fluctuations</h4>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                    <span id="mHighText">24h High Rate:</span>
+                    <span>24h High Rate:</span>
                     <b id="marketHighRate" style="color: #388e3c;">-- Coins = 100 MMK</b>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
-                    <span id="mLowText">24h Low Rate:</span>
+                    <span>24h Low Rate:</span>
                     <b id="marketLowRate" style="color: #d32f2f;">-- Coins = 100 MMK</b>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0;">
-                    <span id="mStatusText">Market Trend Status:</span>
+                    <span>Market Trend Status:</span>
                     <b id="marketTrendStatus" style="color: var(--btn-color);">🟢 Bullish (တက်ရိပ်ပြနေသည်)</b>
                 </div>
             </div>
 
             <div class="market-card">
-                <h3 id="mConvTitle">🔄 Coin to MMK Converter</h3>
+                <h3>🔄 Coin to MMK Converter</h3>
                 <div class="form-group">
                     <input type="number" id="convertCoinInput" placeholder="Enter Coins" oninput="calcExchange()">
                 </div>
-                <p style="font-size: 14px; font-weight: bold; margin: 8px 0;"><span id="mYouGetText">You will get:</span> <span id="previewMmk" style="color:var(--btn-color);">0.00</span> MMK</p>
-                <button class="card-btn" style="width:100%;" id="mExBtn" onclick="executeCoinExchange()">Exchange Now</button>
+                <p style="font-size: 14px; font-weight: bold; margin: 8px 0;">You will get: <span id="previewMmk" style="color:var(--btn-color);">0.00</span> MMK</p>
+                <button class="card-btn" style="width:100%;" onclick="executeCoinExchange()">Exchange Now</button>
             </div>
         </div>
 
@@ -398,24 +398,24 @@
             <div class="card-item" style="flex-direction: column; text-align: center; gap: 8px;">
                 <img id="profileUserPic" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; border:3px solid var(--primary-accent); object-fit:cover;" alt="User">
                 <h3 id="profileUserName" style="margin:0;">User Name</h3>
-                <p style="margin:0; font-size:12px;"><span id="pTgIdText">Telegram ID:</span> <span id="profileUserId">123456</span></p>
+                <p style="margin:0; font-size:12px;">Telegram ID: <span id="profileUserId">123456</span></p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
                 <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
-                    <span style="font-size:12px; opacity:0.8;" id="pCoinsLabel">My Coins</span>
+                    <span style="font-size:12px; opacity:0.8;">My Coins</span>
                     <h3 id="profileCoinVal" style="margin:4px 0; color:var(--btn-color);">0</h3>
                 </div>
                 <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
-                    <span style="font-size:12px; opacity:0.8;" id="pMmkLabel">My MMK</span>
+                    <span style="font-size:12px; opacity:0.8;">My MMK</span>
                     <h3 id="profileMmkVal" style="margin:4px 0; color:#bc6c25;">0</h3>
                 </div>
             </div>
 
             <div class="card-item" style="flex-direction: column; align-items: flex-start;">
-                <h4 style="margin:0 0 8px 0;" id="pHistoryTitle">📜 Withdrawal History</h4>
+                <h4 style="margin:0 0 8px 0;">📜 Withdrawal History</h4>
                 <div id="historyListContainer" style="width:100%; max-height:150px; overflow-y:auto; font-size:12px;">
-                    <p style="text-align:center; opacity:0.6;" id="pNoHistory">No history yet.</p>
+                    <p style="text-align:center; opacity:0.6;">No history yet.</p>
                 </div>
             </div>
         </div>
@@ -444,41 +444,41 @@
     <!-- SETTINGS MODAL -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <h3 id="sModalTitle">⚙️ Settings & User Info</h3>
+            <h3>⚙️ Settings & User Info</h3>
             <div class="form-group">
-                <label id="sThemeLabel">Dark Mode / Light Mode:</label>
-                <button class="card-btn" style="width:100%;" onclick="toggleDarkMode()" id="sThemeBtn">Toggle Dark / Light Mode</button>
+                <label>Dark Mode / Light Mode:</label>
+                <button class="card-btn" style="width:100%;" onclick="toggleDarkMode()">Toggle Dark / Light Mode</button>
             </div>
             <div style="font-size: 13px; margin-top: 15px; background:rgba(0,0,0,0.03); padding:12px; border-radius:8px;">
                 <p><b>App Name:</b> Real money</p>
-                <p><b id="sUserNameLabel">User Name:</b> <span id="setUserName"></span></p>
-                <p><b id="sUserIdLabel">Telegram ID:</b> <span id="setUserId"></span></p>
+                <p><b>User Name:</b> <span id="setUserName"></span></p>
+                <p><b>Telegram ID:</b> <span id="setUserId"></span></p>
             </div>
-            <button class="close-btn" onclick="document.getElementById('settingsModal').style.display='none'" id="sCloseBtn">Close</button>
+            <button class="close-btn" onclick="document.getElementById('settingsModal').style.display='none'">Close</button>
         </div>
     </div>
 
     <!-- WITHDRAW MODAL -->
     <div class="modal" id="withdrawModal">
         <div class="modal-content">
-            <h3 id="wModalTitle">💸 Withdraw to MMK</h3>
+            <h3>💸 Withdraw to MMK</h3>
             <div class="form-group">
-                <label id="wBankLabel">Select Bank / Payment:</label>
+                <label>Select Bank / Payment:</label>
                 <select id="withdrawBank">
                     <option value="KBZ Pay">KBZ Pay</option>
                     <option value="Wave Money">Wave Money</option>
                 </select>
             </div>
             <div class="form-group">
-                <label id="wPhoneLabel">Phone Number:</label>
+                <label>Phone Number:</label>
                 <input type="text" id="withdrawPhone" placeholder="09xxxxxxxxx">
             </div>
             <div class="form-group">
-                <label id="wAmountLabel">Amount in MMK:</label>
+                <label>Amount in MMK:</label>
                 <input type="number" id="withdrawMmkAmount" placeholder="Enter MMK amount">
             </div>
-            <button class="card-btn" style="background:#bc6c25; color:white; width:100%;" onclick="submitWithdrawal()" id="wSubmitBtn">Submit Request</button>
-            <button class="close-btn" onclick="closeWithdrawModal()" id="wCancelBtn">Cancel</button>
+            <button class="card-btn" style="background:#bc6c25; color:white; width:100%;" onclick="submitWithdrawal()">Submit Request</button>
+            <button class="close-btn" onclick="closeWithdrawModal()">Cancel</button>
         </div>
     </div>
 
@@ -578,21 +578,20 @@
     <!-- AD WATCHING MODAL -->
     <div class="modal" id="adModal">
         <div class="modal-content" style="text-align: center;">
-            <h3 id="adModalHeading">📺 Watching 20s Advertisement</h3>
+            <h3>📺 Watching 20s Advertisement</h3>
             <p id="adTimerText">Please wait 20 seconds...</p>
             <h1 id="countdownNum" style="font-size: 40px; color: var(--btn-color); margin: 10px 0;">20</h1>
         </div>
     </div>
 
-    <!-- Script Engine -->
+    <!-- Firebase Realtime Database Script Engine -->
     <script>
+        // Firebase Configuration (အခမဲ့ Realtime Database)
         const firebaseConfig = {
-            databaseURL: "https://moneycaush-default-rtdb.firebaseio.com"
+            databaseURL: "https://realmoney-reward-platform-default-rtdb.firebaseio.com/"
         };
 
-        if(!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let tg = window.Telegram.WebApp;
@@ -633,89 +632,10 @@
         let allUsersCache = {};
         let allRequestsCache = {};
 
-        const texts = {
-            my: {
-                tBalanceTitle: "စုစုပေါင်း လက်ကျန်ငွေ",
-                tEarnCoinTitle: "ဒင်္ဂါးရှာမည် (ကြော်ငြာကြည့်ရန်)",
-                tWithdrawBtn: "💸 ငွေထုတ်မည် (KBZ / Wave)",
-                mTitleMain: "📈 ဒီဂျစ်တယ် စျေးကွက် လဲလှယ်မှု",
-                mTrendTitle: "📊 တိုက်ရိုက် စျေးကွက် အတက်အကျနှုန်း",
-                mHighText: "၂၄ နာရီအတွင်း အမြင့်ဆုံးနှုန်း:",
-                mLowText: "၂၄ နာရီအတွင်း အနိမ့်ဆုံးနှုန်း:",
-                mStatusText: "စျေးကွက် အခြေအနေ:",
-                mConvTitle: "🔄 ဒင်္ဂါးမှ ကျပ်သို့ ပြောင်းရန်",
-                mYouGetText: "ရရှိမည့်ငွေပမာဏ:",
-                mExBtn: "ယခုချက်ချင်း လဲလှယ်မည်",
-                tTaskHeader: "📋 တာဝန်များ (Tasks ၁၀ ခု)",
-                tTaskSub: "ကြော်ငြာ ၂၀ စက္ကန့်ကြည့်ပြီး ဒင်္ဂါးရယူပါ",
-                tNavHome: "ပင်မ",
-                tNavMarket: "စျေးကွက်",
-                tNavTasks: "တာဝန်များ",
-                tNavProfile: "ပရိုဖိုင်",
-                pCoinsLabel: "ကျွန်ုပ်၏ ဒင်္ဂါးများ",
-                pMmkLabel: "ကျွန်ုပ်၏ ကျပ်ငွေ",
-                pHistoryTitle: "📜 ငွေထုတ်မှတ်တမ်းများ",
-                pNoHistory: "မှတ်တမ်း မရှိသေးပါ။",
-                pTgIdText: "တယ်လီဂရမ် အိုင်ဒီ:",
-                sModalTitle: "⚙️ ဆက်တင်များနှင့် အချက်အလက်",
-                sThemeLabel: "အမည်းရောင် / အဖြူရောင် မုဒ်:",
-                sThemeBtn: "မုဒ်ပြောင်းရန်",
-                sUserNameLabel: "အမည်:",
-                sUserIdLabel: "တယ်လီဂရမ် အိုင်ဒီ:",
-                sCloseBtn: "ပိတ်မည်",
-                wModalTitle: "💸 ကျပ်ငွေသို့ ထုတ်ယူမည်",
-                wBankLabel: "ဘဏ် / ငွေပေးချေမှု ရွေးချယ်ရန်:",
-                wPhoneLabel: "ဖုန်းနံပါတ်:",
-                wAmountLabel: "ထုတ်ယူမည့် ပမာဏ (MMK):",
-                wSubmitBtn: "တောင်းဆိုရန် ပေးပို့မည်",
-                wCancelBtn: "မလုပ်တော့ပါ",
-                adModalHeading: "📺 ကြော်ငြာကြည့်ရှုနေသည် (၂၀ စက္ကန့်)",
-                adTimerText: "ကျေးဇူးပြု၍ ၂၀ စက္ကန့် စောင့်ပါ..."
-            },
-            eng: {
-                tBalanceTitle: "Total Balance",
-                tEarnCoinTitle: "Earn your coin (Ads)",
-                tWithdrawBtn: "💸 Withdraw to KBZ / Wave",
-                mTitleMain: "📈 Digital Market Exchange",
-                mTrendTitle: "📊 Live Market Trend & Fluctuations",
-                mHighText: "24h High Rate:",
-                mLowText: "24h Low Rate:",
-                mStatusText: "Market Trend Status:",
-                mConvTitle: "🔄 Coin to MMK Converter",
-                mYouGetText: "You will get:",
-                mExBtn: "Exchange Now",
-                tTaskHeader: "📋 Tasks Center (10 Tasks)",
-                tTaskSub: "Watch 20s ad per task & claim",
-                tNavHome: "Home",
-                tNavMarket: "Market",
-                tNavTasks: "Tasks",
-                tNavProfile: "Profile",
-                pCoinsLabel: "My Coins",
-                pMmkLabel: "My MMK",
-                pHistoryTitle: "📜 Withdrawal History",
-                pNoHistory: "No history yet.",
-                pTgIdText: "Telegram ID:",
-                sModalTitle: "⚙️ Settings & User Info",
-                sThemeLabel: "Dark Mode / Light Mode:",
-                sThemeBtn: "Toggle Dark / Light Mode",
-                sUserNameLabel: "User Name:",
-                sUserIdLabel: "Telegram ID:",
-                sCloseBtn: "Close",
-                wModalTitle: "💸 Withdraw to MMK",
-                wBankLabel: "Select Bank / Payment:",
-                wPhoneLabel: "Phone Number:",
-                wAmountLabel: "Amount in MMK:",
-                wSubmitBtn: "Submit Request",
-                wCancelBtn: "Cancel",
-                adModalHeading: "📺 Watching 20s Advertisement",
-                adTimerText: "Please wait 20 seconds..."
-            }
-        };
-
         function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
-            applyLanguageTexts();
 
+            // 1. Listen to Global Settings
             db.ref('settings').on('value', (snapshot) => {
                 if (snapshot.exists()) {
                     globalSettings = snapshot.val();
@@ -727,6 +647,7 @@
                 startDigitalTicker();
             });
 
+            // 2. Listen to Current User Data
             db.ref('users/' + currentUser.id).on('value', (snapshot) => {
                 if (snapshot.exists()) {
                     userData = snapshot.val();
@@ -753,11 +674,13 @@
                 renderHistory();
             });
 
+            // 3. Listen to All Users for Admin Panel
             db.ref('users').on('value', (snapshot) => {
                 allUsersCache = snapshot.val() || {};
                 renderAdminUsersList();
             });
 
+            // 4. Listen to Requests for Admin Panel
             db.ref('requests').on('value', (snapshot) => {
                 allRequestsCache = snapshot.val() || {};
                 renderAdminRequests();
@@ -797,15 +720,6 @@
             lang = lang === 'my' ? 'eng' : 'my';
             localStorage.setItem('app_lang', lang);
             document.getElementById('langBtn').innerText = lang.toUpperCase();
-            applyLanguageTexts();
-        }
-
-        function applyLanguageTexts() {
-            let t = texts[lang];
-            for (let key in t) {
-                let el = document.getElementById(key);
-                if (el) el.innerText = t[key];
-            }
         }
 
         function updateUI() {
@@ -978,6 +892,7 @@
                 timestamp: Date.now()
             };
 
+            // Save to user history & global requests
             db.ref('users/' + currentUser.id + '/history/' + reqId).set(reqData);
             db.ref('requests/' + reqId).set(reqData);
 
@@ -993,7 +908,7 @@
             let historyArr = Object.values(historyObj);
 
             if (historyArr.length === 0) {
-                container.innerHTML = `<p style="text-align:center; opacity:0.6;">${texts[lang].pNoHistory}</p>`;
+                container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
                 return;
             }
 
@@ -1001,15 +916,16 @@
 
             historyArr.forEach(r => {
                 let isSent = r.status === 'Sent';
-                let statusText = isSent ? (lang === 'my' ? 'အောင်မြင်ပါသည် (Sent)' : 'Sent') : (lang === 'my' ? 'စစ်ဆေးဆဲ (Pending)' : 'Pending');
+                let statusText = isSent ? 'အောင်မြင်ပါသည် (Sent)' : 'စစ်ဆေးဆဲ (Pending)';
                 let d = document.createElement('div');
                 d.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
                 d.style.padding = '6px 0';
-                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - <b>${r.amount} MMK</b> <br><span style="color:${isSent ? '#388e3c' : '#bc6c25'}; font-weight:bold;">[Status: ${statusText}]</span>`;
+                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - <b>${r.amount} MMK</b> <br><span style="color:${isSent ? '#388e3c' : '#bc6c25'}; font-weight:bold;">[အခြေအနေ: ${statusText}]</span>`;
                 container.appendChild(d);
             });
         }
 
+        // --- Admin Centralized Controls ---
         function openAdminModalDirect() {
             openAdminModal();
         }
@@ -1209,6 +1125,7 @@
             });
         }
 
+        // Admin က Approve လိုက်ရင် User ရဲ့ MMK ကို အော်တိုနုတ်ယူပြီး သက်ဆိုင်ရာ User ရဲ့မှတ်တမ်းမှာ အောင်မြင်ပါသည် (Sent) လို့ပြပေးမည့် စနစ်
         function approveAndDeductRequest(reqId, userId, amount) {
             let targetUser = allUsersCache[userId];
             if (targetUser) {
@@ -1219,17 +1136,17 @@
                     targetUser.mmk = 0;
                 }
 
+                // Update User History status
                 if (targetUser.history && targetUser.history[reqId]) {
                     targetUser.history[reqId].status = 'Sent';
                 }
 
+                // Push updated user back to Firebase
                 db.ref('users/' + userId).set(targetUser);
             }
 
+            // Update Global Request status
             db.ref('requests/' + reqId + '/status').set('Sent');
-            if(targetUser && targetUser.history && targetUser.history[reqId]) {
-                db.ref('users/' + userId + '/history/' + reqId + '/status').set('Sent');
-            }
 
             alert('အတည်ပြုပြီး User ရဲ့လက်ကျန်ငွေကို အော်တိုနုတ်ယူကာ မှတ်တမ်းတွင် အောင်မြင်ပါသည်ဟု အပ်ဒိတ်လုပ်ပြီးပါပြီ။');
         }
