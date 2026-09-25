@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini App - Reward Platform</title>
+    <title>Real money</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -12,41 +12,280 @@
             --card-bg: #ffffff;
             --text-color: #4a3b32;
             --primary-accent: #d4a373;
+            --secondary-accent: #faedcd;
             --btn-color: #bc6c25;
             --btn-text: #ffffff;
             --nav-bg: #ffffff;
             --nav-text: #8c7a6b;
             --nav-active: #bc6c25;
         }
+
+        body.dark-mode {
+            --bg-color: #1a1614;
+            --card-bg: #26211e;
+            --text-color: #f5ebe0;
+            --primary-accent: #dda15e;
+            --secondary-accent: #3d3530;
+            --btn-color: #dda15e;
+            --btn-text: #1a1614;
+            --nav-bg: #26211e;
+            --nav-text: #b0a499;
+            --nav-active: #dda15e;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 12px 12px 80px 12px;
             min-height: 100vh;
             box-sizing: border-box;
+            transition: background 0.3s, color 0.3s;
         }
-        .container { max-width: 420px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .user-profile-badge { display: flex; align-items: center; gap: 8px; background: var(--card-bg); padding: 4px 12px 4px 4px; border-radius: 30px; border: 2px solid var(--primary-accent); cursor: pointer; }
-        .user-profile-badge img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-        .icon-btn { background: var(--card-bg); border: 2px solid var(--primary-accent); color: var(--text-color); padding: 6px 10px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        .balance-card { background: linear-gradient(135deg, #e9d8a6, #dda15e); border: 3px solid #bc6c25; border-radius: 20px; padding: 20px; color: #2b2118; margin-bottom: 16px; box-shadow: 0 8px 16px rgba(188,108,37,0.15); }
-        .card-item { background: var(--card-bg); border: 2px solid var(--primary-accent); border-radius: 14px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .card-btn { background: var(--btn-color); border: none; color: var(--btn-text); padding: 8px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .card-btn:disabled { background: #d8c8b8; cursor: not-allowed; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); border-top: 2px solid var(--primary-accent); display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
-        .nav-item { background: none; border: none; color: var(--nav-text); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
-        .nav-item.active { color: var(--nav-active); font-weight: bold; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box; }
-        .modal-content { background: var(--card-bg); border: 3px solid var(--primary-accent); border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card-bg);
+            padding: 4px 12px 4px 4px;
+            border-radius: 30px;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            border: 2px solid var(--primary-accent);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .user-profile-badge img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .top-btns {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-accent);
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #e9d8a6, #dda15e);
+            border: 3px solid #bc6c25;
+            border-radius: 20px;
+            padding: 20px;
+            color: #2b2118;
+            box-shadow: 0 8px 16px rgba(188, 108, 37, 0.15);
+            margin-bottom: 16px;
+        }
+
+        .balance-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            font-weight: bold;
+        }
+
+        .balance-amount {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 8px 0;
+        }
+
+        .balance-sub {
+            font-size: 14px;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.4);
+            padding: 4px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-accent);
+            color: var(--text-color);
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .card-item {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-accent);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+        }
+
+        .card-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            color: var(--text-color);
+        }
+
+        .card-info p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .card-btn {
+            background: var(--btn-color);
+            border: none;
+            color: var(--btn-text);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .card-btn:disabled {
+            background: #d8c8b8;
+            color: #887a6d;
+            cursor: not-allowed;
+        }
+
+        .market-ticker {
+            background: var(--card-bg);
+            color: var(--btn-color);
+            font-family: monospace;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid var(--primary-accent);
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .market-card {
+            background: var(--card-bg);
+            border: 2px solid var(--primary-accent);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--nav-bg);
+            border-top: 2px solid var(--primary-accent);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--nav-text);
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            width: 25%;
+        }
+
+        .nav-item.active {
+            color: var(--nav-active);
+            font-weight: bold;
+        }
+
+        .nav-item span.icon {
+            font-size: 18px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 3px solid var(--primary-accent);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+        }
+
+        .modal-content h3 { margin-top: 0; }
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 2px solid var(--primary-accent); border-radius: 8px; background: var(--card-bg); color: var(--text-color); box-sizing: border-box; }
-        .close-btn { background: #bc6c25; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 2px solid var(--primary-accent); border-radius: 8px; box-sizing: border-box; background: var(--card-bg); color: var(--text-color); }
+        .close-btn { background: #bc6c25; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
     </style>
 </head>
 <body>
@@ -58,44 +297,57 @@
                 <img id="headerUserPic" src="https://via.placeholder.com/32" alt="User">
                 <span id="headerUserName">Player</span>
             </div>
-            <div style="display: flex; gap: 6px;">
-                <button class="icon-btn" onclick="openAdminLogin()">⚙️ Admin</button>
+            <div class="top-btns">
+                <button class="icon-btn" onclick="toggleLang()" id="langBtn">ENG</button>
+                <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
+                <button class="icon-btn" onclick="openAdminLoginModal()">🛡️</button>
             </div>
         </div>
 
         <!-- HOME TAB -->
         <div id="homeTab" class="tab-content active">
             <div class="balance-card">
-                <div style="font-size: 13px; font-weight: bold; opacity: 0.8;">TOTAL BALANCE</div>
-                <div style="font-size: 28px; font-weight: 800; margin: 8px 0;"><span id="coinVal">0</span> Coins</div>
-                <div style="font-size: 14px; background: rgba(255,255,255,0.4); padding: 4px 8px; border-radius: 8px; display: inline-block;">≈ <span id="mmkVal">0</span> MMK</div>
-            </div>
-
-            <div class="card-item" style="flex-direction: column; align-items: stretch;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div>
-                        <h4 style="margin:0;">Earn Coins (Watch Ad)</h4>
-                        <p style="margin:0; font-size:12px; opacity:0.8;">Reward: <span id="homeCoinLbl">10</span> Coins</p>
-                    </div>
-                    <button class="card-btn" onclick="watchHomeAd()">Watch Ad</button>
+                <div class="balance-title" id="tBalanceTitle">Total Balance</div>
+                <div class="balance-amount">
+                    <span id="coinVal">0</span> <span style="font-size: 16px;">Coins</span>
                 </div>
+                <div class="balance-sub">≈ <span id="mmkVal">0</span> MMK</div>
             </div>
 
-            <button class="card-btn" style="width:100%; padding: 14px; margin-top: 10px;" onclick="openWithdrawModal()">💸 Withdraw to KBZ / Wave</button>
+            <div class="action-grid">
+                <div class="card-item" style="margin:0;">
+                    <div class="card-info">
+                        <h4 id="tEarnCoinTitle">Earn your coin (Ads)</h4>
+                        <p>Limit: <span id="adLimitCount">50</span>/50 left today</p>
+                    </div>
+                    <button class="card-btn" id="homeWatchBtn" onclick="watchHomeAd()">Watch (20s)</button>
+                </div>
+                <button class="action-btn" onclick="openWithdrawModal()" id="tWithdrawBtn">
+                    <span>💸 Withdraw to KBZ / Wave</span>
+                    <span>➔</span>
+                </button>
+            </div>
         </div>
 
         <!-- MARKET TAB -->
         <div id="marketTab" class="tab-content">
             <div style="text-align: center; margin-bottom: 12px;">
-                <h2>📈 Digital Market Exchange</h2>
-                <p id="marketStatusNotice" style="font-size:13px; color: #bc6c25; font-weight:bold;"></p>
+                <h2 style="margin:0;">📈 Digital Market Exchange</h2>
+                <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: Loading...</p>
+                <p id="marketStatusNotice" style="font-size:13px; color:red; font-weight:bold;"></p>
             </div>
-            <div class="card-item" style="flex-direction: column; text-align: center;">
+
+            <div class="market-ticker" id="marketTicker">
+                📊 DIGITAL LIVE SYSTEM: COIN/MMK RATE DYNAMICALLY ACTIVE 💹
+            </div>
+
+            <div class="market-card">
                 <h3>🔄 Coin to MMK Converter</h3>
-                <div class="form-group" style="text-align: left;">
+                <p style="font-size:13px; margin-bottom:10px;">ငွေကြေးလဲလှယ်ရန် လိုအပ်သော ပမာဏထည့်ပါ</p>
+                <div class="form-group">
                     <input type="number" id="convertCoinInput" placeholder="Enter Coins" oninput="calcExchange()">
                 </div>
-                <p style="font-size: 14px; font-weight: bold;">You will get: <span id="previewMmk">0.00</span> MMK</p>
+                <p style="font-size: 14px; font-weight: bold; margin: 8px 0;">You will get: <span id="previewMmk" style="color:var(--btn-color);">0.00</span> MMK</p>
                 <button class="card-btn" style="width:100%;" onclick="executeCoinExchange()">Exchange Now</button>
             </div>
         </div>
@@ -103,8 +355,8 @@
         <!-- TASKS TAB -->
         <div id="tasksTab" class="tab-content">
             <div style="text-align: center; margin-bottom: 16px;">
-                <h2 style="margin:0;">📋 Tasks Center</h2>
-                <p style="font-size: 13px; opacity: 0.8;">Complete tasks to earn extra coins</p>
+                <h2 style="margin: 0;" id="tTaskHeader">📋 Tasks Center</h2>
+                <p style="font-size: 13px; opacity: 0.8;" id="tTaskSub">Watch ad per task & claim</p>
             </div>
             <div id="taskListContainer"></div>
         </div>
@@ -112,19 +364,66 @@
         <!-- PROFILE TAB -->
         <div id="profileTab" class="tab-content">
             <div class="card-item" style="flex-direction: column; text-align: center; gap: 8px;">
-                <img id="profileUserPic" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; object-fit:cover;" alt="User">
+                <img id="profileUserPic" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; border:3px solid var(--primary-accent); object-fit:cover;" alt="User">
                 <h3 id="profileUserName" style="margin:0;">User Name</h3>
                 <p style="margin:0; font-size:12px;">Telegram ID: <span id="profileUserId">123456</span></p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
+                    <span style="font-size:12px; opacity:0.8;">My Coins</span>
+                    <h3 id="profileCoinVal" style="margin:4px 0; color:var(--btn-color);">0</h3>
+                </div>
+                <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
+                    <span style="font-size:12px; opacity:0.8;">My MMK</span>
+                    <h3 id="profileMmkVal" style="margin:4px 0; color:#bc6c25;">0</h3>
+                </div>
+            </div>
+
+            <div class="card-item" style="flex-direction: column; align-items: flex-start;">
+                <h4 style="margin:0 0 8px 0;">📜 Withdrawal History</h4>
+                <div id="historyListContainer" style="width:100%; max-height:150px; overflow-y:auto; font-size:12px;">
+                    <p style="text-align:center; opacity:0.6;">No history yet.</p>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
-        <button class="nav-item active" id="navHome" onclick="switchTab('home')"><span>🏠</span>Home</button>
-        <button class="nav-item" id="navMarket" onclick="switchTab('market')"><span>📈</span>Market</button>
-        <button class="nav-item" id="navTasks" onclick="switchTab('tasks')"><span>📋</span>Tasks</button>
-        <button class="nav-item" id="navProfile" onclick="switchTab('profile')"><span>👤</span>Profile</button>
+        <button class="nav-item active" id="navHome" onclick="switchTab('home')">
+            <span class="icon">🏠</span>
+            <span id="tNavHome">Home</span>
+        </button>
+        <button class="nav-item" id="navMarket" onclick="switchTab('market')">
+            <span class="icon">📈</span>
+            <span id="tNavMarket">Market</span>
+        </button>
+        <button class="nav-item" id="navTasks" onclick="switchTab('tasks')">
+            <span class="icon">📋</span>
+            <span id="tNavTasks">Tasks</span>
+        </button>
+        <button class="nav-item" id="navProfile" onclick="switchTab('profile')">
+            <span class="icon">👤</span>
+            <span id="tNavProfile">Profile</span>
+        </button>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3>⚙️ Settings & User Info</h3>
+            <div class="form-group">
+                <label>Dark Mode / Light Mode:</label>
+                <button class="card-btn" style="width:100%;" onclick="toggleDarkMode()">Toggle Dark / Light Mode</button>
+            </div>
+            <div style="font-size: 13px; margin-top: 15px; background:rgba(0,0,0,0.03); padding:12px; border-radius:8px;">
+                <p><b>App Name:</b> Real money</p>
+                <p><b>User Name:</b> <span id="setUserName"></span></p>
+                <p><b>Telegram ID:</b> <span id="setUserId"></span></p>
+            </div>
+            <button class="close-btn" onclick="document.getElementById('settingsModal').style.display='none'">Close</button>
+        </div>
     </div>
 
     <!-- WITHDRAW MODAL -->
@@ -133,15 +432,18 @@
             <h3>💸 Withdraw to MMK</h3>
             <p id="withdrawStatusNotice" style="font-size:12px; color:red;"></p>
             <div class="form-group">
-                <label>Select Bank:</label>
-                <select id="withdrawBank"><option value="KBZ Pay">KBZ Pay</option><option value="Wave Money">Wave Money</option></select>
+                <label>Select Bank / Payment:</label>
+                <select id="withdrawBank">
+                    <option value="KBZ Pay">KBZ Pay</option>
+                    <option value="Wave Money">Wave Money</option>
+                </select>
             </div>
             <div class="form-group">
                 <label>Phone Number:</label>
                 <input type="text" id="withdrawPhone" placeholder="09xxxxxxxxx">
             </div>
-            <button class="card-btn" style="width:100%;" onclick="submitWithdrawal()">Submit Request</button>
-            <button class="close-btn" onclick="document.getElementById('withdrawModal').style.display='none'">Cancel</button>
+            <button class="card-btn" style="background:#bc6c25; color:white; width:100%;" onclick="submitWithdrawal()">Submit Request</button>
+            <button class="close-btn" onclick="closeWithdrawModal()">Cancel</button>
         </div>
     </div>
 
@@ -159,9 +461,9 @@
     </div>
 
     <!-- ADMIN PANEL MODAL -->
-    <div class="modal" id="adminPanelModal">
+    <div class="modal" id="adminModal">
         <div class="modal-content" style="max-width: 440px;">
-            <h3>🛠️ Admin Control Panel</h3>
+            <h3>🛡️ Admin Control Panel</h3>
             <div style="display:flex; gap:4px; margin-bottom:10px;">
                 <button class="card-btn" style="flex:1; font-size:11px; padding:6px;" onclick="switchAdminTab('users')">👥 Users</button>
                 <button class="card-btn" style="flex:1; font-size:11px; padding:6px;" onclick="switchAdminTab('settings')">⚙️ Settings</button>
@@ -172,7 +474,7 @@
             <!-- USERS TAB -->
             <div id="admTabUsers">
                 <div class="form-group">
-                    <input type="text" id="searchTgidInput" placeholder="Search by Telegram ID..." oninput="filterAdminUsers()">
+                    <input type="text" id="searchTgidInput" placeholder="Search by Telegram ID or Name..." oninput="filterAdminUsers()">
                 </div>
                 <div class="form-group">
                     <select id="filterStatusSelect" onchange="filterAdminUsers()">
@@ -181,7 +483,7 @@
                         <option value="banned">Banned Only</option>
                     </select>
                 </div>
-                <div id="adminUserList" style="max-height: 220px; overflow-y: auto; font-size: 12px; border:1px solid #d4a373; padding:6px; border-radius:8px;"></div>
+                <div id="adminUserList" style="max-height: 220px; overflow-y: auto; font-size: 12px; border:1px solid var(--primary-accent); padding:6px; border-radius:8px;"></div>
             </div>
 
             <!-- SETTINGS TAB -->
@@ -214,25 +516,30 @@
                 <div id="adminAdsList" style="max-height: 150px; overflow-y: auto;"></div>
             </div>
 
-            <button class="close-btn" onclick="document.getElementById('adminPanelModal').style.display='none'">Close Panel</button>
+            <button class="close-btn" onclick="closeAdminModal()">Close</button>
         </div>
     </div>
 
-    <!-- AD WATCHING MODAL -->
+    <!-- AD WATCHING SIMULATOR MODAL (20s) -->
     <div class="modal" id="adModal">
         <div class="modal-content" style="text-align: center;">
-            <h3>📺 Watching Advertisement</h3>
-            <h1 id="countdownNum" style="font-size: 40px; color: var(--btn-color); margin: 10px 0;">10</h1>
+            <h3>📺 Watching 20s Advertisement</h3>
+            <p id="adTimerText">Please wait 20 seconds...</p>
+            <h1 id="countdownNum" style="font-size: 40px; color: var(--btn-color); margin: 10px 0;">20</h1>
         </div>
     </div>
 
     <script>
+        // Supabase Configuration
         const SUPABASE_URL = 'https://bdrsiqbyalumgdmyovcc.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_WH7M3Z6yZE7QwgD4KF16oQ_Y7IrKMnA';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
+
+        let lang = localStorage.getItem('app_lang') || 'my';
+        let isDarkMode = localStorage.getItem('dark_mode') === 'true';
 
         let currentUser = {
             id: (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id.toString() : "user_" + Math.floor(Math.random()*10000),
@@ -246,7 +553,17 @@
         let allPayoutsCache = [];
         let allAdsCache = [];
 
+        // Ad Limit tracking per 24 hours
+        let adLimitData = JSON.parse(localStorage.getItem('ad_limit_data')) || {
+            count: 0,
+            resetTime: Date.now() + 86400000
+        };
+
+        initApp();
+
         async function initApp() {
+            if (isDarkMode) document.body.classList.add('dark-mode');
+            checkAdLimitReset();
             try {
                 await fetchSettings();
                 await syncUser();
@@ -256,13 +573,16 @@
             } catch(err) {
                 console.error("Init Error:", err);
             }
+            initUserData();
+            updateLanguageText();
+            startDigitalTicker();
         }
 
         async function fetchSettings() {
-            let { data, error } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
+            let { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
             if(data) {
                 globalSettings = data;
-                document.getElementById('homeCoinLbl').innerText = globalSettings.home_coin || 10;
+                updateMarketRateDisplay();
                 
                 if(globalSettings.market_open === false) {
                     document.getElementById('marketStatusNotice').innerText = "⚠️ Market Exchange is currently CLOSED by Admin.";
@@ -278,11 +598,11 @@
         }
 
         async function syncUser() {
-            let { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+            let { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
             if(data) {
                 userData = data;
                 if(userData.status === 'banned') {
-                    document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red;"><h2>🚫 Your account has been banned.</h2></div>`;
+                    document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
                     return;
                 }
             } else {
@@ -298,35 +618,146 @@
                 }).subscribe();
         }
 
+        function initUserData() {
+            document.getElementById('headerUserName').innerText = currentUser.name;
+            document.getElementById('headerUserPic').src = currentUser.photo;
+            document.getElementById('profileUserName').innerText = currentUser.name;
+            document.getElementById('profileUserId').innerText = currentUser.id;
+            document.getElementById('profileUserPic').src = currentUser.photo;
+            document.getElementById('setUserName').innerText = currentUser.name;
+            document.getElementById('setUserId').innerText = currentUser.id;
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('dark_mode', isDarkMode);
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
         function switchTab(tabName) {
-            ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => {
-                let el = document.getElementById(t);
-                if(el) el.classList.remove('active');
-            });
-            ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => {
-                let el = document.getElementById(n);
-                if(el) el.classList.remove('active');
-            });
-            let targetTab = document.getElementById(tabName + 'Tab');
-            if(targetTab) targetTab.classList.add('active');
+            ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => document.getElementById(t).classList.remove('active'));
+            ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => document.getElementById(n).classList.remove('active'));
+
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
             
-            let targetNav = document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
-            if(targetNav) targetNav.classList.add('active');
+            if (tabName === 'profile') {
+                renderHistory();
+            }
+        }
+
+        function toggleLang() {
+            lang = lang === 'my' ? 'eng' : 'my';
+            localStorage.setItem('app_lang', lang);
+            document.getElementById('langBtn').innerText = lang.toUpperCase();
+            updateLanguageText();
+        }
+
+        function updateLanguageText() {
+            if (lang === 'eng') {
+                document.getElementById('tBalanceTitle').innerText = "Total Balance";
+                document.getElementById('tEarnCoinTitle').innerText = "Earn your coin (Ads)";
+                document.getElementById('homeWatchBtn').innerText = "Watch (20s)";
+                document.getElementById('tWithdrawBtn').innerHTML = "<span>💸 Withdraw to KBZ / Wave</span><span>➔</span>";
+                document.getElementById('tTaskHeader').innerText = "📋 Tasks Center";
+                document.getElementById('tTaskSub').innerText = "Watch 20s ad per task & claim";
+                document.getElementById('tNavHome').innerText = "Home";
+                document.getElementById('tNavMarket').innerText = "Market";
+                document.getElementById('tNavTasks').innerText = "Tasks";
+                document.getElementById('tNavProfile').innerText = "Profile";
+            } else {
+                document.getElementById('tBalanceTitle').innerText = "စုစုပေါင်း လက်ကျန်ငွေ";
+                document.getElementById('tEarnCoinTitle').innerText = "ဒင်္ဂါးပြား ရှာရန် (ကြော်ငြာ)";
+                document.getElementById('homeWatchBtn').innerText = "ကြည့်မည် (၂၀ စက္ကန့်)";
+                document.getElementById('tWithdrawBtn').innerHTML = "<span>💸 KBZ / Wave သို့ ငွေထုတ်မည်</span><span>➔</span>";
+                document.getElementById('tTaskHeader').innerText = "📋 တာဝန်များ";
+                document.getElementById('tTaskSub').innerText = "တာဝန်တစ်ခုလျှင် ၂၀ စက္ကန့်ကြည့်၍ Claim ပါ";
+                document.getElementById('tNavHome').innerText = "ပင်မ";
+                document.getElementById('tNavMarket').innerText = "စျေးကွက်";
+                document.getElementById('tNavTasks').innerText = "တာဝန်များ";
+                document.getElementById('tNavProfile').innerText = "ကိုယ်ရေး";
+            }
         }
 
         function updateUI() {
-            document.getElementById('headerUserName').innerText = userData.name || 'User';
-            document.getElementById('headerUserPic').src = userData.photo || 'https://via.placeholder.com/32';
-            document.getElementById('profileUserName').innerText = userData.name || 'User';
-            document.getElementById('profileUserId').innerText = userData.id || '';
-            document.getElementById('profileUserPic').src = userData.photo || 'https://via.placeholder.com/80';
             document.getElementById('coinVal').innerText = userData.coins || 0;
             document.getElementById('mmkVal').innerText = (userData.mmk || 0).toFixed(2);
+            document.getElementById('profileCoinVal').innerText = userData.coins || 0;
+            document.getElementById('profileMmkVal').innerText = (userData.mmk || 0).toFixed(2);
+            document.getElementById('adLimitCount').innerText = Math.max(0, 50 - adLimitData.count);
         }
 
+        function updateMarketRateDisplay() {
+            let cRate = globalSettings.ex_coins || 1000;
+            let mRate = globalSettings.ex_mmk || 100;
+            document.getElementById('marketRateDisplay').innerText = `Live Rate: ${cRate} Coins = ${mRate} MMK`;
+        }
+
+        function startDigitalTicker() {
+            let ticker = document.getElementById('marketTicker');
+            setInterval(() => {
+                let fluctuation = (Math.random() * 0.4 - 0.2).toFixed(2);
+                let trend = fluctuation >= 0 ? '📈 BULLISH (+' + fluctuation + '%)' : '📉 BEARISH (' + fluctuation + '%)';
+                let cRate = globalSettings.ex_coins || 1000;
+                let mRate = globalSettings.ex_mmk || 100;
+                ticker.innerHTML = `📊 DIGITAL MARKET LIVE: ${cRate} Coins = ${mRate} MMK | Status: ${trend}`;
+            }, 4000);
+        }
+
+        function checkAdLimitReset() {
+            let now = Date.now();
+            if (now >= adLimitData.resetTime) {
+                adLimitData.count = 0;
+                adLimitData.resetTime = now + 86400000;
+                localStorage.setItem('ad_limit_data', JSON.stringify(adLimitData));
+            }
+        }
+
+        // --- MARKET EXCHANGE ---
+        function calcExchange() {
+            let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
+            let cRate = globalSettings.ex_coins || 1000;
+            let mRate = globalSettings.ex_mmk || 100;
+            let rateMultiplier = mRate / cRate;
+            let mmk = val * rateMultiplier;
+            document.getElementById('previewMmk').innerText = mmk.toFixed(2);
+        }
+
+        async function executeCoinExchange() {
+            if (globalSettings.market_open === false) {
+                alert(lang === 'eng' ? 'Market is currently closed by Admin.' : 'စျေးကွက်ကို အက်မင်မှ ခေတ္တပိတ်ထားပါသည်။');
+                return;
+            }
+            let cInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
+            if (cInput <= 0 || cInput > (userData.coins || 0)) {
+                alert(lang === 'eng' ? 'Invalid coin amount or insufficient balance.' : 'ထည့်သွင်းထားသော ပမာဏ မမှန်ကန်ပါ သို့မဟုတ် လက်ကျန် မလုံလောက်ပါ။');
+                return;
+            }
+            let cRate = globalSettings.ex_coins || 1000;
+            let mRate = globalSettings.ex_mmk || 100;
+            let mmkEarned = cInput * (mRate / cRate);
+            
+            userData.coins = (userData.coins || 0) - cInput;
+            userData.mmk = (userData.mmk || 0) + mmkEarned;
+
+            await supabase.from('profiles').update({ coins: userData.coins, mmk: userData.mmk }).eq('id', currentUser.id);
+            updateUI();
+            document.getElementById('convertCoinInput').value = '';
+            alert((lang === 'eng' ? 'Successfully exchanged to ' : 'အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ - ') + mmkEarned.toFixed(2) + ' MMK');
+        }
+
+        // --- ROTATING AD LINKS ---
         async function triggerRotatedAd() {
             let { data: ads } = await supabase.from('ads').select('*').eq('active', true);
-            if(ads && ads.length > 0) {
+            if (ads && ads.length > 0) {
                 let randomAd = ads[Math.floor(Math.random() * ads.length)];
                 window.open(randomAd.url, '_blank');
             } else {
@@ -334,129 +765,168 @@
             }
         }
 
-        function startAdTimer(rewardCoins, callback) {
+        function startAdTimer(rewardCoins, isHomeAd, callback) {
+            if (isHomeAd) {
+                checkAdLimitReset();
+                if (adLimitData.count >= 50) {
+                    alert(lang === 'eng' ? 'Daily limit of 50 ads reached.' : 'ယနေ့အတွက် ကြော်ငြာကြည့်ရှုမှု အကြိမ် ၅၀ ပြည့်သွားပါပြီ။');
+                    return;
+                }
+            }
+
             triggerRotatedAd();
+
             let modal = document.getElementById('adModal');
             modal.style.display = 'flex';
-            let timeLeft = 10;
+            let timeLeft = 20;
             document.getElementById('countdownNum').innerText = timeLeft;
+
             let timer = setInterval(async () => {
                 timeLeft--;
                 document.getElementById('countdownNum').innerText = timeLeft;
-                if(timeLeft <= 0) {
+                if (timeLeft <= 0) {
                     clearInterval(timer);
                     modal.style.display = 'none';
-                    if(rewardCoins > 0) {
+
+                    if (isHomeAd) {
+                        adLimitData.count++;
+                        localStorage.setItem('ad_limit_data', JSON.stringify(adLimitData));
+                        updateUI();
+                    }
+
+                    if (rewardCoins > 0) {
                         userData.coins = (userData.coins || 0) + rewardCoins;
                         await supabase.from('profiles').update({ coins: userData.coins }).eq('id', currentUser.id);
                         updateUI();
                     }
-                    if(callback) callback();
+                    if (callback) callback();
                 }
             }, 1000);
         }
 
         function watchHomeAd() {
-            startAdTimer(globalSettings.home_coin || 10, () => {
-                alert('Earned ' + (globalSettings.home_coin || 10) + ' Coins!');
+            let hc = globalSettings.home_coin || 10;
+            startAdTimer(hc, true, () => {
+                alert((lang === 'eng' ? 'Earned ' : 'ရရှိသွားပါပြီ - ') + hc + ' Coins!');
             });
         }
 
-        function calcExchange() {
-            let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            let cRate = globalSettings.ex_coins || 1000;
-            let mRate = globalSettings.ex_mmk || 100;
-            let rate = mRate / cRate;
-            document.getElementById('previewMmk').innerText = (val * rate).toFixed(2);
-        }
-
-        async function executeCoinExchange() {
-            if(globalSettings.market_open === false) { alert('Market exchange is closed.'); return; }
-            let coinsInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            if(coinsInput <= 0 || coinsInput > userData.coins) { alert('Invalid coin amount.'); return; }
-            let cRate = globalSettings.ex_coins || 1000;
-            let mRate = globalSettings.ex_mmk || 100;
-            let earnedMmk = coinsInput * (mRate / cRate);
-            userData.coins -= coinsInput;
-            userData.mmk = (userData.mmk || 0) + earnedMmk;
-            await supabase.from('profiles').update({ coins: userData.coins, mmk: userData.mmk }).eq('id', currentUser.id);
-            document.getElementById('convertCoinInput').value = '';
-            updateUI();
-            alert('Exchanged successfully to ' + earnedMmk.toFixed(2) + ' MMK');
-        }
-
+        // --- TASKS ---
         function renderTasks() {
             let container = document.getElementById('taskListContainer');
             if(!container) return;
             container.innerHTML = '';
-            for(let i=1; i<=5; i++) {
+            let taskCoin = globalSettings.task_coin || 5;
+            for (let i = 1; i <= 5; i++) {
                 let state = (userData.tasks && userData.tasks[i]) || 'watch';
-                let btnTxt = state === 'watch' ? 'Watch Ad' : state === 'claim' ? 'Claim' : 'Done';
-                let disabled = state === 'done' ? 'disabled' : '';
-                let taskCoin = globalSettings.task_coin || 5;
-                container.innerHTML += `
-                    <div class="card-item">
-                        <div><h4 style="margin:0;">Task #${i}</h4><p style="margin:0;font-size:12px;">Earn ${taskCoin} coins</p></div>
-                        <button class="card-btn" ${disabled} onclick="handleTask(${i})">${btnTxt}</button>
-                    </div>`;
+                let btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
+                let isDisabled = state === 'done' ? 'disabled' : '';
+
+                let div = document.createElement('div');
+                div.className = 'card-item';
+                div.innerHTML = `
+                    <div class="card-info">
+                        <h4>Task #${i}</h4>
+                        <p>Watch 20s ad & claim ${taskCoin} coins</p>
+                    </div>
+                    <button class="card-btn" ${isDisabled} onclick="handleTask(${i})">${btnText}</button>
+                `;
+                container.appendChild(div);
             }
         }
 
         async function handleTask(taskId) {
             let state = (userData.tasks && userData.tasks[taskId]) || 'watch';
             let taskCoin = globalSettings.task_coin || 5;
-            if(state === 'watch') {
-                startAdTimer(0, async () => {
-                    if(!userData.tasks) userData.tasks = {};
+            if (state === 'watch') {
+                startAdTimer(0, false, async () => {
+                    if (!userData.tasks) userData.tasks = {};
                     userData.tasks[taskId] = 'claim';
                     await supabase.from('profiles').update({ tasks: userData.tasks }).eq('id', currentUser.id);
                     renderTasks();
-                    alert('Ad finished! Click Claim.');
+                    alert(lang === 'eng' ? 'Ad finished! Click Claim.' : 'ကြော်ငြာပြီးပါပြီ။ Claim နှိပ်ပါ။');
                 });
-            } else if(state === 'claim') {
+            } else if (state === 'claim') {
                 userData.coins = (userData.coins || 0) + taskCoin;
+                if (!userData.tasks) userData.tasks = {};
                 userData.tasks[taskId] = 'done';
                 await supabase.from('profiles').update({ coins: userData.coins, tasks: userData.tasks }).eq('id', currentUser.id);
                 updateUI();
                 renderTasks();
-                alert('Claimed ' + taskCoin + ' coins!');
+                alert((lang === 'eng' ? 'Claimed ' : 'ရရှိသွားပါပြီ - ') + taskCoin + ' Coins!');
             }
         }
 
+        // --- WITHDRAWAL ---
         function openWithdrawModal() {
-            if(globalSettings.withdraw_open === false) { alert('Withdrawals are currently closed.'); return; }
+            if (globalSettings.withdraw_open === false) {
+                alert(lang === 'eng' ? 'Withdrawals are closed.' : 'ငွေထုတ်ယူခြင်းကို ပိတ်ထားပါသည်။');
+                return;
+            }
             document.getElementById('withdrawModal').style.display = 'flex';
+        }
+
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').style.display = 'none';
         }
 
         async function submitWithdrawal() {
             let bank = document.getElementById('withdrawBank').value;
             let phone = document.getElementById('withdrawPhone').value.trim();
-            let amount = userData.mmk;
-            if(!phone || amount <= 0) { alert('Please check your balance and phone number.'); return; }
+            let amountMmk = userData.mmk || 0;
 
-            let reqId = 'REQ-' + Math.floor(100000 + Math.random()*900000);
+            if (!phone || amountMmk <= 0) {
+                alert(lang === 'eng' ? 'Please check your balance and phone number.' : 'ဖုန်းနံပတ် သို့မဟုတ် လက်ကျန်ငွေ မမှန်ကန်ပါ။');
+                return;
+            }
+
+            let reqId = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
             await supabase.from('withdraw_requests').insert([{
-                req_id: reqId, user_id: currentUser.id, name: currentUser.name, bank: bank, phone: phone, amount: amount, status: 'Pending'
+                req_id: reqId,
+                user_id: currentUser.id,
+                name: currentUser.name,
+                bank: bank,
+                phone: phone,
+                amount: amountMmk,
+                status: 'Pending'
             }]);
 
             userData.mmk = 0;
             await supabase.from('profiles').update({ mmk: 0 }).eq('id', currentUser.id);
             updateUI();
-            document.getElementById('withdrawModal').style.display = 'none';
-            alert('Withdrawal request submitted successfully!');
+            closeWithdrawModal();
+            alert(lang === 'eng' ? 'Withdrawal request submitted successfully!' : 'ငွေထုတ်ယူရန် တောင်းဆိုမှု အောင်မြင်ပါသည်။');
         }
 
-        function openAdminLogin() { 
-            document.getElementById('adminLoginModal').style.display = 'flex'; 
+        async function renderHistory() {
+            let container = document.getElementById('historyListContainer');
+            container.innerHTML = '';
+            let { data: reqs } = await supabase.from('withdraw_requests').select('*').eq('user_id', currentUser.id);
+            if (!reqs || reqs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
+                return;
+            }
+            reqs.forEach(r => {
+                let d = document.createElement('div');
+                d.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
+                d.style.padding = '4px 0';
+                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - ${r.amount} MMK <br><span style="color:${r.status === 'Sent' ? '#388e3c' : '#bc6c25'}">[Status: ${r.status}]</span>`;
+                container.appendChild(d);
+            });
         }
 
-        async function verifyAdmin() {
+        // --- ADMIN PANEL ---
+        function openAdminLoginModal() {
+            document.getElementById('adminLoginModal').style.display = 'flex';
+        }
+
+        async function verifyAdminLogin() {
             let pass = document.getElementById('adminPassBox').value;
-            let correctPass = (globalSettings && globalSettings.admin_pass) ? globalSettings.admin_pass : '1234';
-            if(pass === correctPass) {
+            let correctPass = globalSettings.admin_pass || '1234';
+            if (pass === correctPass) {
                 document.getElementById('adminLoginModal').style.display = 'none';
-                document.getElementById('adminPanelModal').style.display = 'flex';
-                
+                document.getElementById('adminModal').style.display = 'flex';
+
                 document.getElementById('admHomeCoin').value = globalSettings.home_coin || 10;
                 document.getElementById('admTaskCoin').value = globalSettings.task_coin || 5;
                 document.getElementById('admExCoins').value = globalSettings.ex_coins || 1000;
@@ -469,7 +939,10 @@
                 alert('Incorrect password!');
             }
         }
-        function verifyAdminLogin() { verifyAdmin(); }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+        }
 
         function switchAdminTab(tab) {
             document.getElementById('admTabUsers').style.display = tab === 'users' ? 'block' : 'none';
@@ -493,20 +966,20 @@
         }
 
         function filterAdminUsers() {
-            let searchId = document.getElementById('searchTgidInput').value.toLowerCase();
+            let query = document.getElementById('searchTgidInput').value.toLowerCase();
             let statusFilter = document.getElementById('filterStatusSelect').value;
             let container = document.getElementById('adminUserList');
             container.innerHTML = '';
 
             let filtered = allUsersCache.filter(u => {
-                let matchId = String(u.id).toLowerCase().includes(searchId);
+                let matchId = String(u.id).toLowerCase().includes(query) || (u.name && u.name.toLowerCase().includes(query));
                 let matchStatus = statusFilter === 'all' || u.status === statusFilter;
                 return matchId && matchStatus;
             });
 
             filtered.forEach(u => {
                 container.innerHTML += `
-                    <div style="border-bottom:1px solid #d4a373; padding:6px; margin-bottom:4px;">
+                    <div style="border-bottom:1px solid var(--primary-accent); padding:6px; margin-bottom:4px;">
                         <b>${u.name || 'User'}</b> (ID: ${u.id}) - [<b>${u.status || 'active'}</b>]<br>
                         Coins: <input type="number" id="c_${u.id}" value="${u.coins || 0}" style="width:60px;display:inline;"> | 
                         MMK: <input type="number" id="m_${u.id}" value="${u.mmk || 0}" style="width:60px;display:inline;"><br>
@@ -533,21 +1006,21 @@
         function renderPayouts() {
             let div = document.getElementById('adminPayoutList');
             div.innerHTML = '';
-            if(allPayoutsCache.length === 0) { div.innerHTML = 'No pending requests.'; return; }
+            if (allPayoutsCache.length === 0) { div.innerHTML = 'No pending requests.'; return; }
             allPayoutsCache.forEach(r => {
                 div.innerHTML += `
-                    <div style="border:1px solid #d4a373; padding:6px; margin-bottom:6px; border-radius:6px;">
+                    <div style="border:1px solid var(--primary-accent); padding:6px; margin-bottom:6px; border-radius:6px;">
                         <b>${r.name || 'User'}</b> (ID: ${r.user_id})<br>
                         Bank: ${r.bank} | Phone: <b>${r.phone}</b><br>
                         Amount: <b>${r.amount} MMK</b><br>
-                        <button class="card-btn" style="padding:4px 8px; font-size:11px; margin-top:4px;" onclick="approvePayout('${r.req_id}')">Approve & Mark Done</button>
+                        <button class="card-btn" style="padding:4px 8px; font-size:11px; margin-top:4px;" onclick="approvePayout('${r.req_id}')">Approve & Mark Sent</button>
                     </div>`;
             });
         }
 
         async function approvePayout(reqId) {
-            await supabase.from('withdraw_requests').update({ status: 'Approved' }).eq('req_id', reqId);
-            alert('Payout approved successfully!');
+            await supabase.from('withdraw_requests').update({ status: 'Sent' }).eq('req_id', reqId);
+            alert('Payout marked as Sent!');
             loadAdminData();
         }
 
@@ -565,10 +1038,10 @@
         function renderAdminAds() {
             let div = document.getElementById('adminAdsList');
             div.innerHTML = '';
-            if(allAdsCache.length === 0) { div.innerHTML = 'No ads added yet.'; return; }
+            if (allAdsCache.length === 0) { div.innerHTML = 'No ads added yet.'; return; }
             allAdsCache.forEach(ad => {
                 div.innerHTML += `
-                    <div style="border-bottom:1px solid #d4a373; padding:4px; font-size:11px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="border-bottom:1px solid var(--primary-accent); padding:4px; font-size:11px; display:flex; justify-content:space-between; align-items:center;">
                         <span><b>${ad.title}</b><br><a href="${ad.url}" target="_blank">${ad.url}</a></span>
                         <button class="card-btn" style="padding:2px 6px; font-size:10px; background:red;" onclick="deleteAd(${ad.id})">Delete</button>
                     </div>`;
@@ -588,19 +1061,14 @@
             let mo = document.getElementById('admMarketOpen').value === 'true';
             let wo = document.getElementById('admWithdrawOpen').value === 'true';
 
-            let { error } = await supabase.from('settings').update({
+            await supabase.from('settings').update({
                 home_coin: hc, task_coin: tc, ex_coins: ec, ex_mmk: em, market_open: mo, withdraw_open: wo
             }).eq('id', 1);
 
-            if(error) {
-                alert('Error saving settings: ' + error.message);
-            } else {
-                alert('Global settings updated successfully!');
-                fetchSettings();
-            }
+            alert('Global settings updated successfully!');
+            fetchSettings();
+            closeAdminModal();
         }
-
-        initApp();
     </script>
 </body>
 </html>
