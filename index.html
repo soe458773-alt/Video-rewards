@@ -333,7 +333,7 @@
         <div id="marketTab" class="tab-content">
             <div style="text-align: center; margin-bottom: 12px;">
                 <h2 style="margin:0;">📈 Digital Market Exchange</h2>
-                <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: Loading...</p>
+                <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: 1000 Coins = 100 MMK</p>
                 <p id="marketStatusNotice" style="font-size:13px; color:red; font-weight:bold;"></p>
             </div>
 
@@ -530,10 +530,15 @@
     </div>
 
     <script>
-        // Supabase Configuration
         const SUPABASE_URL = 'https://bdrsiqbyalumgdmyovcc.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_WH7M3Z6yZE7QwgD4KF16oQ_Y7IrKMnA';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase = null;
+
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch(e) {
+            console.error("Supabase init error:", e);
+        }
 
         let tg = window.Telegram.WebApp;
         try { tg.expand(); } catch(e) {}
@@ -553,7 +558,6 @@
         let allPayoutsCache = [];
         let allAdsCache = [];
 
-        // Ad Limit tracking per 24 hours
         let adLimitData = JSON.parse(localStorage.getItem('ad_limit_data')) || {
             count: 0,
             resetTime: Date.now() + 86400000
@@ -564,58 +568,68 @@
         async function initApp() {
             if (isDarkMode) document.body.classList.add('dark-mode');
             checkAdLimitReset();
-            try {
-                await fetchSettings();
-                await syncUser();
-                updateUI();
-                renderTasks();
-                setupRealtime();
-            } catch(err) {
-                console.error("Init Error:", err);
-            }
+            
             initUserData();
             updateLanguageText();
             startDigitalTicker();
+            renderTasks();
+
+            if (supabase) {
+                try {
+                    await fetchSettings();
+                    await syncUser();
+                    setupRealtime();
+                } catch(err) {
+                    console.error("Network/DB Error:", err);
+                }
+            }
+            updateUI();
         }
 
         async function fetchSettings() {
-            let { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
-            if(data) {
-                globalSettings = data;
-                updateMarketRateDisplay();
-                
-                if(globalSettings.market_open === false) {
-                    document.getElementById('marketStatusNotice').innerText = "⚠️ Market Exchange is currently CLOSED by Admin.";
-                } else {
-                    document.getElementById('marketStatusNotice').innerText = "";
+            try {
+                let { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
+                if(data) {
+                    globalSettings = data;
+                    updateMarketRateDisplay();
+                    
+                    if(globalSettings.market_open === false) {
+                        document.getElementById('marketStatusNotice').innerText = "⚠️ Market Exchange is currently CLOSED by Admin.";
+                    } else {
+                        document.getElementById('marketStatusNotice').innerText = "";
+                    }
+                    if(globalSettings.withdraw_open === false) {
+                        document.getElementById('withdrawStatusNotice').innerText = "⚠️ Withdrawals are currently CLOSED by Admin.";
+                    } else {
+                        document.getElementById('withdrawStatusNotice').innerText = "";
+                    }
                 }
-                if(globalSettings.withdraw_open === false) {
-                    document.getElementById('withdrawStatusNotice').innerText = "⚠️ Withdrawals are currently CLOSED by Admin.";
-                } else {
-                    document.getElementById('withdrawStatusNotice').innerText = "";
-                }
-            }
+            } catch(e) { console.error("fetchSettings error", e); }
         }
 
         async function syncUser() {
-            let { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
-            if(data) {
-                userData = data;
-                if(userData.status === 'banned') {
-                    document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
-                    return;
+            try {
+                let { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+                if(data) {
+                    userData = data;
+                    if(userData.status === 'banned') {
+                        document.body.innerHTML = `<div style="text-align:center; margin-top:100px; color:red;"><h2>🚫 Your account has been banned by Admin.</h2></div>`;
+                        return;
+                    }
+                } else {
+                    await supabase.from('profiles').insert([userData]);
                 }
-            } else {
-                await supabase.from('profiles').insert([userData]);
-            }
+            } catch(e) { console.error("syncUser error", e); }
         }
 
         function setupRealtime() {
-            supabase.channel('public:profiles')
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` }, payload => {
-                    userData = payload.new;
-                    updateUI();
-                }).subscribe();
+            try {
+                supabase.channel('public:profiles')
+                    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${currentUser.id}` }, payload => {
+                        userData = payload.new;
+                        updateUI();
+                    }).subscribe();
+            } catch(e) {}
         }
 
         function initUserData() {
@@ -646,8 +660,11 @@
             ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => document.getElementById(t).classList.remove('active'));
             ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => document.getElementById(n).classList.remove('active'));
 
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            let targetTab = document.getElementById(tabName + 'Tab');
+            if(targetTab) targetTab.classList.add('active');
+
+            let targetNav = document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            if(targetNav) targetNav.classList.add('active');
             
             if (tabName === 'profile') {
                 renderHistory();
@@ -703,6 +720,7 @@
 
         function startDigitalTicker() {
             let ticker = document.getElementById('marketTicker');
+            if(!ticker) return;
             setInterval(() => {
                 let fluctuation = (Math.random() * 0.4 - 0.2).toFixed(2);
                 let trend = fluctuation >= 0 ? '📈 BULLISH (+' + fluctuation + '%)' : '📉 BEARISH (' + fluctuation + '%)';
@@ -748,7 +766,9 @@
             userData.coins = (userData.coins || 0) - cInput;
             userData.mmk = (userData.mmk || 0) + mmkEarned;
 
-            await supabase.from('profiles').update({ coins: userData.coins, mmk: userData.mmk }).eq('id', currentUser.id);
+            if(supabase) {
+                await supabase.from('profiles').update({ coins: userData.coins, mmk: userData.mmk }).eq('id', currentUser.id);
+            }
             updateUI();
             document.getElementById('convertCoinInput').value = '';
             alert((lang === 'eng' ? 'Successfully exchanged to ' : 'အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ - ') + mmkEarned.toFixed(2) + ' MMK');
@@ -756,13 +776,17 @@
 
         // --- ROTATING AD LINKS ---
         async function triggerRotatedAd() {
-            let { data: ads } = await supabase.from('ads').select('*').eq('active', true);
-            if (ads && ads.length > 0) {
-                let randomAd = ads[Math.floor(Math.random() * ads.length)];
-                window.open(randomAd.url, '_blank');
-            } else {
-                window.open('https://www.highperformanceformat.com/', '_blank');
-            }
+            try {
+                if(supabase) {
+                    let { data: ads } = await supabase.from('ads').select('*').eq('active', true);
+                    if (ads && ads.length > 0) {
+                        let randomAd = ads[Math.floor(Math.random() * ads.length)];
+                        window.open(randomAd.url, '_blank');
+                        return;
+                    }
+                }
+            } catch(e) {}
+            window.open('https://www.highperformanceformat.com/', '_blank');
         }
 
         function startAdTimer(rewardCoins, isHomeAd, callback) {
@@ -777,16 +801,17 @@
             triggerRotatedAd();
 
             let modal = document.getElementById('adModal');
-            modal.style.display = 'flex';
+            if(modal) modal.style.display = 'flex';
             let timeLeft = 20;
-            document.getElementById('countdownNum').innerText = timeLeft;
+            let countdownEl = document.getElementById('countdownNum');
+            if(countdownEl) countdownEl.innerText = timeLeft;
 
             let timer = setInterval(async () => {
                 timeLeft--;
-                document.getElementById('countdownNum').innerText = timeLeft;
+                if(countdownEl) countdownEl.innerText = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    modal.style.display = 'none';
+                    if(modal) modal.style.display = 'none';
 
                     if (isHomeAd) {
                         adLimitData.count++;
@@ -796,7 +821,9 @@
 
                     if (rewardCoins > 0) {
                         userData.coins = (userData.coins || 0) + rewardCoins;
-                        await supabase.from('profiles').update({ coins: userData.coins }).eq('id', currentUser.id);
+                        if(supabase) {
+                            await supabase.from('profiles').update({ coins: userData.coins }).eq('id', currentUser.id);
+                        }
                         updateUI();
                     }
                     if (callback) callback();
@@ -842,7 +869,9 @@
                 startAdTimer(0, false, async () => {
                     if (!userData.tasks) userData.tasks = {};
                     userData.tasks[taskId] = 'claim';
-                    await supabase.from('profiles').update({ tasks: userData.tasks }).eq('id', currentUser.id);
+                    if(supabase) {
+                        await supabase.from('profiles').update({ tasks: userData.tasks }).eq('id', currentUser.id);
+                    }
                     renderTasks();
                     alert(lang === 'eng' ? 'Ad finished! Click Claim.' : 'ကြော်ငြာပြီးပါပြီ။ Claim နှိပ်ပါ။');
                 });
@@ -850,7 +879,9 @@
                 userData.coins = (userData.coins || 0) + taskCoin;
                 if (!userData.tasks) userData.tasks = {};
                 userData.tasks[taskId] = 'done';
-                await supabase.from('profiles').update({ coins: userData.coins, tasks: userData.tasks }).eq('id', currentUser.id);
+                if(supabase) {
+                    await supabase.from('profiles').update({ coins: userData.coins, tasks: userData.tasks }).eq('id', currentUser.id);
+                }
                 updateUI();
                 renderTasks();
                 alert((lang === 'eng' ? 'Claimed ' : 'ရရှိသွားပါပြီ - ') + taskCoin + ' Coins!');
@@ -881,18 +912,22 @@
             }
 
             let reqId = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
-            await supabase.from('withdraw_requests').insert([{
-                req_id: reqId,
-                user_id: currentUser.id,
-                name: currentUser.name,
-                bank: bank,
-                phone: phone,
-                amount: amountMmk,
-                status: 'Pending'
-            }]);
+            if(supabase) {
+                await supabase.from('withdraw_requests').insert([{
+                    req_id: reqId,
+                    user_id: currentUser.id,
+                    name: currentUser.name,
+                    bank: bank,
+                    phone: phone,
+                    amount: amountMmk,
+                    status: 'Pending'
+                }]);
+            }
 
             userData.mmk = 0;
-            await supabase.from('profiles').update({ mmk: 0 }).eq('id', currentUser.id);
+            if(supabase) {
+                await supabase.from('profiles').update({ mmk: 0 }).eq('id', currentUser.id);
+            }
             updateUI();
             closeWithdrawModal();
             alert(lang === 'eng' ? 'Withdrawal request submitted successfully!' : 'ငွေထုတ်ယူရန် တောင်းဆိုမှု အောင်မြင်ပါသည်။');
@@ -900,7 +935,9 @@
 
         async function renderHistory() {
             let container = document.getElementById('historyListContainer');
+            if(!container) return;
             container.innerHTML = '';
+            if(!supabase) return;
             let { data: reqs } = await supabase.from('withdraw_requests').select('*').eq('user_id', currentUser.id);
             if (!reqs || reqs.length === 0) {
                 container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
@@ -952,6 +989,7 @@
         }
 
         async function loadAdminData() {
+            if(!supabase) return;
             let { data: users } = await supabase.from('profiles').select('*');
             allUsersCache = users || [];
             filterAdminUsers();
@@ -969,6 +1007,7 @@
             let query = document.getElementById('searchTgidInput').value.toLowerCase();
             let statusFilter = document.getElementById('filterStatusSelect').value;
             let container = document.getElementById('adminUserList');
+            if(!container) return;
             container.innerHTML = '';
 
             let filtered = allUsersCache.filter(u => {
@@ -992,19 +1031,24 @@
         async function updateUserBal(uid) {
             let c = parseInt(document.getElementById('c_'+uid).value) || 0;
             let m = parseFloat(document.getElementById('m_'+uid).value) || 0;
-            await supabase.from('profiles').update({ coins: c, mmk: m }).eq('id', uid);
+            if(supabase) {
+                await supabase.from('profiles').update({ coins: c, mmk: m }).eq('id', uid);
+            }
             alert('User balance updated!');
             loadAdminData();
         }
 
         async function toggleBanUser(uid, currentStatus) {
             let newStatus = currentStatus === 'active' ? 'banned' : 'active';
-            await supabase.from('profiles').update({ status: newStatus }).eq('id', uid);
+            if(supabase) {
+                await supabase.from('profiles').update({ status: newStatus }).eq('id', uid);
+            }
             loadAdminData();
         }
 
         function renderPayouts() {
             let div = document.getElementById('adminPayoutList');
+            if(!div) return;
             div.innerHTML = '';
             if (allPayoutsCache.length === 0) { div.innerHTML = 'No pending requests.'; return; }
             allPayoutsCache.forEach(r => {
@@ -1019,7 +1063,9 @@
         }
 
         async function approvePayout(reqId) {
-            await supabase.from('withdraw_requests').update({ status: 'Sent' }).eq('req_id', reqId);
+            if(supabase) {
+                await supabase.from('withdraw_requests').update({ status: 'Sent' }).eq('req_id', reqId);
+            }
             alert('Payout marked as Sent!');
             loadAdminData();
         }
@@ -1028,7 +1074,9 @@
             let title = document.getElementById('admAdTitle').value.trim();
             let url = document.getElementById('admAdUrl').value.trim();
             if(!title || !url) { alert('Please enter ad title and URL'); return; }
-            await supabase.from('ads').insert([{ title: title, url: url, active: true }]);
+            if(supabase) {
+                await supabase.from('ads').insert([{ title: title, url: url, active: true }]);
+            }
             document.getElementById('admAdTitle').value = '';
             document.getElementById('admAdUrl').value = '';
             loadAdminData();
@@ -1037,6 +1085,7 @@
 
         function renderAdminAds() {
             let div = document.getElementById('adminAdsList');
+            if(!div) return;
             div.innerHTML = '';
             if (allAdsCache.length === 0) { div.innerHTML = 'No ads added yet.'; return; }
             allAdsCache.forEach(ad => {
@@ -1049,7 +1098,9 @@
         }
 
         async function deleteAd(id) {
-            await supabase.from('ads').delete().eq('id', id);
+            if(supabase) {
+                await supabase.from('ads').delete().eq('id', id);
+            }
             loadAdminData();
         }
 
@@ -1061,9 +1112,11 @@
             let mo = document.getElementById('admMarketOpen').value === 'true';
             let wo = document.getElementById('admWithdrawOpen').value === 'true';
 
-            await supabase.from('settings').update({
-                home_coin: hc, task_coin: tc, ex_coins: ec, ex_mmk: em, market_open: mo, withdraw_open: wo
-            }).eq('id', 1);
+            if(supabase) {
+                await supabase.from('settings').update({
+                    home_coin: hc, task_coin: tc, ex_coins: ec, ex_mmk: em, market_open: mo, withdraw_open: wo
+                }).eq('id', 1);
+            }
 
             alert('Global settings updated successfully!');
             fetchSettings();
