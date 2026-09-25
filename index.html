@@ -232,12 +232,12 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e) {}
 
         let currentUser = {
-            id: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "user_" + Math.floor(Math.random()*10000),
-            name: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "Telegram User",
-            photo: tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url ? tg.initDataUnsafe.user.photo_url : "https://via.placeholder.com/80"
+            id: (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) ? tg.initDataUnsafe.user.id.toString() : "user_" + Math.floor(Math.random()*10000),
+            name: (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name) ? tg.initDataUnsafe.user.first_name : "Telegram User",
+            photo: (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url) ? tg.initDataUnsafe.user.photo_url : "https://via.placeholder.com/80"
         };
 
         let globalSettings = { home_coin: 10, task_coin: 5, ex_coins: 1000, ex_mmk: 100, market_open: true, withdraw_open: true, admin_pass: '1234' };
@@ -247,30 +247,38 @@
         let allAdsCache = [];
 
         async function initApp() {
-            await fetchSettings();
-            await syncUser();
-            updateUI();
-            renderTasks();
-            setupRealtime();
+            try {
+                await fetchSettings();
+                await syncUser();
+                updateUI();
+                renderTasks();
+                setupRealtime();
+            } catch(err) {
+                console.error("Init Error:", err);
+            }
         }
 
         async function fetchSettings() {
-            let { data } = await supabase.from('settings').select('*').eq('id', 1).single();
+            let { data, error } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
             if(data) {
                 globalSettings = data;
-                document.getElementById('homeCoinLbl').innerText = globalSettings.home_coin;
+                document.getElementById('homeCoinLbl').innerText = globalSettings.home_coin || 10;
                 
-                if(!globalSettings.market_open) {
+                if(globalSettings.market_open === false) {
                     document.getElementById('marketStatusNotice').innerText = "⚠️ Market Exchange is currently CLOSED by Admin.";
+                } else {
+                    document.getElementById('marketStatusNotice').innerText = "";
                 }
-                if(!globalSettings.withdraw_open) {
+                if(globalSettings.withdraw_open === false) {
                     document.getElementById('withdrawStatusNotice').innerText = "⚠️ Withdrawals are currently CLOSED by Admin.";
+                } else {
+                    document.getElementById('withdrawStatusNotice').innerText = "";
                 }
             }
         }
 
         async function syncUser() {
-            let { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            let { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
             if(data) {
                 userData = data;
                 if(userData.status === 'banned') {
@@ -291,23 +299,31 @@
         }
 
         function switchTab(tabName) {
-            ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => document.getElementById(t).classList.remove('active'));
-            ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => document.getElementById(n).classList.remove('active'));
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+            ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => {
+                let el = document.getElementById(t);
+                if(el) el.classList.remove('active');
+            });
+            ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => {
+                let el = document.getElementById(n);
+                if(el) el.classList.remove('active');
+            });
+            let targetTab = document.getElementById(tabName + 'Tab');
+            if(targetTab) targetTab.classList.add('active');
+            
+            let targetNav = document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+            if(targetNav) targetNav.classList.add('active');
         }
 
         function updateUI() {
-            document.getElementById('headerUserName').innerText = userData.name;
-            document.getElementById('headerUserPic').src = userData.photo;
-            document.getElementById('profileUserName').innerText = userData.name;
-            document.getElementById('profileUserId').innerText = userData.id;
-            document.getElementById('profileUserPic').src = userData.photo;
+            document.getElementById('headerUserName').innerText = userData.name || 'User';
+            document.getElementById('headerUserPic').src = userData.photo || 'https://via.placeholder.com/32';
+            document.getElementById('profileUserName').innerText = userData.name || 'User';
+            document.getElementById('profileUserId').innerText = userData.id || '';
+            document.getElementById('profileUserPic').src = userData.photo || 'https://via.placeholder.com/80';
             document.getElementById('coinVal').innerText = userData.coins || 0;
             document.getElementById('mmkVal').innerText = (userData.mmk || 0).toFixed(2);
         }
 
-        // Ads Rotation Execution
         async function triggerRotatedAd() {
             let { data: ads } = await supabase.from('ads').select('*').eq('active', true);
             if(ads && ads.length > 0) {
@@ -341,23 +357,26 @@
         }
 
         function watchHomeAd() {
-            startAdTimer(globalSettings.home_coin, () => {
-                alert('Earned ' + globalSettings.home_coin + ' Coins!');
+            startAdTimer(globalSettings.home_coin || 10, () => {
+                alert('Earned ' + (globalSettings.home_coin || 10) + ' Coins!');
             });
         }
 
-        // Market Exchange
         function calcExchange() {
             let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            let rate = globalSettings.ex_mmk / globalSettings.ex_coins;
+            let cRate = globalSettings.ex_coins || 1000;
+            let mRate = globalSettings.ex_mmk || 100;
+            let rate = mRate / cRate;
             document.getElementById('previewMmk').innerText = (val * rate).toFixed(2);
         }
 
         async function executeCoinExchange() {
-            if(!globalSettings.market_open) { alert('Market exchange is closed.'); return; }
+            if(globalSettings.market_open === false) { alert('Market exchange is closed.'); return; }
             let coinsInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
             if(coinsInput <= 0 || coinsInput > userData.coins) { alert('Invalid coin amount.'); return; }
-            let earnedMmk = coinsInput * (globalSettings.ex_mmk / globalSettings.ex_coins);
+            let cRate = globalSettings.ex_coins || 1000;
+            let mRate = globalSettings.ex_mmk || 100;
+            let earnedMmk = coinsInput * (mRate / cRate);
             userData.coins -= coinsInput;
             userData.mmk = (userData.mmk || 0) + earnedMmk;
             await supabase.from('profiles').update({ coins: userData.coins, mmk: userData.mmk }).eq('id', currentUser.id);
@@ -366,7 +385,6 @@
             alert('Exchanged successfully to ' + earnedMmk.toFixed(2) + ' MMK');
         }
 
-        // Tasks
         function renderTasks() {
             let container = document.getElementById('taskListContainer');
             if(!container) return;
@@ -375,9 +393,10 @@
                 let state = (userData.tasks && userData.tasks[i]) || 'watch';
                 let btnTxt = state === 'watch' ? 'Watch Ad' : state === 'claim' ? 'Claim' : 'Done';
                 let disabled = state === 'done' ? 'disabled' : '';
+                let taskCoin = globalSettings.task_coin || 5;
                 container.innerHTML += `
                     <div class="card-item">
-                        <div><h4 style="margin:0;">Task #${i}</h4><p style="margin:0;font-size:12px;">Earn ${globalSettings.task_coin} coins</p></div>
+                        <div><h4 style="margin:0;">Task #${i}</h4><p style="margin:0;font-size:12px;">Earn ${taskCoin} coins</p></div>
                         <button class="card-btn" ${disabled} onclick="handleTask(${i})">${btnTxt}</button>
                     </div>`;
             }
@@ -385,6 +404,7 @@
 
         async function handleTask(taskId) {
             let state = (userData.tasks && userData.tasks[taskId]) || 'watch';
+            let taskCoin = globalSettings.task_coin || 5;
             if(state === 'watch') {
                 startAdTimer(0, async () => {
                     if(!userData.tasks) userData.tasks = {};
@@ -394,17 +414,17 @@
                     alert('Ad finished! Click Claim.');
                 });
             } else if(state === 'claim') {
-                userData.coins = (userData.coins || 0) + globalSettings.task_coin;
+                userData.coins = (userData.coins || 0) + taskCoin;
                 userData.tasks[taskId] = 'done';
                 await supabase.from('profiles').update({ coins: userData.coins, tasks: userData.tasks }).eq('id', currentUser.id);
                 updateUI();
                 renderTasks();
-                alert('Claimed ' + globalSettings.task_coin + ' coins!');
+                alert('Claimed ' + taskCoin + ' coins!');
             }
         }
 
         function openWithdrawModal() {
-            if(!globalSettings.withdraw_open) { alert('Withdrawals are currently closed.'); return; }
+            if(globalSettings.withdraw_open === false) { alert('Withdrawals are currently closed.'); return; }
             document.getElementById('withdrawModal').style.display = 'flex';
         }
 
@@ -419,7 +439,6 @@
                 req_id: reqId, user_id: currentUser.id, name: currentUser.name, bank: bank, phone: phone, amount: amount, status: 'Pending'
             }]);
 
-            // Deduct MMK balance immediately from user and update
             userData.mmk = 0;
             await supabase.from('profiles').update({ mmk: 0 }).eq('id', currentUser.id);
             updateUI();
@@ -427,20 +446,23 @@
             alert('Withdrawal request submitted successfully!');
         }
 
-        // Admin Logins & Panel
-        function openAdminLogin() { document.getElementById('adminLoginModal').style.display = 'flex'; }
+        function openAdminLogin() { 
+            document.getElementById('adminLoginModal').style.display = 'flex'; 
+        }
+
         async function verifyAdmin() {
             let pass = document.getElementById('adminPassBox').value;
-            if(pass === globalSettings.admin_pass) {
+            let correctPass = (globalSettings && globalSettings.admin_pass) ? globalSettings.admin_pass : '1234';
+            if(pass === correctPass) {
                 document.getElementById('adminLoginModal').style.display = 'none';
                 document.getElementById('adminPanelModal').style.display = 'flex';
                 
-                document.getElementById('admHomeCoin').value = globalSettings.home_coin;
-                document.getElementById('admTaskCoin').value = globalSettings.task_coin;
-                document.getElementById('admExCoins').value = globalSettings.ex_coins;
-                document.getElementById('admExMmk').value = globalSettings.ex_mmk;
-                document.getElementById('admMarketOpen').value = String(globalSettings.market_open);
-                document.getElementById('admWithdrawOpen').value = String(globalSettings.withdraw_open);
+                document.getElementById('admHomeCoin').value = globalSettings.home_coin || 10;
+                document.getElementById('admTaskCoin').value = globalSettings.task_coin || 5;
+                document.getElementById('admExCoins').value = globalSettings.ex_coins || 1000;
+                document.getElementById('admExMmk').value = globalSettings.ex_mmk || 100;
+                document.getElementById('admMarketOpen').value = String(globalSettings.market_open !== false);
+                document.getElementById('admWithdrawOpen').value = String(globalSettings.withdraw_open !== false);
 
                 loadAdminData();
             } else {
@@ -477,7 +499,7 @@
             container.innerHTML = '';
 
             let filtered = allUsersCache.filter(u => {
-                let matchId = u.id.toLowerCase().includes(searchId);
+                let matchId = String(u.id).toLowerCase().includes(searchId);
                 let matchStatus = statusFilter === 'all' || u.status === statusFilter;
                 return matchId && matchStatus;
             });
@@ -485,11 +507,11 @@
             filtered.forEach(u => {
                 container.innerHTML += `
                     <div style="border-bottom:1px solid #d4a373; padding:6px; margin-bottom:4px;">
-                        <b>${u.name}</b> (ID: ${u.id}) - [<b>${u.status}</b>]<br>
-                        Coins: <input type="number" id="c_${u.id}" value="${u.coins}" style="width:60px;display:inline;"> | 
-                        MMK: <input type="number" id="m_${u.id}" value="${u.mmk}" style="width:60px;display:inline;"><br>
+                        <b>${u.name || 'User'}</b> (ID: ${u.id}) - [<b>${u.status || 'active'}</b>]<br>
+                        Coins: <input type="number" id="c_${u.id}" value="${u.coins || 0}" style="width:60px;display:inline;"> | 
+                        MMK: <input type="number" id="m_${u.id}" value="${u.mmk || 0}" style="width:60px;display:inline;"><br>
                         <button class="card-btn" style="padding:2px 6px; font-size:10px; margin-top:4px;" onclick="updateUserBal('${u.id}')">Update</button>
-                        <button class="card-btn" style="padding:2px 6px; font-size:10px; background:${u.status==='active'?'red':'green'};" onclick="toggleBanUser('${u.id}', '${u.status}')">${u.status==='active'?'Ban':'Unban'}</button>
+                        <button class="card-btn" style="padding:2px 6px; font-size:10px; background:${u.status==='banned'?'green':'red'};" onclick="toggleBanUser('${u.id}', '${u.status || 'active'}')">${u.status==='banned'?'Unban':'Ban'}</button>
                     </div>`;
             });
         }
@@ -515,7 +537,7 @@
             allPayoutsCache.forEach(r => {
                 div.innerHTML += `
                     <div style="border:1px solid #d4a373; padding:6px; margin-bottom:6px; border-radius:6px;">
-                        <b>${r.name}</b> (ID: ${r.user_id})<br>
+                        <b>${r.name || 'User'}</b> (ID: ${r.user_id})<br>
                         Bank: ${r.bank} | Phone: <b>${r.phone}</b><br>
                         Amount: <b>${r.amount} MMK</b><br>
                         <button class="card-btn" style="padding:4px 8px; font-size:11px; margin-top:4px;" onclick="approvePayout('${r.req_id}')">Approve & Mark Done</button>
@@ -543,6 +565,7 @@
         function renderAdminAds() {
             let div = document.getElementById('adminAdsList');
             div.innerHTML = '';
+            if(allAdsCache.length === 0) { div.innerHTML = 'No ads added yet.'; return; }
             allAdsCache.forEach(ad => {
                 div.innerHTML += `
                     <div style="border-bottom:1px solid #d4a373; padding:4px; font-size:11px; display:flex; justify-content:space-between; align-items:center;">
@@ -558,19 +581,23 @@
         }
 
         async function saveAdminSettings() {
-            let hc = parseInt(document.getElementById('admHomeCoin').value);
-            let tc = parseInt(document.getElementById('admTaskCoin').value);
-            let ec = parseInt(document.getElementById('admExCoins').value);
-            let em = parseInt(document.getElementById('admExMmk').value);
+            let hc = parseInt(document.getElementById('admHomeCoin').value) || 10;
+            let tc = parseInt(document.getElementById('admTaskCoin').value) || 5;
+            let ec = parseInt(document.getElementById('admExCoins').value) || 1000;
+            let em = parseInt(document.getElementById('admExMmk').value) || 100;
             let mo = document.getElementById('admMarketOpen').value === 'true';
             let wo = document.getElementById('admWithdrawOpen').value === 'true';
 
-            await supabase.from('settings').update({
+            let { error } = await supabase.from('settings').update({
                 home_coin: hc, task_coin: tc, ex_coins: ec, ex_mmk: em, market_open: mo, withdraw_open: wo
             }).eq('id', 1);
 
-            alert('Global settings updated successfully!');
-            fetchSettings();
+            if(error) {
+                alert('Error saving settings: ' + error.message);
+            } else {
+                alert('Global settings updated successfully!');
+                fetchSettings();
+            }
         }
 
         initApp();
