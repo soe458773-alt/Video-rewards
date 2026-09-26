@@ -3,368 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real money</title>
+    <title>Real Money Telegram Web App</title>
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Adcash Library Script -->
-    <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-
     <style>
         :root {
-            --bg-color: #f7f3ee;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text-color: #4a3b32;
-            --primary-accent: #d4a373;
-            --secondary-accent: #faedcd;
-            --btn-color: #bc6c25;
-            --btn-text: #ffffff;
-            --nav-bg: #ffffff;
-            --nav-text: #8c7a6b;
-            --nav-active: #bc6c25;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --accent: #2563eb;
+            --border: #e2e8f0;
         }
-
         body.dark-mode {
-            --bg-color: #1a1614;
-            --card-bg: #26211e;
-            --text-color: #f5ebe0;
-            --primary-accent: #dda15e;
-            --secondary-accent: #3d3530;
-            --btn-color: #dda15e;
-            --btn-text: #1a1614;
-            --nav-bg: #26211e;
-            --nav-text: #b0a499;
-            --nav-active: #dda15e;
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #3b82f6;
+            --border: #334155;
         }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 70px; }
+        
+        /* App Container Layout */
+        .app-container { max-width: 480px; margin: 0 auto; width: 100%; padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .user-profile-box { display: flex; align-items: center; gap: 10px; }
+        .user-profile-box img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
+        .user-profile-box div h4 { font-size: 14px; font-weight: 700; }
+        .user-profile-box div p { font-size: 11px; color: var(--text-sub); }
+        .header-actions { display: flex; gap: 8px; }
+        .icon-btn { background: var(--border); border: none; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); font-weight: bold; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 12px 12px 80px 12px;
-            min-height: 100vh;
-            box-sizing: border-box;
-            transition: background 0.3s, color 0.3s;
-        }
+        /* Tabs and Pages */
+        .tab-content { display: none; flex-direction: column; gap: 12px; }
+        .tab-content.active { display: flex; }
 
-        .container {
-            max-width: 420px;
-            margin: 0 auto;
-        }
+        /* Cards and Elements */
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .balance-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; text-align: center; padding: 20px; border-radius: 16px; }
+        .balance-card h2 { font-size: 32px; font-weight: 900; margin: 8px 0; }
+        .balance-card p { font-size: 13px; opacity: 0.9; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
+        .btn-primary { background: linear-gradient(135deg, #10b981, #047857); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+        .btn-primary:active { transform: scale(0.98); }
 
-        .user-profile-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--card-bg);
-            padding: 4px 12px 4px 4px;
-            border-radius: 30px;
-            color: var(--text-color);
-            font-size: 14px;
-            cursor: pointer;
-            border: 2px solid var(--primary-accent);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* Ticker & Waves */
+        .ticker-wrap { overflow: hidden; white-space: nowrap; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 8px; font-size: 12px; font-weight: bold; }
+        .ticker-track { display: inline-block; animation: ticker 25s linear infinite; }
+        .ticker-item { margin-right: 24px; }
+        .ticker-item .up { color: #10b981; }
+        .ticker-item .down { color: #f43f5e; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-50%, 0, 0); } }
 
-        .user-profile-badge img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        .wave-visualizer { display: flex; justify-content: space-between; align-items: flex-end; height: 40px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 4px 8px; }
+        .wave-bar { width: 3px; border-radius: 2px; }
 
-        .top-btns {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
+        /* Navigation Bottom Bar */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 8px 0; z-index: 1000; }
+        .nav-item { background: none; border: none; color: var(--text-sub); display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 700; cursor: pointer; gap: 2px; flex: 1; }
+        .nav-item.active { color: var(--accent); }
 
-        .icon-btn {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-accent);
-            color: var(--text-color);
-            padding: 6px 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        /* Task & List Items */
+        .card-item { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); border: 1px solid var(--border); padding: 12px; border-radius: 12px; margin-bottom: 8px; }
+        .card-info h4 { font-size: 14px; font-weight: 800; }
+        .card-info p { font-size: 11px; color: var(--text-sub); }
+        .card-btn { background: var(--accent); color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer; }
+        .card-btn:disabled { background: var(--border); color: var(--text-sub); cursor: not-allowed; }
 
-        .secret-admin-trigger {
-            width: 14px;
-            height: 14px;
-            background: transparent;
-            border-radius: 50%;
-            cursor: pointer;
-            opacity: 0.05;
-            transition: opacity 0.2s;
-        }
-        .secret-admin-trigger:hover {
-            opacity: 0.8;
-            background: var(--primary-accent);
-        }
+        /* Modals */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 16px; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 400px; padding: 20px; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; }
+        .modal-content input, .modal-content select { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); font-weight: 600; }
 
-        .balance-card {
-            background: linear-gradient(135deg, #e9d8a6, #dda15e);
-            border: 3px solid #bc6c25;
-            border-radius: 20px;
-            padding: 20px;
-            color: #2b2118;
-            box-shadow: 0 8px 16px rgba(188, 108, 37, 0.15);
-            margin-bottom: 16px;
-        }
-
-        .balance-title {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.85;
-            font-weight: bold;
-        }
-
-        .balance-amount {
-            font-size: 28px;
-            font-weight: 800;
-            margin: 8px 0;
-        }
-
-        .balance-sub {
-            font-size: 14px;
-            opacity: 0.9;
-            background: rgba(255,255,255,0.4);
-            padding: 4px 8px;
-            border-radius: 8px;
-            display: inline-block;
-            font-weight: 600;
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .action-btn {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-accent);
-            color: var(--text-color);
-            padding: 14px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-
-        .card-item {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-accent);
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
-        }
-
-        .card-info h4 {
-            margin: 0 0 4px 0;
-            font-size: 15px;
-            color: var(--text-color);
-        }
-
-        .card-info p {
-            margin: 0;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .card-btn {
-            background: var(--btn-color);
-            border: none;
-            color: var(--btn-text);
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .card-btn:disabled {
-            background: #d8c8b8;
-            color: #887a6d;
-            cursor: not-allowed;
-        }
-
-        .market-ticker {
-            background: var(--card-bg);
-            color: var(--btn-color);
-            font-family: monospace;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid var(--primary-accent);
-            margin-bottom: 12px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-
-        .market-wave-box {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-accent);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 16px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
-        }
-
-        .wave-visualizer {
-            font-family: monospace;
-            font-size: 16px;
-            letter-spacing: 3px;
-            color: var(--btn-color);
-            margin: 8px 0;
-            height: 24px;
-            overflow: hidden;
-        }
-
-        .market-card {
-            background: var(--card-bg);
-            border: 2px solid var(--primary-accent);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.03);
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--nav-bg);
-            border-top: 2px solid var(--primary-accent);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            z-index: 100;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
-        }
-
-        .nav-item {
-            background: none;
-            border: none;
-            color: var(--nav-text);
-            font-size: 11px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            cursor: pointer;
-            width: 25%;
-        }
-
-        .nav-item.active {
-            color: var(--nav-active);
-            font-weight: bold;
-        }
-
-        .nav-item span.icon {
-            font-size: 18px;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            border: 3px solid var(--primary-accent);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 20px;
-            box-sizing: border-box;
-            color: var(--text-color);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        .modal-content h3 { margin-top: 0; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
-        .form-group input, .form-group select { width: 100%; padding: 8px; border: 2px solid var(--primary-accent); border-radius: 8px; box-sizing: border-box; background: var(--card-bg); color: var(--text-color); }
-        .close-btn { background: #bc6c25; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; width: 100%; }
+        /* Leaderboard & Price board styling */
+        .price-board { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .price-cell { background: var(--bg-color); padding: 10px; border-radius: 10px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .price-cell .pair { font-weight: 800; font-size: 13px; }
+        .price-cell .price { font-weight: 900; font-size: 13px; }
+        .price-up { color: #10b981; }
+        .price-down { color: #f43f5e; }
+        
+        .lb-top-card { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; }
+        .lb-top-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid white; object-fit: cover; }
+        .lb-top-info { flex: 1; }
+        .lb-top-name { font-weight: 900; font-size: 14px; }
+        .lb-top-user { font-size: 11px; opacity: 0.9; }
+        .lb-top-count { font-weight: 800; font-size: 12px; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 6px; }
+        .lb-mini-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; }
+        .lb-empty { text-align: center; color: var(--text-sub); font-weight: 600; padding: 16px; font-size: 13px; }
     </style>
 </head>
-<body>
+<body class="dark-mode">
+    <div id="appToast"></div>
 
-    <div class="container">
+    <div class="app-container">
         <!-- Header -->
         <div class="header">
-            <div class="user-profile-badge" onclick="switchTab('profile')">
-                <img id="headerUserPic" src="https://via.placeholder.com/32" alt="User">
-                <span id="headerUserName">Player</span>
+            <div class="user-profile-box">
+                <img id="headerUserPic" src="" alt="User">
+                <div>
+                    <h4 id="headerUserName">Loading...</h4>
+                    <p id="fbStatus" style="font-size: 10px; color: var(--text-sub);">Connecting...</p>
+                </div>
             </div>
-            <div class="top-btns">
-                <button class="icon-btn" onclick="toggleLang()" id="langBtn">ENG</button>
-                <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
-                <div class="secret-admin-trigger" onclick="checkAdminPassword()" title="Admin Panel"></div>
+            <div class="header-actions">
+                <button class="icon-btn" id="langBtn" onclick="toggleLang()">MY</button>
+                <button class="icon-btn" onclick="toggleDarkMode()">🌙</button>
+                <button class="icon-btn" onclick="checkAdminPassword()">⚙️</button>
             </div>
         </div>
 
         <!-- HOME TAB -->
         <div id="homeTab" class="tab-content active">
             <div class="balance-card">
-                <div class="balance-title" id="tBalanceTitle">Total Balance</div>
-                <div class="balance-amount">
-                    <span id="coinVal">0</span> <span style="font-size: 16px;">Coins</span>
-                </div>
-                <div class="balance-sub">≈ <span id="mmkVal">0</span> MMK</div>
+                <p id="tBalanceTitle">စုစုပေါင်း လက်ကျန်ငွေ</p>
+                <h2><span id="coinVal">0</span> Coins</h2>
+                <p>≈ <span id="mmkVal">0.00</span> MMK</p>
             </div>
 
-            <div class="action-grid">
-                <div class="card-item" style="margin:0;">
-                    <div class="card-info">
-                        <h4 id="tEarnCoinTitle">Earn your coin (Ads)</h4>
-                        <p>Limit: <span id="adLimitCount">50</span>/50 left today</p>
-                    </div>
-                    <button class="card-btn" id="homeWatchBtn" onclick="watchHomeAd()">Watch (20s)</button>
+            <div class="card">
+                <h3 id="tEarnCoinTitle" style="font-size: 14px; font-weight: 800; margin-bottom: 8px;">ဒင်္ဂါးပြား ရှာရန် (ကြော်ငြာ)</h3>
+                <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">Daily Limit: <span id="adLimitCount">50</span> left today</p>
+                <button class="btn-primary" id="homeWatchBtn" onclick="watchHomeAd()">ကြည့်မည် (၂၀ စက္ကန့်)</button>
+            </div>
+
+            <div class="card">
+                <h4 style="font-size: 13px; font-weight: 800; margin-bottom: 8px;">🏆 ယနေ့ Leaderboard ထိပ်ဆုံးများ</h4>
+                <div id="lbTopCardContainer">
+                    <div class="lb-empty">ယနေ့ ဒေတာ ရယူနေပါသည်...</div>
                 </div>
-                <button class="action-btn" onclick="openWithdrawModal()" id="tWithdrawBtn">
-                    <span>💸 Withdraw to KBZ / Wave</span>
+                <div id="lbMiniList"></div>
+            </div>
+
+            <div class="card">
+                <button class="btn-primary" id="tWithdrawBtn" onclick="openWithdrawModal()" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                    <span>💸 KBZ / Wave သို့ ငွေထုတ်မည်</span>
                     <span>➔</span>
                 </button>
             </div>
@@ -372,240 +150,181 @@
 
         <!-- MARKET TAB -->
         <div id="marketTab" class="tab-content">
-            <div style="text-align: center; margin-bottom: 10px;">
-                <h2 style="margin:0;">📈 Digital Market Exchange</h2>
-                <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: Loading...</p>
+            <div class="ticker-wrap">
+                <div class="ticker-track" id="stockTickerTrack"></div>
+            </div>
+            <div class="wave-visualizer" id="waveVisualizer"></div>
+            
+            <div class="card">
+                <h3 style="font-size: 14px; font-weight: 800; margin-bottom: 8px;">📈 စျေးကွက် နှုန်းထားများ</h3>
+                <p id="marketRateDisplay" style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px; font-weight: 700;">Live Base Rate: 1000 Coins = 100 MMK</p>
+                <div class="price-board" id="priceBoard"></div>
             </div>
 
-            <div class="market-wave-box">
-                <div style="font-size: 11px; font-weight: bold; opacity: 0.8; margin-bottom: 2px;">⚡ DIGITAL WAVE PULSE & EXACT VALUE</div>
-                <div class="wave-visualizer" id="waveVisualizer">▂▄▆█▇▅▄▂▃▅▆▇</div>
-                <div id="exactMarketPrice" style="font-size: 13px; font-weight: bold; color: var(--btn-color);">Current Price Value: 0.00 MMK / Coin</div>
-            </div>
-
-            <div class="market-ticker" id="marketTicker">
-                📊 DIGITAL LIVE SYSTEM: COIN/MMK RATE DYNAMICALLY ACTIVE 💹
-            </div>
-
-            <div class="market-card">
-                <h3>🔄 Coin to MMK Converter</h3>
-                <p style="font-size:13px; margin-bottom:10px;">ငွေကြေးလဲလှယ်ရန် လိုအပ်သော ပမာဏထည့်ပါ</p>
-                <div class="form-group">
-                    <input type="number" id="convertCoinInput" placeholder="Enter Coins" oninput="calcExchange()">
+            <div class="card">
+                <h3 style="font-size: 14px; font-weight: 800; margin-bottom: 8px;">💱 Coins ကို MMK သို့ လဲလှယ်ရန်</h3>
+                <p id="exactMarketPrice" style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px; font-weight: 700;">Current Dynamic Value...</p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="number" id="convertCoinInput" placeholder="လဲလှယ်မည့် Coins ပမာဏ" oninput="calcExchange()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-color); color: var(--text-main); font-weight: 600;">
+                    <p style="font-size: 12px; font-weight: 700;">ရရှိမည့်ငွေ: <span id="previewMmk" style="color: #10b981;">0.00</span> MMK</p>
+                    <button class="btn-primary" onclick="executeCoinExchange()">ငွေလဲမည်</button>
                 </div>
-                <p style="font-size: 14px; font-weight: bold; margin: 8px 0;">You will get: <span id="previewMmk" style="color:var(--btn-color);">0.00</span> MMK</p>
-                <button class="card-btn" style="width:100%;" onclick="executeCoinExchange()">Exchange Now</button>
             </div>
         </div>
 
         <!-- TASKS TAB -->
         <div id="tasksTab" class="tab-content">
-            <div style="text-align: center; margin-bottom: 16px;">
-                <h2 style="margin: 0;" id="tTaskHeader">📋 Tasks Center (10 Tasks)</h2>
-                <p style="font-size: 13px; opacity: 0.8;" id="tTaskSub">Watch 20s ad per task & claim</p>
+            <div class="card">
+                <h3 id="tTaskHeader" style="font-size: 14px; font-weight: 800; margin-bottom: 4px;">📋 တာဝန်များ (တာဝန်တစ်ဆယ်)</h3>
+                <p id="tTaskSub" style="font-size: 11px; color: var(--text-sub); margin-bottom: 12px;">တာဝန်တစ်ခုလျှင် ၂၀ စက္ကန့်ကြည့်၍ Claim ပါ</p>
+                <div id="taskListContainer"></div>
             </div>
-            <div id="taskListContainer"></div>
         </div>
 
         <!-- PROFILE TAB -->
         <div id="profileTab" class="tab-content">
-            <div class="card-item" style="flex-direction: column; text-align: center; gap: 8px;">
-                <img id="profileUserPic" src="https://via.placeholder.com/80" style="width:80px; height:80px; border-radius:50%; border:3px solid var(--primary-accent); object-fit:cover;" alt="User">
-                <h3 id="profileUserName" style="margin:0;">User Name</h3>
-                <p style="margin:0; font-size:12px;">Telegram ID: <span id="profileUserId">123456</span></p>
+            <div class="card" style="text-align: center; padding: 20px;">
+                <img id="profileUserPic" src="" alt="Profile" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); margin: 0 auto 10px auto;">
+                <h3 id="profileUserName" style="font-size: 16px; font-weight: 900;">User Name</h3>
+                <p style="font-size: 12px; color: var(--text-sub);">ID: <span id="profileUserId">000000</span> | TG: <span id="profileTelegramUsername">@username</span></p>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
-                    <span style="font-size:12px; opacity:0.8;">My Coins</span>
-                    <h3 id="profileCoinVal" style="margin:4px 0; color:var(--btn-color);">0</h3>
-                </div>
-                <div class="card-item" style="flex-direction: column; text-align:center; margin:0;">
-                    <span style="font-size:12px; opacity:0.8;">My MMK</span>
-                    <h3 id="profileMmkVal" style="margin:4px 0; color:#bc6c25;">0</h3>
+            <div class="balance-card" style="padding: 14px;">
+                <div style="display: flex; justify-content: space-around;">
+                    <div>
+                        <p style="font-size: 11px;">Coins</p>
+                        <h3 id="profileCoinVal" style="font-size: 20px;">0</h3>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.3);"></div>
+                    <div>
+                        <p style="font-size: 11px;">MMK</p>
+                        <h3 id="profileMmkVal" style="font-size: 20px;">0.00</h3>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-item" style="flex-direction: column; align-items: flex-start;">
-                <h4 style="margin:0 0 8px 0;">📜 Withdrawal History</h4>
-                <div id="historyListContainer" style="width:100%; max-height:150px; overflow-y:auto; font-size:12px;">
-                    <p style="text-align:center; opacity:0.6;">No history yet.</p>
+            <div class="card">
+                <h4 style="font-size: 13px; font-weight: 800; margin-bottom: 8px;">📜 ငွေထုတ်ယူမှု မှတ်တမ်း</h4>
+                <div id="historyListContainer">
+                    <p style="text-align: center; color: var(--text-sub); font-size: 12px;">မှတ်တမ်း မရှိသေးပါ။</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-item active" id="navHome" onclick="switchTab('home')">
-            <span class="icon">🏠</span>
-            <span id="tNavHome">Home</span>
-        </button>
-        <button class="nav-item" id="navMarket" onclick="switchTab('market')">
-            <span class="icon">📈</span>
-            <span id="tNavMarket">Market</span>
-        </button>
-        <button class="nav-item" id="navTasks" onclick="switchTab('tasks')">
-            <span class="icon">📋</span>
-            <span id="tNavTasks">Tasks</span>
-        </button>
-        <button class="nav-item" id="navProfile" onclick="switchTab('profile')">
-            <span class="icon">👤</span>
-            <span id="tNavProfile">Profile</span>
-        </button>
-    </div>
-
-    <!-- SETTINGS MODAL -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <h3>⚙️ Settings & User Info</h3>
-            <div class="form-group">
-                <label>Dark Mode / Light Mode:</label>
-                <button class="card-btn" style="width:100%;" onclick="toggleDarkMode()">Toggle Dark / Light Mode</button>
-            </div>
-            <div style="font-size: 13px; margin-top: 15px; background:rgba(0,0,0,0.03); padding:12px; border-radius:8px;">
-                <p><b>App Name:</b> Real money</p>
-                <p><b>User Name:</b> <span id="setUserName"></span></p>
-                <p><b>Telegram ID:</b> <span id="setUserId"></span></p>
-                <p><b>App Version:</b> 3.3.0 (2026)</p>
-            </div>
-            <button class="close-btn" onclick="document.getElementById('settingsModal').style.display='none'">Close</button>
+        <!-- BOTTOM NAV BAR -->
+        <div class="nav-bar">
+            <button class="nav-item active" id="navHome" onclick="switchTab('home')">
+                <span>🏠</span><span id="tNavHome">ပင်မ</span>
+            </button>
+            <button class="nav-item" id="navMarket" onclick="switchTab('market')">
+                <span>📈</span><span id="tNavMarket">စျေးကွက်</span>
+            </button>
+            <button class="nav-item" id="navTasks" onclick="switchTab('tasks')">
+                <span>📋</span><span id="tNavTasks">တာဝန်များ</span>
+            </button>
+            <button class="nav-item" id="navProfile" onclick="switchTab('profile')">
+                <span>👤</span><span id="tNavProfile">ကိုယ်ရေး</span>
+            </button>
         </div>
     </div>
 
     <!-- WITHDRAW MODAL -->
     <div class="modal" id="withdrawModal">
         <div class="modal-content">
-            <h3>💸 Withdraw to MMK</h3>
-            <div class="form-group">
-                <label>Select Bank / Payment:</label>
+            <h3 style="font-size: 15px; font-weight: 800;">💸 ငွေထုတ်ယူရန်</h3>
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-sub);">ဘဏ်အမျိုးအစား</label>
                 <select id="withdrawBank">
-                    <option value="KBZ Pay">KBZ Pay</option>
-                    <option value="Wave Money">Wave Money</option>
+                    <option value="KBZPay">KBZ Pay</option>
+                    <option value="WaveMoney">Wave Money</option>
+                    <option value="AyaPay">AYA Pay</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Phone Number:</label>
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-sub);">ဖုန်းနံပတ်</label>
                 <input type="text" id="withdrawPhone" placeholder="09xxxxxxxxx">
             </div>
-            <div class="form-group">
-                <label>Amount in MMK:</label>
-                <input type="number" id="withdrawMmkAmount" placeholder="Enter MMK amount">
+            <div>
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-sub);">ထုတ်ယူမည့် MMK ပမာဏ</label>
+                <input type="number" id="withdrawMmkAmount" placeholder="1000">
             </div>
-            <button class="card-btn" style="background:#bc6c25; color:white; width:100%;" onclick="submitWithdrawal()">Submit Request</button>
-            <button class="close-btn" onclick="closeWithdrawModal()">Cancel</button>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button class="btn-primary" onclick="submitWithdrawal()" style="flex: 1;">တင်သွင်းမည်</button>
+                <button onclick="closeWithdrawModal()" style="background: var(--border); color: var(--text-main); border: none; padding: 10px 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">ပိတ်မည်</button>
+            </div>
         </div>
     </div>
 
     <!-- ADMIN MODAL -->
     <div class="modal" id="adminModal">
         <div class="modal-content">
-            <h3>🔐 Admin Control Panel</h3>
-            
-            <div class="form-group">
-                <label>1. Home Ad Coin Reward (20s):</label>
-                <input type="number" id="admHomeCoin" value="10">
-            </div>
+            <h3 style="font-size: 15px; font-weight: 800; color: #f43f5e;">⚙️ Admin Control Panel</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 700;">
+                <div><span>Total Users: <b id="statTotal">0</b></span> | <span>Active: <b id="statActive" style="color:#10b981;">0</b></span> | <span>Banned: <b id="statInactive" style="color:#f43f5e;">0</b></span></div>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 4px 0;">
+                
+                <label>Home Coin Reward:</label>
+                <input type="number" id="admHomeCoin">
+                
+                <label>Task Coin Reward:</label>
+                <input type="number" id="admTaskCoin">
+                
+                <label>Exchange Rate Coins:</label>
+                <input type="number" id="admExCoins">
+                
+                <label>Exchange Rate MMK:</label>
+                <input type="number" id="admExMmk">
+                
+                <label>Market Status:</label>
+                <select id="admMarketStatus"><option value="open">Open</option><option value="closed">Closed</option></select>
+                
+                <label>Withdrawal Status:</label>
+                <select id="admWithdrawStatus"><option value="open">Open</option><option value="closed">Closed</option></select>
 
-            <div class="form-group">
-                <label>2. Task Ad Coin Reward (per task, 20s):</label>
-                <input type="number" id="admTaskCoin" value="5">
-            </div>
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 4px 0;">
+                
+                <label>Ad Links (<span id="linkCount">0</span>):</label>
+                <div style="display: flex; gap: 4px;"><input type="text" id="newAdLink" placeholder="https://..."><button onclick="addAdLink()" style="background:var(--accent); color:white; border:none; padding:0 12px; border-radius:8px; font-weight:800; cursor:pointer;">Add</button></div>
+                <div id="linkList" style="max-height:80px; overflow-y:auto; border:1px solid var(--border); padding:4px; border-radius:6px;"></div>
 
-            <div class="form-group">
-                <label>3. Exchange Rate (Coin to MMK):</label>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <input type="number" id="admExCoins" value="1000" placeholder="Coins">
-                    <span>Coins =</span>
-                    <input type="number" id="admExMmk" value="100" placeholder="MMK">
-                    <span>MMK</span>
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 4px 0;">
+                <label>User Balance Adjust:</label>
+                <input type="text" id="adjUserId" placeholder="Telegram User ID">
+                <div style="display: flex; gap: 4px;">
+                    <input type="number" id="adjCoinVal" placeholder="+/- Coins">
+                    <input type="number" id="adjMmkVal" placeholder="+/- MMK">
+                </div>
+                <button onclick="applyUserAdjustment()" style="background:#8b5cf6; color:white; border:none; padding:8px; border-radius:8px; font-weight:800; cursor:pointer;">Adjust User</button>
+
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 4px 0;">
+                <label>Search User:</label>
+                <input type="text" id="searchUserQuery" placeholder="Search by name or ID..." oninput="renderUserList()">
+                
+                <label style="color:#10b981;">Active Users:</label>
+                <div id="activeUserListContainer" style="max-height:100px; overflow-y:auto; border:1px solid var(--border); padding:4px; border-radius:6px;"></div>
+                
+                <label style="color:#f43f5e;">Banned Users:</label>
+                <div id="inactiveUserListContainer" style="max-height:100px; overflow-y:auto; border:1px solid var(--border); padding:4px; border-radius:6px;"></div>
+
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 4px 0;">
+                <label>Withdrawal Requests:</label>
+                <div id="adminWithdrawRequests" style="max-height:120px; overflow-y:auto; border:1px solid var(--border); padding:4px; border-radius:6px;"></div>
+                
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button class="btn-primary" onclick="saveAdminSettings()" style="flex: 1;">Save Settings</button>
+                    <button onclick="closeAdminModal()" style="background: var(--border); color: var(--text-main); border: none; padding: 10px 16px; border-radius: 12px; font-weight: 800; cursor: pointer;">Close</button>
                 </div>
             </div>
-
-            <div class="form-group">
-                <label>4. Market Switch:</label>
-                <select id="admMarketStatus">
-                    <option value="open">🟢 Open (ဖွင့်ထားသည်)</option>
-                    <option value="closed">🔴 Closed (ပိတ်ထားသည်)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>5. Withdrawal Switch:</label>
-                <select id="admWithdrawStatus">
-                    <option value="open">🟢 Open (ဖွင့်ထားသည်)</option>
-                    <option value="closed">🔴 Closed (ပိတ်ထားသည်)</option>
-                </select>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>6. Ad Links Management (Rotation System):</label>
-                <input type="text" id="newAdLink" placeholder="https://example.com/ad-link">
-                <button class="card-btn" style="width:100%; margin-top:6px;" onclick="addAdLink()">Add Ad Link</button>
-                <p style="font-size: 11px; margin: 4px 0;">Total Links: <span id="linkCount">0</span></p>
-                <div id="linkList" style="max-height: 80px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; margin-top:4px; border:1px solid var(--primary-accent);"></div>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>7. User Management (Active / Inactive Split & TG ID Search):</label>
-                <input type="text" id="searchUserQuery" placeholder="Search by Telegram ID or Name..." oninput="renderUserList()">
-                <p style="font-size: 11px; margin: 6px 0; font-weight:bold;">Stats: Total: <span id="statTotal">0</span> | Active: <span id="statActive">0</span> | Banned/Inactive: <span id="statInactive">0</span></p>
-                
-                <div style="margin-top:6px; font-size:12px; font-weight:bold; color:var(--btn-color);">🟢 Active Users List:</div>
-                <div id="activeUserListContainer" style="max-height: 110px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent); margin-bottom:8px;"></div>
-                
-                <div style="margin-top:6px; font-size:12px; font-weight:bold; color:#d32f2f;">🔴 Inactive / Banned Users List:</div>
-                <div id="inactiveUserListContainer" style="max-height: 110px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);"></div>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>8. Manual Coin / MMK Adjustment:</label>
-                <input type="text" id="adjUserId" placeholder="Enter Telegram ID">
-                <input type="number" id="adjCoinVal" placeholder="Coin (+/-)" style="margin-top:4px;">
-                <input type="number" id="adjMmkVal" placeholder="MMK (+/-)" style="margin-top:4px;">
-                <button class="card-btn" style="width:100%; margin-top:6px;" onclick="applyUserAdjustment()">Apply Changes</button>
-            </div>
-
-            <hr>
-            <div class="form-group">
-                <label>9. Withdrawal Requests:</label>
-                <div id="adminWithdrawRequests" style="max-height: 120px; overflow-y:auto; font-size:11px; background:var(--card-bg); padding:4px; border-radius:4px; border:1px solid var(--primary-accent);">
-                    <p>No pending requests.</p>
-                </div>
-            </div>
-
-            <button class="card-btn" style="background:#bc6c25; color:#fff; width:100%; margin-top:10px;" onclick="saveAdminSettings()">Save Settings</button>
-            <button class="close-btn" onclick="closeAdminModal()">Close</button>
         </div>
     </div>
 
-    <!-- AD WATCHING SIMULATOR MODAL (20s) -->
-    <div class="modal" id="adModal">
-        <div class="modal-content" style="text-align: center;">
-            <h3>📺 Watching 20s Advertisement</h3>
-            <p id="adTimerText">Please wait 20 seconds...</p>
-            <h1 id="countdownNum" style="font-size: 40px; color: var(--btn-color); margin: 10px 0;">20</h1>
-        </div>
-    </div>
-
-    <!-- Adcash Autotag Execution Script -->
-    <script type="text/javascript">
-        aclib.runAutoTag({
-            zoneId: '60utymu2le',
-        });
-    </script>
-
+    <!-- SCRIPT LOGIC -->
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-
+        let isDarkMode = localStorage.getItem('dark_mode') !== 'false';
         let lang = localStorage.getItem('app_lang') || 'my';
         let coins = parseInt(localStorage.getItem('user_coins')) || 0;
-        let mmkBalance = parseFloat(localStorage.getItem('user_mmk')) || 0.0;
-        let isDarkMode = localStorage.getItem('dark_mode') === 'true';
+        let mmkBalance = parseFloat(localStorage.getItem('user_mmk')) || 0;
 
         let settings = JSON.parse(localStorage.getItem('admin_settings')) || {
             homeCoin: 10,
@@ -614,79 +333,337 @@
             exMmk: 100,
             marketOpen: true,
             withdrawOpen: true,
-            adLinks: ["https://example.com/ad1", "https://example.com/ad2"]
+            adLinks: [
+                "https://www.effectivecpmrate.com/y4c69p69?key=8197771be5aaeb17aece980647895e7c",
+                "https://www.effectivecpmrate.com/d87w462j?key=90d1f114c004d4981881640a3203923f",
+                "https://www.effectivecpmrate.com/k9s3q8y2?key=3c261e05d214a1a5b65103c8172c914e"
+            ]
         };
 
         let currentAdIndex = parseInt(localStorage.getItem('current_ad_rotation_index')) || 0;
+        let adLimitData = JSON.parse(localStorage.getItem('ad_limit_data')) || { count: 0, resetTime: Date.now() + 86400000 };
 
-        let adLimitData = JSON.parse(localStorage.getItem('ad_limit_data')) || {
-            count: 0,
-            resetTime: Date.now() + 86400000
+        let firstServerSnapshotReceived = false;
+        let lastKnownServerCoins = null;
+        let lastKnownServerMmk = null;
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-Placeholder-Key",
+            authDomain: "telegram-webapp-db.firebaseapp.com",
+            projectId: "telegram-webapp-db",
+            storageBucket: "telegram-webapp-db.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef"
         };
 
-        let currentUser = {
-            id: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "123456789",
-            name: tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "DemoUser",
-            photo: tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.photo_url ? tg.initDataUnsafe.user.photo_url : "https://via.placeholder.com/80",
-            active: true
-        };
-
-        let allUsers = JSON.parse(localStorage.getItem('all_users_db')) || [
-            currentUser,
-            { id: "987654321", name: "Aung Aung", active: true },
-            { id: "555444333", name: "Mya Mya", active: false }
-        ];
-
-        let allRequests = JSON.parse(localStorage.getItem('admin_withdraw_requests')) || [];
-        let taskStates = JSON.parse(localStorage.getItem('task_states')) || {};
-
-        initApp();
-
-        function initApp() {
-            if (isDarkMode) document.body.classList.add('dark-mode');
-            checkAdLimitReset();
-            updateUI();
-            renderTasks();
-            updateLanguageText();
-            initUserData();
-            updateMarketRateDisplay();
-            startDigitalTickerAndWaves();
+        let firebaseReady = false;
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            window.db = firebase.firestore();
+            firebaseReady = true;
+        } catch (e) {
+            console.warn("Firebase initialization failed:", e);
         }
 
-        function initUserData() {
-            document.getElementById('headerUserName').innerText = currentUser.name;
-            document.getElementById('headerUserPic').src = currentUser.photo;
-            document.getElementById('profileUserName').innerText = currentUser.name;
-            document.getElementById('profileUserId').innerText = currentUser.id;
-            document.getElementById('profileUserPic').src = currentUser.photo;
-            document.getElementById('setUserName').innerText = currentUser.name;
-            document.getElementById('setUserId').innerText = currentUser.id;
+        function getTelegramUser() {
+            const tgu = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : null;
+            if (tgu && tgu.id) {
+                const first = tgu.first_name || '';
+                const last  = tgu.last_name || '';
+                const fullName = (first + ' ' + last).trim() || 'Telegram User';
+                const username = tgu.username ? '@' + tgu.username : '';
+                const displayName = username ? `${fullName} ${username}` : fullName;
+                return {
+                    id: tgu.id.toString(), name: displayName, fullName, username,
+                    firstName: first, lastName: last,
+                    photo: tgu.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=bc6c25&color=fff&size=120`,
+                    languageCode: tgu.language_code || 'en',
+                    isPremium: tgu.is_premium || false, isReal: true, active: true
+                };
+            }
+            return {
+                id: 'guest_' + Math.floor(Math.random() * 100000),
+                name: 'Guest User', fullName: 'Guest User', username: '',
+                firstName: 'Guest', lastName: '',
+                photo: 'https://ui-avatars.com/api/?name=Guest&background=94a3b8&color=fff&size=120',
+                languageCode: 'my', isPremium: false, isReal: false, active: true
+            };
+        }
+
+        let currentUser = getTelegramUser();
+
+        let allUsers = [];
+        let allRequests = [];
+        let taskStates = JSON.parse(localStorage.getItem('task_states')) || {};
+
+        let userUnsubscribe = null;
+        let usersListUnsubscribe = null;
+        let requestsUnsubscribe = null;
+        let settingsUnsubscribe = null;
+        let adminReqsUnsubscribe = null;
+        let leaderboardUnsubscribe = null;
+
+        function showToast(msg, type) {
+            let toast = document.getElementById('appToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'appToast';
+                toast.style.cssText = 
+                    'position: fixed; top: 20px; left: 50%;' +
+                    'transform: translateX(-50%) translateY(-120px);' +
+                    'background: linear-gradient(135deg, #10b981, #047857);' +
+                    'color: white; padding: 14px 26px; border-radius: 999px;' +
+                    'font-weight: 900; font-size: 14px; z-index: 99999;' +
+                    'box-shadow: 0 10px 30px rgba(16,185,129,0.5);' +
+                    'transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);' +
+                    'pointer-events: none; font-family: inherit;';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = msg;
+            toast.style.background = (type === 'error')
+                ? 'linear-gradient(135deg, #f43f5e, #be123c)'
+                : 'linear-gradient(135deg, #10b981, #047857)';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.style.transform = 'translateX(-50%) translateY(-120px)';
+            }, 2400);
+        }
+
+        async function setupFirebaseSync() {
+            try {
+                const userRef = db.collection('users').doc(currentUser.id);
+                const snap = await userRef.get();
+
+                if (!snap.exists) {
+                    await userRef.set({
+                        id: currentUser.id, name: currentUser.name,
+                        fullName: currentUser.fullName, username: currentUser.username,
+                        photo: currentUser.photo,
+                        coins: coins, mmk: mmkBalance, active: true,
+                        isPremium: currentUser.isPremium,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    const d = snap.data();
+                    if (typeof d.coins === 'number') coins = d.coins;
+                    if (typeof d.mmk === 'number') mmkBalance = d.mmk;
+                    if (typeof d.active === 'boolean') currentUser.active = d.active;
+
+                    await userRef.update({
+                        name: currentUser.name, fullName: currentUser.fullName,
+                        username: currentUser.username, photo: currentUser.photo,
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    if (d.active === false) {
+                        alert("⛔ သင့်အကောင့်ကို Admin မှ ပိတ်ထားပါသည်။");
+                    }
+                }
+
+                updateUI();
+
+                if (userUnsubscribe) userUnsubscribe();
+                userUnsubscribe = userRef.onSnapshot(doc => {
+                    if (!doc.exists) return;
+                    const d = doc.data();
+                    const serverCoins = (typeof d.coins === 'number') ? d.coins : 0;
+                    const serverMmk = (typeof d.mmk === 'number') ? d.mmk : 0;
+                    let changed = false;
+
+                    if (!firstServerSnapshotReceived) {
+                        firstServerSnapshotReceived = true;
+                        lastKnownServerCoins = serverCoins;
+                        lastKnownServerMmk = serverMmk;
+                        coins = serverCoins;
+                        mmkBalance = serverMmk;
+                        changed = true;
+                    } else {
+                        if (serverCoins !== lastKnownServerCoins) {
+                            lastKnownServerCoins = serverCoins;
+                            coins = serverCoins;
+                            changed = true;
+                        }
+                        if (serverMmk !== lastKnownServerMmk) {
+                            lastKnownServerMmk = serverMmk;
+                            mmkBalance = serverMmk;
+                            changed = true;
+                        }
+                    }
+
+                    if (typeof d.active === 'boolean') currentUser.active = d.active;
+                    if (changed) updateUI();
+                }, err => console.warn("user listener:", err));
+
+                if (settingsUnsubscribe) settingsUnsubscribe();
+                settingsUnsubscribe = db.collection('settings').doc('app').onSnapshot(doc => {
+                    if (doc.exists) {
+                        const d = doc.data();
+                        settings = { ...settings, ...d };
+                        localStorage.setItem('admin_settings', JSON.stringify(settings));
+                        updateMarketRateDisplay();
+                    }
+                }, err => console.warn("settings listener:", err));
+
+                if (requestsUnsubscribe) requestsUnsubscribe();
+                requestsUnsubscribe = db.collection('withdrawRequests')
+                    .where('userId', '==', currentUser.id)
+                    .onSnapshot(qs => {
+                        allRequests = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+                        renderHistory();
+                    }, err => console.warn("requests listener:", err));
+
+                setupAdminListeners();
+                setupLeaderboardListener();
+
+                document.getElementById('fbStatus').innerText = "✅ Connected";
+                document.getElementById('fbStatus').style.color = "#10b981";
+
+            } catch (e) {
+                console.error("Firebase sync error:", e);
+                document.getElementById('fbStatus').innerText = "Error: " + e.message;
+                document.getElementById('fbStatus').style.color = "#f43f5e";
+            }
+        }
+
+        function addCoinsToFirebase(coinDelta, mmkDelta) {
+            if (!firebaseReady) {
+                localStorage.setItem('user_coins', coins);
+                localStorage.setItem('user_mmk', mmkBalance);
+                return;
+            }
+            const payload = { lastSeen: firebase.firestore.FieldValue.serverTimestamp() };
+            if (coinDelta) payload.coins = firebase.firestore.FieldValue.increment(coinDelta);
+            if (mmkDelta) payload.mmk = firebase.firestore.FieldValue.increment(mmkDelta);
+
+            db.collection('users').doc(currentUser.id).update(payload)
+              .then(() => {
+                  if (coinDelta) lastKnownServerCoins = (lastKnownServerCoins || 0) + coinDelta;
+                  if (mmkDelta) lastKnownServerMmk = (lastKnownServerMmk || 0) + mmkDelta;
+              })
+              .catch(e => {
+                  localStorage.setItem('user_coins', coins);
+                  localStorage.setItem('user_mmk', mmkBalance);
+              });
+        }
+
+        function setupAdminListeners() {
+            if (!firebaseReady) return;
+            if (usersListUnsubscribe) usersListUnsubscribe();
+            usersListUnsubscribe = db.collection('users').onSnapshot(qs => {
+                allUsers = qs.docs.map(d => {
+                    const data = d.data();
+                    return {
+                        id: d.id, name: data.name || "Unknown",
+                        photo: data.photo || "", coins: data.coins || 0,
+                        mmk: data.mmk || 0, active: data.active !== false
+                    };
+                });
+                allUsers.sort((a, b) => (b.active - a.active) || (b.coins - a.coins));
+                renderUserList();
+            }, err => console.warn("users list:", err));
+
+            if (adminReqsUnsubscribe) adminReqsUnsubscribe();
+            adminReqsUnsubscribe = db.collection('withdrawRequests').onSnapshot(qs => {
+                const adminReqs = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderAdminRequestsFromList(adminReqs);
+            }, err => console.warn("admin requests:", err));
+        }
+
+        function getTodayKey() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        async function recordAdWatch(coinsEarned) {
+            if (!firebaseReady) return;
+            const todayKey = getTodayKey();
+            const docId = `${currentUser.id}_${todayKey}`;
+            try {
+                await db.collection('adWatches').doc(docId).set({
+                    userId: currentUser.id, name: currentUser.name,
+                    username: currentUser.username, photo: currentUser.photo,
+                    date: todayKey,
+                    count: firebase.firestore.FieldValue.increment(1),
+                    totalCoins: firebase.firestore.FieldValue.increment(coinsEarned || 0),
+                    lastWatch: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (e) { console.warn("recordAdWatch:", e); }
+        }
+
+        function setupLeaderboardListener() {
+            if (!firebaseReady) return;
+            const todayKey = getTodayKey();
+            if (leaderboardUnsubscribe) leaderboardUnsubscribe();
+            leaderboardUnsubscribe = db.collection('adWatches')
+                .where('date', '==', todayKey)
+                .onSnapshot(qs => {
+                    const records = qs.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderLeaderboard(records);
+                }, err => {
+                    renderLeaderboard([]);
+                });
+        }
+
+        function renderLeaderboard(records) {
+            const topContainer = document.getElementById('lbTopCardContainer');
+            const miniList = document.getElementById('lbMiniList');
+            if (!topContainer || !miniList) return;
+
+            if (!records || records.length === 0) {
+                topContainer.innerHTML = '<div class="lb-empty">🎯 ယနေ့ ဘယ်သူမှ မကြည့်ရသေးပါ<br>ပထမဆုံး ကြည့်သူ ဖြစ်လိုက်ပါ!</div>';
+                miniList.innerHTML = '';
+                return;
+            }
+
+            records.sort((a, b) => (b.count || 0) - (a.count || 0));
+            const top1 = records[0];
+            const top2to5 = records.slice(1, 5);
+            const isMeTop = top1.userId === currentUser.id;
+
+            topContainer.innerHTML = `
+                <div class="lb-top-card">
+                    <div style="font-size: 20px;">🥇</div>
+                    <img class="lb-top-avatar" src="${top1.photo || ''}" onerror="this.src='https://ui-avatars.com/api/?name=User&background=ffd700&color=fff&size=120'" alt="top1">
+                    <div class="lb-top-info">
+                        <div class="lb-top-name">${top1.name || 'User'}${isMeTop ? ' (You)' : ''}</div>
+                        <div class="lb-top-user">${top1.username || ''}</div>
+                    </div>
+                    <span class="lb-top-count">👁️ ${top1.count || 0}</span>
+                </div>
+            `;
+
+            let miniHtml = '';
+            top2to5.forEach((r, idx) => {
+                const rank = idx + 2;
+                const medal = rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+                const isMe = r.userId === currentUser.id;
+                miniHtml += `
+                    <div class="lb-mini-row">
+                        <div>${medal} ${r.name || 'User'}${isMe ? ' (You)' : ''}</div>
+                        <div>${r.count || 0} ads</div>
+                    </div>
+                `;
+            });
+            miniList.innerHTML = miniHtml;
         }
 
         function toggleDarkMode() {
             isDarkMode = !isDarkMode;
             localStorage.setItem('dark_mode', isDarkMode);
-            if (isDarkMode) {
-                document.body.classList.add('dark-mode');
-            } else {
-                document.body.classList.remove('dark-mode');
-            }
-        }
-
-        function openSettingsModal() {
-            document.getElementById('settingsModal').style.display = 'flex';
+            document.body.classList.toggle('dark-mode', isDarkMode);
         }
 
         function switchTab(tabName) {
             ['homeTab', 'marketTab', 'tasksTab', 'profileTab'].forEach(t => document.getElementById(t).classList.remove('active'));
             ['navHome', 'navMarket', 'navTasks', 'navProfile'].forEach(n => document.getElementById(n).classList.remove('active'));
-
             document.getElementById(tabName + 'Tab').classList.add('active');
             document.getElementById('nav' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
-            
-            if (tabName === 'profile') {
-                renderHistory();
-            }
+            if (tabName === 'profile') renderHistory();
         }
 
         function toggleLang() {
@@ -713,7 +690,7 @@
                 document.getElementById('tEarnCoinTitle').innerText = "ဒင်္ဂါးပြား ရှာရန် (ကြော်ငြာ)";
                 document.getElementById('homeWatchBtn').innerText = "ကြည့်မည် (၂၀ စက္ကန့်)";
                 document.getElementById('tWithdrawBtn').innerHTML = "<span>💸 KBZ / Wave သို့ ငွေထုတ်မည်</span><span>➔</span>";
-                document.getElementById('tTaskHeader').innerText = "📋 တာဝန်များ (တာဝန် ၁၀ ခု)";
+                document.getElementById('tTaskHeader').innerText = "📋 တာဝန်များ (တာဝန်တစ်ဆယ်)";
                 document.getElementById('tTaskSub').innerText = "တာဝန်တစ်ခုလျှင် ၂၀ စက္ကန့်ကြည့်၍ Claim ပါ";
                 document.getElementById('tNavHome').innerText = "ပင်မ";
                 document.getElementById('tNavMarket').innerText = "စျေးကွက်";
@@ -733,36 +710,84 @@
         }
 
         function updateMarketRateDisplay() {
-            let rateText = `Live Base Rate: ${settings.exCoins} Coins = ${settings.exMmk} MMK`;
-            document.getElementById('marketRateDisplay').innerText = rateText;
+            document.getElementById('marketRateDisplay').innerText = `Live Base Rate: ${settings.exCoins} Coins = ${settings.exMmk} MMK`;
+        }
+
+        const marketPairs = [
+            { sym: 'BTC', base: 68000, vol: 0.8 },
+            { sym: 'ETH', base: 3500, vol: 1.0 },
+            { sym: 'COIN', base: 0, vol: 0.6, isMain: true },
+            { sym: 'MMK', base: 2100, vol: 0.3 },
+            { sym: 'GOLD', base: 2050, vol: 0.5 },
+            { sym: 'USDT', base: 1.00, vol: 0.1 }
+        ];
+        let marketState = {}, marketPrev = {}, tickerTimer = null, waveTimer = null;
+
+        function updateTicker() {
+            const track = document.getElementById('stockTickerTrack');
+            if (!track) return;
+            let html = '';
+            marketPairs.forEach(pair => {
+                const price = marketState[pair.sym], prev = marketPrev[pair.sym];
+                if (price !== undefined) {
+                    const diff = prev !== undefined ? price - prev : 0;
+                    html += `<span class="ticker-item"><span class="sym">${pair.sym}</span> <span class="${diff >= 0 ? 'up' : 'down'}">$${price.toFixed(2)}</span></span>`;
+                }
+            });
+            track.innerHTML = html + html;
+        }
+
+        function updatePriceBoard() {
+            const board = document.getElementById('priceBoard');
+            if (!board) return;
+            let html = '';
+            marketPairs.forEach(pair => {
+                const price = marketState[pair.sym], prev = marketPrev[pair.sym];
+                if (price === undefined) return;
+                const diff = prev !== undefined ? price - prev : 0;
+                html += `<div class="price-cell"><div class="pair">${pair.sym}${pair.isMain ? ' ⭐' : ''}</div><div class="price ${diff >= 0 ? 'price-up' : 'price-down'}">$${price.toFixed(2)}</div></div>`;
+            });
+            board.innerHTML = html;
+        }
+
+        function updateWaveBars() {
+            const waveBox = document.getElementById('waveVisualizer');
+            if (!waveBox) return;
+            let html = '';
+            for (let i = 0; i < 20; i++) {
+                const h = 6 + Math.random() * 24;
+                html += `<div class="wave-bar" style="height:${h}px; background:#3b82f6;"></div>`;
+            }
+            waveBox.innerHTML = html;
+        }
+
+        function updateExactPrice() {
+            const box = document.getElementById('exactMarketPrice');
+            if (!box) return;
+            const basePerCoin = settings.exMmk / settings.exCoins;
+            box.innerHTML = `Current Dynamic Value: <span style="color:#10b981;">${basePerCoin.toFixed(4)} MMK</span> per 1 Coin`;
         }
 
         function startDigitalTickerAndWaves() {
-            let ticker = document.getElementById('marketTicker');
-            let waveBox = document.getElementById('waveVisualizer');
-            let exactPriceBox = document.getElementById('exactMarketPrice');
-
-            const waveChars = ["▂▄▆█▇▅▄▂▃▅▆▇", "▃▅▇█▇▅▄▃▂▄▆█", "█▇▆▅▄▃▂ ▂▃▄▅", "▅▄▃▂ ▂▃▄▅▆▇█"];
-            let step = 0;
-
-            setInterval(() => {
-                let basePerCoin = settings.exMmk / settings.exCoins;
-                let fluctuation = (Math.random() * 0.4 - 0.2);
-                let dynamicPrice = basePerCoin * (1 + fluctuation / 100);
-                let trendSign = fluctuation >= 0 ? '+' : '';
-
-                waveBox.innerText = waveChars[step % waveChars.length];
-                step++;
-
-                let trendText = fluctuation >= 0 ? '📈 BULLISH (+' + fluctuation.toFixed(2) + '%)' : '📉 BEARISH (' + fluctuation.toFixed(2) + '%)';
-                ticker.innerHTML = `📊 DIGITAL MARKET LIVE | Rate: ${settings.exCoins}C = ${settings.exMmk}MMK | ${trendText}`;
-                
-                exactPriceBox.innerHTML = `Current Dynamic Value: <span style="color:var(--btn-color);">${dynamicPrice.toFixed(4)} MMK</span> per 1 Coin (${trendSign}${fluctuation.toFixed(2)}%)`;
-            }, 3000);
+            marketPairs.forEach(p => {
+                marketState[p.sym] = p.isMain ? (settings.exMmk / settings.exCoins) : p.base;
+                marketPrev[p.sym] = marketState[p.sym];
+            });
+            updateTicker(); updatePriceBoard(); updateWaveBars(); updateExactPrice();
+            if (tickerTimer) clearInterval(tickerTimer);
+            tickerTimer = setInterval(() => {
+                marketPairs.forEach(p => {
+                    marketPrev[p.sym] = marketState[p.sym];
+                    marketState[p.sym] *= (1 + (Math.random() * 0.4 - 0.2) / 100);
+                });
+                updateTicker(); updatePriceBoard();
+            }, 2000);
+            if (waveTimer) clearInterval(waveTimer);
+            waveTimer = setInterval(updateWaveBars, 400);
         }
 
         function checkAdLimitReset() {
-            let now = Date.now();
+            const now = Date.now();
             if (now >= adLimitData.resetTime) {
                 adLimitData.count = 0;
                 adLimitData.resetTime = now + 86400000;
@@ -771,194 +796,211 @@
         }
 
         function calcExchange() {
-            let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
-            let rateMultiplier = settings.exMmk / settings.exCoins;
-            let mmk = val * rateMultiplier;
-            document.getElementById('previewMmk').innerText = mmk.toFixed(2);
+            const val = parseInt(document.getElementById('convertCoinInput').value) || 0;
+            const rateMultiplier = settings.exMmk / settings.exCoins;
+            document.getElementById('previewMmk').innerText = (val * rateMultiplier).toFixed(2);
         }
 
         function executeCoinExchange() {
             if (!settings.marketOpen) {
-                alert(lang === 'eng' ? 'Market is currently closed by Admin.' : 'စျေးကွက်ကို အက်မင်မှ ခေတ္တပိတ်ထားပါသည်။');
+                alert('Market is currently closed.');
                 return;
             }
-            let cInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
+            const cInput = parseInt(document.getElementById('convertCoinInput').value) || 0;
             if (cInput <= 0 || cInput > coins) {
-                alert(lang === 'eng' ? 'Invalid coin amount or insufficient balance.' : 'ထည့်သွင်းထားသော ပမာဏ မမှန်ကန်ပါ သို့မဟုတ် လက်ကျန် မလုံလောက်ပါ။');
+                alert('Invalid coin amount or insufficient balance.');
                 return;
             }
-            let rateMultiplier = settings.exMmk / settings.exCoins;
-            let mmkEarned = cInput * rateMultiplier;
+            const rateMultiplier = settings.exMmk / settings.exCoins;
+            const mmkEarned = cInput * rateMultiplier;
             coins -= cInput;
             mmkBalance += mmkEarned;
             updateUI();
+            addCoinsToFirebase(-cInput, mmkEarned);
             document.getElementById('convertCoinInput').value = '';
-            alert((lang === 'eng' ? 'Successfully exchanged to ' : 'အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ - ') + mmkEarned.toFixed(2) + ' MMK');
+            showToast('✅ ' + mmkEarned.toFixed(2) + ' MMK', 'success');
         }
 
         function triggerNextRotatedAd() {
             if (settings.adLinks && settings.adLinks.length > 0) {
-                let linkToOpen = settings.adLinks[currentAdIndex];
+                const linkToOpen = settings.adLinks[currentAdIndex];
                 window.open(linkToOpen, '_blank');
                 currentAdIndex = (currentAdIndex + 1) % settings.adLinks.length;
                 localStorage.setItem('current_ad_rotation_index', currentAdIndex);
             }
         }
 
-        function startAdTimer(rewardCoins, isHomeAd, callback) {
+        function saveAdSession(session) { localStorage.setItem('active_ad_session', JSON.stringify(session)); }
+        function getActiveAdSession() { const data = localStorage.getItem('active_ad_session'); return data ? JSON.parse(data) : null; }
+        function clearActiveAdSession() { localStorage.removeItem('active_ad_session'); }
+
+        function startAdTimer(rewardCoins, isHomeAd, callback, taskId) {
             if (isHomeAd) {
                 checkAdLimitReset();
                 if (adLimitData.count >= 50) {
-                    alert(lang === 'eng' ? 'Daily limit of 50 ads reached. Please try again after 24 hours.' : 'ယနေ့အတွက် ကြော်ငြာကြည့်ရှုမှု အကြိမ် ၅၀ ပြည့်သွားပါပြီ။ ၂၄ နာရီပြည့်မှ ပြန်လည်ကြည့်ရှုနိုင်ပါသည်။');
+                    alert('Daily limit reached.');
                     return;
                 }
             }
-
             triggerNextRotatedAd();
+            const session = {
+                sessionId: 'ad_' + Date.now(),
+                startTime: Date.now(),
+                duration: 20,
+                rewardCoins: rewardCoins,
+                isHomeAd: isHomeAd,
+                isTask: !!taskId,
+                taskId: taskId || null
+            };
+            saveAdSession(session);
+            runAdCountdown(session);
+            if (callback) window._adSessionCallback = callback;
+        }
 
-            let modal = document.getElementById('adModal');
+        function runAdCountdown(session) {
+            let modal = document.getElementById('adOverlayModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'adOverlayModal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px;';
+                document.body.appendChild(modal);
+            }
             modal.style.display = 'flex';
-            let timeLeft = 20;
-            document.getElementById('countdownNum').innerText = timeLeft;
 
-            let timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('countdownNum').innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    modal.style.display = 'none';
-
-                    if (isHomeAd) {
-                        adLimitData.count++;
-                        localStorage.setItem('ad_limit_data', JSON.stringify(adLimitData));
-                        updateUI();
-                    }
-
-                    if (rewardCoins > 0) {
-                        coins += rewardCoins;
-                        updateUI();
-                    }
-                    if (callback) callback();
+            const updateTimerDisplay = () => {
+                const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+                const remaining = session.duration - elapsed;
+                if (remaining <= 0) {
+                    modal.innerHTML = '<div style="background:#1e293b; padding:24px; border-radius:16px;"><h2>🎉 ကြော်ငြာကြည့်ရှုပြီးပါပြီ!</h2><button id="claimAdBtn" style="background:#10b981; color:white; border:none; padding:10px 20px; border-radius:8px; margin-top:12px; font-weight:800; cursor:pointer;">ဆုရယူမည်</button></div>';
+                    document.getElementById('claimAdBtn').onclick = () => {
+                        modal.style.display = 'none';
+                        completeAdSession(session);
+                    };
+                    return true;
+                } else {
+                    modal.innerHTML = '<div style="background:#1e293b; padding:24px; border-radius:16px;"><h3>⏳ ကြော်ငြာကြည့်ရှုနေဆဲ...</h3><div style="font-size:40px; font-weight:900; color:#38bdf8; margin:10px 0;">' + remaining + 's</div></div>';
+                    return false;
                 }
+            };
+
+            if (updateTimerDisplay()) return;
+            const interval = setInterval(() => {
+                if (updateTimerDisplay()) clearInterval(interval);
             }, 1000);
         }
 
-        function watchHomeAd() {
-            startAdTimer(settings.homeCoin, true, () => {
-                alert((lang === 'eng' ? 'Earned ' : 'ရရှိသွားပါပြီ - ') + settings.homeCoin + ' Coins! (Count: ' + adLimitData.count + '/50)');
-            });
+        function checkPendingAdSession() {
+            const session = getActiveAdSession();
+            if (session) runAdCountdown(session);
         }
 
+        function completeAdSession(session) {
+            clearActiveAdSession();
+            if (session.isHomeAd) {
+                coins += session.rewardCoins;
+                adLimitData.count++;
+                localStorage.setItem('ad_limit_data', JSON.stringify(adLimitData));
+                updateUI();
+                addCoinsToFirebase(session.rewardCoins, 0);
+                recordAdWatch(session.rewardCoins);
+                showToast('✅ +' + session.rewardCoins + ' Coins!', 'success');
+            } else if (session.isTask && session.taskId) {
+                taskStates[session.taskId] = 'claim';
+                localStorage.setItem('task_states', JSON.stringify(taskStates));
+                renderTasks();
+                showToast('✅ တာဝန်ပြီးဆုံးပါပြီ!', 'success');
+            }
+            if (window._adSessionCallback) {
+                window._adSessionCallback();
+                window._adSessionCallback = null;
+            }
+        }
+
+        function watchHomeAd() { startAdTimer(settings.homeCoin, true, () => {}, null); }
+
         function renderTasks() {
-            let container = document.getElementById('taskListContainer');
+            const container = document.getElementById('taskListContainer');
+            if (!container) return;
             container.innerHTML = '';
             for (let i = 1; i <= 10; i++) {
-                let state = taskStates[i] || 'watch';
-                let btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
-                let isDisabled = state === 'done' ? 'disabled' : '';
-
-                let div = document.createElement('div');
-                div.className = 'card-item';
-                div.innerHTML = `
-                    <div class="card-info">
-                        <h4>Task #${i}</h4>
-                        <p>Watch 20s ad & claim ${settings.taskCoin} coins</p>
-                    </div>
-                    <button class="card-btn" ${isDisabled} onclick="handleTask(${i})">${btnText}</button>
-                `;
-                container.appendChild(div);
+                const state = taskStates[i] || 'watch';
+                const btnText = state === 'watch' ? 'Watch (20s)' : state === 'claim' ? 'Claim' : 'Done';
+                const isDisabled = state === 'done' ? 'disabled' : '';
+                container.innerHTML += `<div class="card-item"><div class="card-info"><h4>Task #${i}</h4><p>Claim ${settings.taskCoin} coins</p></div><button class="card-btn" ${isDisabled} onclick="handleTask(${i})">${btnText}</button></div>`;
             }
         }
 
         function handleTask(taskId) {
-            let state = taskStates[taskId] || 'watch';
+            const state = taskStates[taskId] || 'watch';
             if (state === 'watch') {
-                startAdTimer(0, false, () => {
-                    taskStates[taskId] = 'claim';
-                    localStorage.setItem('task_states', JSON.stringify(taskStates));
-                    renderTasks();
-                    alert(lang === 'eng' ? 'Ad finished! Click Claim to get your coins.' : 'ကြော်ငြာကြည့်ရှုပြီးပါပြီ။ Claim ကိုနှိပ်၍ ဆုလာဘ်ရယူပါ။');
-                });
+                startAdTimer(0, false, null, taskId);
             } else if (state === 'claim') {
                 coins += settings.taskCoin;
                 taskStates[taskId] = 'done';
                 localStorage.setItem('task_states', JSON.stringify(taskStates));
                 updateUI();
+                addCoinsToFirebase(settings.taskCoin, 0);
+                recordAdWatch(settings.taskCoin);
                 renderTasks();
-                alert((lang === 'eng' ? 'Claimed ' : 'ရရှိသွားပါပြီ - ') + settings.taskCoin + ' Coins!');
+                showToast('✅ +' + settings.taskCoin + ' Coins!', 'success');
             }
         }
 
         function openWithdrawModal() {
-            if (!settings.withdrawOpen) {
-                alert(lang === 'eng' ? 'Withdrawals are currently closed by Admin.' : 'ငွေထုတ်ယူခြင်းကို အက်မင်မှ ခေတ္တပိတ်ထားပါသည်။');
-                return;
-            }
+            if (!settings.withdrawOpen) { alert('Withdrawals closed.'); return; }
             document.getElementById('withdrawModal').style.display = 'flex';
         }
+        function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
 
-        function closeWithdrawModal() {
-            document.getElementById('withdrawModal').style.display = 'none';
-        }
-
-        function submitWithdrawal() {
-            let bank = document.getElementById('withdrawBank').value;
-            let phone = document.getElementById('withdrawPhone').value.trim();
-            let amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
-
-            let rateMultiplier = settings.exMmk / settings.exCoins;
-            let requiredCoins = amountMmk / rateMultiplier;
+        async function submitWithdrawal() {
+            const bank = document.getElementById('withdrawBank').value;
+            const phone = document.getElementById('withdrawPhone').value.trim();
+            const amountMmk = parseFloat(document.getElementById('withdrawMmkAmount').value) || 0;
+            const rateMultiplier = settings.exMmk / settings.exCoins;
+            const requiredCoins = amountMmk / rateMultiplier;
 
             if (!phone || amountMmk <= 0 || coins < requiredCoins) {
-                alert(lang === 'eng' ? 'Please enter valid details and ensure you have enough coins.' : 'ဖုန်းနံပတ် မှန်ကန်စွာထည့်ပါနှင့် လုံလောက်သော ဒင်္ဂါးပြား မရှိပါ။');
+                alert('Invalid details or insufficient coins.');
                 return;
             }
 
             coins -= Math.ceil(requiredCoins);
             updateUI();
+            addCoinsToFirebase(-Math.ceil(requiredCoins), 0);
 
-            let reqId = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
-            let reqObj = {
-                reqId: reqId,
-                userId: currentUser.id,
-                name: currentUser.name,
-                bank: bank,
-                phone: phone,
-                amount: amountMmk,
-                status: 'Pending'
-            };
+            const reqId = 'REQ-' + Math.floor(100000 + Math.random() * 900000);
+            const reqObj = { reqId, userId: currentUser.id, name: currentUser.name, bank, phone, amount: amountMmk, status: 'Pending', createdAt: Date.now() };
 
-            allRequests.push(reqObj);
-            localStorage.setItem('admin_withdraw_requests', JSON.stringify(allRequests));
-
+            if (firebaseReady) {
+                try { await db.collection('withdrawRequests').doc(reqId).set(reqObj); } catch (e) {}
+            } else {
+                allRequests.push(reqObj);
+                localStorage.setItem('admin_withdraw_requests', JSON.stringify(allRequests));
+            }
             closeWithdrawModal();
-            alert(lang === 'eng' ? 'Withdrawal request submitted successfully!' : 'ငွေထုတ်ယူရန် တောင်းဆိုမှု အောင်မြင်ပါသည်။');
+            showToast('✅ Request submitted!', 'success');
         }
 
         function renderHistory() {
-            let container = document.getElementById('historyListContainer');
+            const container = document.getElementById('historyListContainer');
+            if (!container) return;
             container.innerHTML = '';
             let userReqs = allRequests.filter(r => r.userId === currentUser.id);
             if (userReqs.length === 0) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.6;">No history yet.</p>';
+                userReqs = (JSON.parse(localStorage.getItem('admin_withdraw_requests')) || []).filter(r => r.userId === currentUser.id);
+            }
+            if (userReqs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-sub); font-size:12px;">No history yet.</p>';
                 return;
             }
             userReqs.forEach(r => {
-                let d = document.createElement('div');
-                d.style.borderBottom = '1px solid rgba(0,0,0,0.1)';
-                d.style.padding = '4px 0';
-                d.innerHTML = `<b>${r.bank}</b> (${r.phone}) - ${r.amount} MMK <br><span style="color:${r.status === 'Sent' ? '#388e3c' : '#bc6c25'}">[Status: ${r.status}]</span>`;
-                container.appendChild(d);
+                container.innerHTML += `<div style="border-bottom:1px solid var(--border); padding:6px 0; font-size:12px; font-weight:700;"><b>${r.bank}</b> (${r.phone}) - ${r.amount} MMK <br><span style="color:${r.status === 'Sent' ? '#10b981' : '#8b5cf6'};">[Status: ${r.status}]</span></div>`;
             });
         }
 
         function checkAdminPassword() {
-            let pwd = prompt("Admin စကားဝှက် ထည့်ပါ:");
-            if (pwd === "13579") {
-                openAdminModal();
-            } else if (pwd !== null) {
-                alert("စကားဝှက် မှားယွင်းနေပါသည်။");
-            }
+            if (prompt("Admin Password:") === "13579") openAdminModal();
+            else alert("Incorrect password.");
         }
 
         function openAdminModal() {
@@ -970,15 +1012,12 @@
             document.getElementById('admWithdrawStatus').value = settings.withdrawOpen ? 'open' : 'closed';
             renderAdminLinks();
             renderUserList();
-            renderAdminRequests();
             document.getElementById('adminModal').style.display = 'flex';
         }
 
-        function closeAdminModal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
+        function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
 
-        function saveAdminSettings() {
+        async function saveAdminSettings() {
             settings.homeCoin = parseInt(document.getElementById('admHomeCoin').value) || 10;
             settings.taskCoin = parseInt(document.getElementById('admTaskCoin').value) || 5;
             settings.exCoins = parseInt(document.getElementById('admExCoins').value) || 1000;
@@ -986,15 +1025,19 @@
             settings.marketOpen = document.getElementById('admMarketStatus').value === 'open';
             settings.withdrawOpen = document.getElementById('admWithdrawStatus').value === 'open';
             localStorage.setItem('admin_settings', JSON.stringify(settings));
-            alert('Admin settings saved successfully!');
+
+            if (firebaseReady) {
+                try { await db.collection('settings').doc('app').set(settings, { merge: true }); } catch (e) {}
+            }
+            alert('Settings saved!');
             closeAdminModal();
             updateUI();
             updateMarketRateDisplay();
         }
 
-        function addAdLink() {
-            let input = document.getElementById('newAdLink');
-            let val = input.value.trim();
+        async function addAdLink() {
+            const input = document.getElementById('newAdLink');
+            const val = input.value.trim();
             if (val) {
                 settings.adLinks.push(val);
                 input.value = '';
@@ -1010,131 +1053,107 @@
         }
 
         function renderAdminLinks() {
-            let div = document.getElementById('linkList');
+            const div = document.getElementById('linkList');
+            if (!div) return;
             div.innerHTML = '';
             document.getElementById('linkCount').innerText = settings.adLinks.length;
             settings.adLinks.forEach((l, i) => {
-                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>${i+1}. ${l.substring(0,22)}...</span><button onclick="removeAdLink(${i})" style="background:red; color:white; border:none; border-radius:3px; cursor:pointer;">X</button></div>`;
+                div.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:4px; align-items:center;"><span>${i+1}. ${l.substring(0,20)}...</span><button onclick="removeAdLink(${i})" style="background:#f43f5e; color:white; border:none; border-radius:4px; padding:2px 6px;">✕</button></div>`;
             });
         }
 
         function renderUserList() {
-            let query = document.getElementById('searchUserQuery').value.toLowerCase();
-            let activeContainer = document.getElementById('activeUserListContainer');
-            let inactiveContainer = document.getElementById('inactiveUserListContainer');
-            
+            const query = (document.getElementById('searchUserQuery').value || '').toLowerCase();
+            const activeContainer = document.getElementById('activeUserListContainer');
+            const inactiveContainer = document.getElementById('inactiveUserListContainer');
             activeContainer.innerHTML = '';
             inactiveContainer.innerHTML = '';
 
-            let total = allUsers.length;
-            let activeUsersArr = allUsers.filter(u => u.active);
-            let inactiveUsersArr = allUsers.filter(u => !u.active);
+            const activeArr = allUsers.filter(u => u.active && (u.name.toLowerCase().includes(query) || u.id.includes(query)));
+            const inactiveArr = allUsers.filter(u => !u.active && (u.name.toLowerCase().includes(query) || u.id.includes(query)));
 
-            document.getElementById('statTotal').innerText = total;
-            document.getElementById('statActive').innerText = activeUsersArr.length;
-            document.getElementById('statInactive').innerText = inactiveUsersArr.length;
+            document.getElementById('statTotal').innerText = allUsers.length;
+            document.getElementById('statActive').innerText = allUsers.filter(u => u.active).length;
+            document.getElementById('statInactive').innerText = allUsers.filter(u => !u.active).length;
 
-            let filteredActive = activeUsersArr.filter(u => u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
-            let filteredInactive = inactiveUsersArr.filter(u => u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
-
-            if (filteredActive.length === 0) {
-                activeContainer.innerHTML = '<p style="text-align:center; opacity:0.6; margin:4px 0;">No active users found.</p>';
-            } else {
-                filteredActive.forEach(u => {
-                    let d = document.createElement('div');
-                    d.style.display = 'flex';
-                    d.style.justify = 'space-between';
-                    d.style.alignItems = 'center';
-                    d.style.marginBottom = '4px';
-                    d.style.borderBottom = '1px solid rgba(0,0,0,0.08)';
-                    d.style.paddingBottom = '2px';
-                    d.innerHTML = `
-                        <span><b>${u.name}</b> <span style="opacity:0.7;">(ID: ${u.id})</span></span>
-                        <button onclick="toggleUserBan('${u.id}')" style="background:#d32f2f; color:white; border:none; border-radius:3px; cursor:pointer; padding:2px 6px; font-weight:bold;">Ban</button>
-                    `;
-                    activeContainer.appendChild(d);
-                });
-            }
-
-            if (filteredInactive.length === 0) {
-                inactiveContainer.innerHTML = '<p style="text-align:center; opacity:0.6; margin:4px 0;">No banned/inactive users.</p>';
-            } else {
-                filteredInactive.forEach(u => {
-                    let d = document.createElement('div');
-                    d.style.display = 'flex';
-                    d.style.justify = 'space-between';
-                    d.style.alignItems = 'center';
-                    d.style.marginBottom = '4px';
-                    d.style.borderBottom = '1px solid rgba(0,0,0,0.08)';
-                    d.style.paddingBottom = '2px';
-                    d.innerHTML = `
-                        <span><b>${u.name}</b> <span style="opacity:0.7;">(ID: ${u.id})</span></span>
-                        <button onclick="toggleUserBan('${u.id}')" style="background:#388e3c; color:white; border:none; border-radius:3px; cursor:pointer; padding:2px 6px; font-weight:bold;">Unban</button>
-                    `;
-                    inactiveContainer.appendChild(d);
-                });
-            }
+            activeArr.forEach(u => {
+                activeContainer.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span><b>${u.name}</b> (${u.coins} c)</span><button onclick="toggleUserBan('${u.id}')" style="background:#f43f5e; color:white; border:none; padding:2px 6px; border-radius:4px;">Ban</button></div>`;
+            });
+            inactiveArr.forEach(u => {
+                inactiveContainer.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span><b>${u.name}</b></span><button onclick="toggleUserBan('${u.id}')" style="background:#10b981; color:white; border:none; padding:2px 6px; border-radius:4px;">Unban</button></div>`;
+            });
         }
 
-        function toggleUserBan(id) {
-            let u = allUsers.find(item => item.id === id);
+        async function toggleUserBan(id) {
+            const u = allUsers.find(item => item.id === id);
             if (u) {
                 u.active = !u.active;
-                localStorage.setItem('all_users_db', JSON.stringify(allUsers));
+                if (firebaseReady) await db.collection('users').doc(id).update({ active: u.active });
                 renderUserList();
             }
         }
 
-        function applyUserAdjustment() {
-            let uid = document.getElementById('adjUserId').value.trim();
-            let cAdd = parseInt(document.getElementById('adjCoinVal').value) || 0;
-            let mAdd = parseFloat(document.getElementById('adjMmkVal').value) || 0;
-
-            if (!uid) {
-                alert('Please enter a valid User Telegram ID.');
-                return;
+        async function applyUserAdjustment() {
+            const uid = document.getElementById('adjUserId').value.trim();
+            const cAdd = parseInt(document.getElementById('adjCoinVal').value) || 0;
+            const mAdd = parseFloat(document.getElementById('adjMmkVal').value) || 0;
+            if (!uid) return;
+            if (firebaseReady) {
+                const ref = db.collection('users').doc(uid);
+                const snap = await ref.get();
+                if (snap.exists) {
+                    const d = snap.data();
+                    await ref.update({ coins: Math.max(0, (d.coins || 0) + cAdd), mmk: Math.max(0, (d.mmk || 0) + mAdd) });
+                    alert('Adjusted successfully.');
+                }
             }
-
-            if (uid === currentUser.id) {
-                coins += cAdd;
-                mmkBalance += mAdd;
-                if (coins < 0) coins = 0;
-                if (mmkBalance < 0) mmkBalance = 0;
-                updateUI();
-                alert(`Successfully adjusted for current user.`);
-            } else {
-                alert(`Manual adjustment for User ID ${uid} registered successfully.`);
-            }
-            document.getElementById('adjUserId').value = '';
-            document.getElementById('adjCoinVal').value = '';
-            document.getElementById('adjMmkVal').value = '';
         }
 
-        function renderAdminRequests() {
-            let div = document.getElementById('adminWithdrawRequests');
+        function renderAdminRequestsFromList(reqs) {
+            const div = document.getElementById('adminWithdrawRequests');
+            if (!div) return;
             div.innerHTML = '';
-            if (allRequests.length === 0) {
-                div.innerHTML = '<p>No pending requests.</p>';
-                return;
-            }
-            allRequests.forEach((req, index) => {
-                div.innerHTML += `
-                    <div style="border-bottom:1px solid #ccc; padding:4px 0; margin-bottom:4px;">
-                        <b>Name:</b> ${req.name} (ID: ${req.userId})<br>
-                        <b>Bank:</b> ${req.bank} | <b>Phone:</b> ${req.phone}<br>
-                        <b>Amount:</b> ${req.amount} MMK | <b>Status:</b> ${req.status}<br>
-                        ${req.status === 'Pending' ? `<button onclick="approveRequest(${index})" style="background:#388e3c; color:white; border:none; padding:2px 6px; border-radius:4px; margin-top:4px; cursor:pointer;">ငွေပို့ပြီးကြောင်း အတည်ပြုရန် (Approve)</button>` : '<span style="color:green;">✔ Sent</span>'}
-                    </div>
-                `;
+            reqs.forEach(req => {
+                const reqId = req.id || req.reqId;
+                div.innerHTML += `<div style="border-bottom:1px solid var(--border); padding:6px 0;"><b>${req.name}</b> - ${req.amount} MMK [${req.status}] ${req.status === 'Pending' ? `<button onclick="approveRequest('${reqId}')" style="background:#10b981; color:white; border:none; padding:2px 6px; border-radius:4px;">Approve</button>` : ''}</div>`;
             });
         }
 
-        function approveRequest(index) {
-            allRequests[index].status = 'Sent';
-            localStorage.setItem('admin_withdraw_requests', JSON.stringify(allRequests));
-            renderAdminRequests();
-            alert('Request marked as Sent & Confirmed.');
+        async function approveRequest(reqId) {
+            if (firebaseReady) {
+                await db.collection('withdrawRequests').doc(reqId).update({ status: 'Sent' });
+                alert('Approved.');
+            }
         }
+
+        function initUserData() {
+            document.getElementById('headerUserName').innerText = currentUser.name;
+            document.getElementById('headerUserPic').src = currentUser.photo;
+            document.getElementById('profileUserName').innerText = currentUser.name;
+            document.getElementById('profileUserId').innerText = currentUser.id;
+            document.getElementById('profileUserPic').src = currentUser.photo;
+            document.getElementById('profileTelegramUsername').innerText = currentUser.username || '(no username)';
+        }
+
+        function initApp() {
+            if (isDarkMode) document.body.classList.add('dark-mode');
+            checkAdLimitReset();
+            updateUI();
+            renderTasks();
+            updateLanguageText();
+            initUserData();
+            updateMarketRateDisplay();
+            startDigitalTickerAndWaves();
+
+            if (firebaseReady) {
+                setupFirebaseSync();
+            } else {
+                document.getElementById('fbStatus').innerText = "Offline (Local only)";
+            }
+            setTimeout(() => checkPendingAdSession(), 800);
+        }
+
+        initApp();
     </script>
 </body>
 </html>
