@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real money</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Adcash Library Script -->
+    <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+
     <style>
         :root {
             --bg-color: #f7f3ee;
@@ -94,7 +98,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
-        /* Hidden / Secret Admin Trigger */
         .secret-admin-trigger {
             width: 14px;
             height: 14px;
@@ -205,7 +208,6 @@
             cursor: not-allowed;
         }
 
-        /* Digital Wave Market Styles */
         .market-ticker {
             background: var(--card-bg);
             color: var(--btn-color);
@@ -339,7 +341,6 @@
             <div class="top-btns">
                 <button class="icon-btn" onclick="toggleLang()" id="langBtn">ENG</button>
                 <button class="icon-btn" onclick="openSettingsModal()">⚙️</button>
-                <!-- Secret Hidden Admin Trigger -->
                 <div class="secret-admin-trigger" onclick="checkAdminPassword()" title="Admin Panel"></div>
             </div>
         </div>
@@ -376,7 +377,6 @@
                 <p id="marketRateDisplay" style="font-size:12px; opacity:0.8;">Live Rate: Loading...</p>
             </div>
 
-            <!-- Digital Wave Visualizer & Value Display -->
             <div class="market-wave-box">
                 <div style="font-size: 11px; font-weight: bold; opacity: 0.8; margin-bottom: 2px;">⚡ DIGITAL WAVE PULSE & EXACT VALUE</div>
                 <div class="wave-visualizer" id="waveVisualizer">▂▄▆█▇▅▄▂▃▅▆▇</div>
@@ -591,6 +591,13 @@
         </div>
     </div>
 
+    <!-- Adcash Autotag Execution Script -->
+    <script type="text/javascript">
+        aclib.runAutoTag({
+            zoneId: '60utymu2le',
+        });
+    </script>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -610,10 +617,8 @@
             adLinks: ["https://example.com/ad1", "https://example.com/ad2"]
         };
 
-        // Ad Rotation Index Tracking
         let currentAdIndex = parseInt(localStorage.getItem('current_ad_rotation_index')) || 0;
 
-        // 50 ads limit logic per 24 hours
         let adLimitData = JSON.parse(localStorage.getItem('ad_limit_data')) || {
             count: 0,
             resetTime: Date.now() + 86400000
@@ -732,7 +737,6 @@
             document.getElementById('marketRateDisplay').innerText = rateText;
         }
 
-        // Digital Wave & Price Fluctuation System
         function startDigitalTickerAndWaves() {
             let ticker = document.getElementById('marketTicker');
             let waveBox = document.getElementById('waveVisualizer');
@@ -743,7 +747,7 @@
 
             setInterval(() => {
                 let basePerCoin = settings.exMmk / settings.exCoins;
-                let fluctuation = (Math.random() * 0.4 - 0.2); // -0.2% to +0.2%
+                let fluctuation = (Math.random() * 0.4 - 0.2);
                 let dynamicPrice = basePerCoin * (1 + fluctuation / 100);
                 let trendSign = fluctuation >= 0 ? '+' : '';
 
@@ -761,12 +765,11 @@
             let now = Date.now();
             if (now >= adLimitData.resetTime) {
                 adLimitData.count = 0;
-                adLimitData.resetTime = now + 86400000; // 24 hours
+                adLimitData.resetTime = now + 86400000;
                 localStorage.setItem('ad_limit_data', JSON.stringify(adLimitData));
             }
         }
 
-        // --- MARKET EXCHANGE ---
         function calcExchange() {
             let val = parseInt(document.getElementById('convertCoinInput').value) || 0;
             let rateMultiplier = settings.exMmk / settings.exCoins;
@@ -793,7 +796,6 @@
             alert((lang === 'eng' ? 'Successfully exchanged to ' : 'အောင်မြင်စွာ လဲလှယ်ပြီးပါပြီ - ') + mmkEarned.toFixed(2) + ' MMK');
         }
 
-        // --- ROTATING AD LINKS LOGIC ---
         function triggerNextRotatedAd() {
             if (settings.adLinks && settings.adLinks.length > 0) {
                 let linkToOpen = settings.adLinks[currentAdIndex];
@@ -847,7 +849,6 @@
             });
         }
 
-        // --- TASKS ---
         function renderTasks() {
             let container = document.getElementById('taskListContainer');
             container.innerHTML = '';
@@ -888,7 +889,6 @@
             }
         }
 
-        // --- WITHDRAWAL ---
         function openWithdrawModal() {
             if (!settings.withdrawOpen) {
                 alert(lang === 'eng' ? 'Withdrawals are currently closed by Admin.' : 'ငွေထုတ်ယူခြင်းကို အက်မင်မှ ခေတ္တပိတ်ထားပါသည်။');
@@ -952,7 +952,6 @@
             });
         }
 
-        // --- ADMIN PANEL & USER MANAGEMENT ---
         function checkAdminPassword() {
             let pwd = prompt("Admin စကားဝှက် ထည့်ပါ:");
             if (pwd === "13579") {
@@ -1019,7 +1018,6 @@
             });
         }
 
-        // Split User List into Active vs Inactive with Telegram ID Search & Ban/Unban
         function renderUserList() {
             let query = document.getElementById('searchUserQuery').value.toLowerCase();
             let activeContainer = document.getElementById('activeUserListContainer');
@@ -1036,7 +1034,6 @@
             document.getElementById('statActive').innerText = activeUsersArr.length;
             document.getElementById('statInactive').innerText = inactiveUsersArr.length;
 
-            // Filter by search query (TG ID or Name)
             let filteredActive = activeUsersArr.filter(u => u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
             let filteredInactive = inactiveUsersArr.filter(u => u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
 
